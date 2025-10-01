@@ -1,0 +1,87 @@
+import CoreData
+
+@objc(Ticket)
+public class Ticket: NSManagedObject {}
+
+extension Ticket {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<Ticket> {
+        NSFetchRequest<Ticket>(entityName: "Ticket")
+    }
+    
+    @NSManaged public var id: UUID?
+    @NSManaged public var ticketNumber: Int32
+    @NSManaged public var customerId: UUID?
+    @NSManaged public var deviceType: String?
+    @NSManaged public var deviceModel: String?
+    @NSManaged public var issueDescription: String?
+    @NSManaged public var status: String?
+    @NSManaged public var priority: String?
+    @NSManaged public var notes: String?
+    @NSManaged public var checkedInAt: Date?
+    @NSManaged public var startedAt: Date?
+    @NSManaged public var completedAt: Date?
+    @NSManaged public var pickedUpAt: Date?
+    @NSManaged public var estimatedCompletion: Date?
+    @NSManaged public var createdAt: Date?
+    @NSManaged public var updatedAt: Date?
+}
+
+extension Ticket: Identifiable {}
+
+extension Ticket {
+    static func entityDescription() -> NSEntityDescription {
+        let entity = NSEntityDescription()
+        entity.name = "Ticket"
+        entity.managedObjectClassName = NSStringFromClass(Ticket.self)
+        
+        func makeAttribute(_ name: String, type: NSAttributeType, optional: Bool = true) -> NSAttributeDescription {
+            let attribute = NSAttributeDescription()
+            attribute.name = name
+            attribute.attributeType = type
+            attribute.isOptional = optional
+            return attribute
+        }
+        
+        let idAttribute = makeAttribute("id", type: .UUIDAttributeType, optional: false)
+        let ticketNumberAttribute = makeAttribute("ticketNumber", type: .integer32AttributeType)
+        let customerIdAttribute = makeAttribute("customerId", type: .UUIDAttributeType, optional: false)
+        let deviceTypeAttribute = makeAttribute("deviceType", type: .stringAttributeType)
+        let deviceModelAttribute = makeAttribute("deviceModel", type: .stringAttributeType)
+        let issueDescriptionAttribute = makeAttribute("issueDescription", type: .stringAttributeType)
+        let statusAttribute = makeAttribute("status", type: .stringAttributeType)
+        let priorityAttribute = makeAttribute("priority", type: .stringAttributeType)
+        let notesAttribute = makeAttribute("notes", type: .stringAttributeType)
+        let checkedInAtAttribute = makeAttribute("checkedInAt", type: .dateAttributeType)
+        let startedAtAttribute = makeAttribute("startedAt", type: .dateAttributeType)
+        let completedAtAttribute = makeAttribute("completedAt", type: .dateAttributeType)
+        let pickedUpAtAttribute = makeAttribute("pickedUpAt", type: .dateAttributeType)
+        let estimatedCompletionAttribute = makeAttribute("estimatedCompletion", type: .dateAttributeType)
+        let createdAtAttribute = makeAttribute("createdAt", type: .dateAttributeType, optional: false)
+        let updatedAtAttribute = makeAttribute("updatedAt", type: .dateAttributeType, optional: false)
+        
+        entity.properties = [
+            idAttribute,
+            ticketNumberAttribute,
+            customerIdAttribute,
+            deviceTypeAttribute,
+            deviceModelAttribute,
+            issueDescriptionAttribute,
+            statusAttribute,
+            priorityAttribute,
+            notesAttribute,
+            checkedInAtAttribute,
+            startedAtAttribute,
+            completedAtAttribute,
+            pickedUpAtAttribute,
+            estimatedCompletionAttribute,
+            createdAtAttribute,
+            updatedAtAttribute
+        ]
+        
+        let idIndex = NSFetchIndexDescription(name: "ticket_id_index", elements: [NSFetchIndexElementDescription(property: idAttribute, collationType: .binary)])
+        let customerIndex = NSFetchIndexDescription(name: "ticket_customer_index", elements: [NSFetchIndexElementDescription(property: customerIdAttribute, collationType: .binary)])
+        entity.indexes = [idIndex, customerIndex]
+        
+        return entity
+    }
+}

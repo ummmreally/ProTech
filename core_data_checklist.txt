@@ -1,0 +1,101 @@
+CORE DATA CONFIGURATION CHECKLIST
+==================================
+
+Follow these steps in Xcode. Check off each item as you complete it.
+
+STEP 1: OPEN THE MODEL
+-----------------------
+[ ] In Xcode Project Navigator (left sidebar)
+[ ] Click on "ProTech.xcdatamodeld"
+[ ] The Core Data model editor should open in the main area
+
+ENTITY 1: CUSTOMER
+------------------
+[ ] Click "Add Entity" button (bottom left, + icon)
+[ ] Double-click "Entity" and rename to: Customer
+[ ] Click "+" under Attributes section 13 times
+[ ] Add these attributes (name, type, optional):
+
+    [ ] id - UUID - NO (uncheck optional)
+    [ ] firstName - String - NO
+    [ ] lastName - String - NO
+    [ ] email - String - YES (check optional)
+    [ ] phone - String - YES
+    [ ] address - String - YES
+    [ ] notes - String - YES
+    [ ] createdAt - Date - NO
+    [ ] updatedAt - Date - NO
+    [ ] locationId - UUID - YES
+    [ ] customFields - String - YES
+    [ ] cloudSyncStatus - String - YES
+    [ ] cloudRecordID - String - YES
+
+[ ] Select "Customer" entity in left panel
+[ ] Open Data Model Inspector (View → Inspectors → Data Model or ⌥⌘3)
+[ ] Find "Codegen" dropdown
+[ ] Set to: "Class Definition"
+
+ENTITY 2: FORMTEMPLATE
+----------------------
+[ ] Click "Add Entity" button again
+[ ] Rename to: FormTemplate
+[ ] Add these 7 attributes:
+
+    [ ] id - UUID - NO
+    [ ] name - String - YES
+    [ ] type - String - YES
+    [ ] templateJSON - String - YES
+    [ ] isDefault - Boolean - NO
+    [ ] createdAt - Date - NO
+    [ ] updatedAt - Date - NO
+
+[ ] Select "FormTemplate" entity
+[ ] Data Model Inspector → Codegen → "Class Definition"
+
+ENTITY 3: FORMSUBMISSION
+------------------------
+[ ] Click "Add Entity" button
+[ ] Rename to: FormSubmission
+[ ] Add these 7 attributes:
+
+    [ ] id - UUID - NO
+    [ ] templateId - UUID - NO
+    [ ] customerId - UUID - NO
+    [ ] ticketId - UUID - YES
+    [ ] dataJSON - String - YES
+    [ ] submittedAt - Date - YES
+    [ ] signatureData - Binary Data - YES
+
+[ ] Select "FormSubmission" entity
+[ ] Data Model Inspector → Codegen → "Class Definition"
+
+ENTITY 4: SMSMESSAGE
+--------------------
+[ ] Click "Add Entity" button
+[ ] Rename to: SMSMessage
+[ ] Add these 8 attributes:
+
+    [ ] id - UUID - NO
+    [ ] customerId - UUID - YES
+    [ ] direction - String - YES
+    [ ] body - String - YES
+    [ ] status - String - YES
+    [ ] twilioSid - String - YES
+    [ ] sentAt - Date - NO
+    [ ] deliveredAt - Date - YES
+
+[ ] Select "SMSMessage" entity
+[ ] Data Model Inspector → Codegen → "Class Definition"
+
+FINAL VERIFICATION
+------------------
+[ ] All 4 entities visible in left panel
+[ ] Customer shows 13 attributes
+[ ] FormTemplate shows 7 attributes
+[ ] FormSubmission shows 7 attributes
+[ ] SMSMessage shows 8 attributes
+[ ] All entities have Codegen = "Class Definition"
+[ ] Save the model (⌘S)
+
+DONE! Now proceed to build the project.
+=======================================
