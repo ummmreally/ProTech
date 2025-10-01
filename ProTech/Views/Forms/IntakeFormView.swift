@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreData
+import AppKit
 
 struct IntakeFormView: View {
     @Environment(\.dismiss) private var dismiss
@@ -32,7 +33,7 @@ struct IntakeFormView: View {
     @State private var previousRepairDetails = ""
     @State private var dataBackedUp = false
     @State private var findMyDeviceDisabled = false
-    @State private var customerSignature: UIImage?
+    @State private var customerSignature: NSImage?
     @State private var technicianNotes = ""
     @State private var agreedToTerms = false
     @State private var showingSignaturePad = false
@@ -358,18 +359,15 @@ struct IntakeFormView: View {
         
         newTicket.notes = notes
         
-        // Save signature as form submission
+        // Save signature and form submission
         if let signatureImage = customerSignature,
            let tiffData = signatureImage.tiffRepresentation {
             let submission = FormSubmission(context: viewContext)
             submission.id = UUID()
-            submission.templateId = UUID() // Could link to actual template
-            submission.customerId = customer.id
-            submission.ticketId = newTicket.id
+            submission.formID = newTicket.id
             submission.submittedAt = Date()
             submission.signatureData = tiffData
             
-            // Store form data as JSON
             let formData: [String: Any] = [
                 "deviceType": deviceType,
                 "deviceBrand": deviceBrand,
@@ -387,10 +385,12 @@ struct IntakeFormView: View {
                 "previousRepairDetails": previousRepairDetails,
                 "dataBackedUp": dataBackedUp,
                 "findMyDeviceDisabled": findMyDeviceDisabled,
-                "agreedToTerms": agreedToTerms
+                "agreedToTerms": agreedToTerms,
+                "customerId": customer.id?.uuidString ?? "",
+                "ticketId": newTicket.id?.uuidString ?? ""
             ]
             
-            if let jsonData = try? JSONSerialization.data(withJSONObject: formData),
+            if let jsonData = try? JSONSerialization.data(withJSONObject: formData, options: [.sortedKeys]),
                let jsonString = String(data: jsonData, encoding: .utf8) {
                 submission.dataJSON = jsonString
             }
@@ -435,7 +435,7 @@ struct BulletPoint: View {
 
 struct SignaturePadView: View {
     @Environment(\.dismiss) private var dismiss
-    @Binding var signature: UIImage?
+    @Binding var signature: NSImage?
     @State private var currentPath = Path()
     @State private var paths: [Path] = []
     

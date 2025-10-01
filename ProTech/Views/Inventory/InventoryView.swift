@@ -377,8 +377,8 @@ struct InventoryDetailView: View {
                 }
                 
                 Section("Pricing") {
-                    LabeledContent("Unit Price", value: "$\(item.price, specifier: "%.2f")")
-                    LabeledContent("Total Value", value: "$\(Double(item.quantity) * item.price, specifier: "%.2f")")
+                    LabeledContent("Unit Price", value: String(format: "$%.2f", item.price))
+                    LabeledContent("Total Value", value: String(format: "$%.2f", Double(item.quantity) * item.price))
                 }
                 
                 Section("Additional Info") {
@@ -409,8 +409,8 @@ struct InventoryDetailView: View {
     
     private func saveItem() {
         // Update in UserDefaults
-        if var inventory = UserDefaults.standard.data(forKey: "inventory"),
-           var items = try? JSONDecoder().decode([InventoryItem].self, from: inventory) {
+        if let inventoryData = UserDefaults.standard.data(forKey: "inventory"),
+           var items = try? JSONDecoder().decode([InventoryItem].self, from: inventoryData) {
             if let index = items.firstIndex(where: { $0.id == item.id }) {
                 items[index] = item
                 if let encoded = try? JSONEncoder().encode(items) {

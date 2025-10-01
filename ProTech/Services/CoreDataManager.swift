@@ -24,7 +24,10 @@ class CoreDataManager {
             FormTemplate.entityDescription(),
             FormSubmission.entityDescription(),
             SMSMessage.entityDescription(),
-            Ticket.entityDescription()
+            Ticket.entityDescription(),
+            RepairProgress.entityDescription(),
+            RepairStageRecord.entityDescription(),
+            RepairPartUsage.entityDescription()
         ]
         return model
     }()

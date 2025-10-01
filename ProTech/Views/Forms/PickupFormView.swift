@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreData
+import AppKit
 
 struct PickupFormView: View {
     @Environment(\.dismiss) private var dismiss
@@ -23,7 +24,7 @@ struct PickupFormView: View {
     @State private var customerSatisfied = true
     @State private var warrantyPeriod = 30
     @State private var warrantyNotes = ""
-    @State private var customerSignature: UIImage?
+    @State private var customerSignature: NSImage?
     @State private var showingSignaturePad = false
     @State private var additionalNotes = ""
     @State private var followUpRequired = false
@@ -348,10 +349,6 @@ struct PickupFormView: View {
     
     private func loadTicketData() {
         // Pre-fill from ticket
-        if let notes = ticket.notes {
-            // Parse any existing data
-        }
-        
         // Set default work performed from issue
         if let issue = ticket.issueDescription {
             workPerformed = "Repaired: \(issue)"
@@ -388,20 +385,19 @@ struct PickupFormView: View {
         
         ticket.notes = (ticket.notes ?? "") + pickupNotes
         
-        // Save signature as form submission
+        // Save signature and form submission
         if let signatureImage = customerSignature,
            let tiffData = signatureImage.tiffRepresentation {
             let submission = FormSubmission(context: CoreDataManager.shared.viewContext)
             submission.id = UUID()
-            submission.templateId = UUID()
-            submission.customerId = ticket.customerId
-            submission.ticketId = ticket.id
+            submission.formID = ticket.id
             submission.submittedAt = Date()
             submission.signatureData = tiffData
             
-            // Store pickup form data
             let formData: [String: Any] = [
                 "type": "pickup",
+                "ticketId": ticket.id?.uuidString ?? "",
+                "customerId": ticket.customerId?.uuidString ?? "",
                 "repairCompleted": repairCompleted,
                 "workPerformed": workPerformed,
                 "partsReplaced": partsReplaced,
@@ -416,7 +412,7 @@ struct PickupFormView: View {
                 "followUpDate": followUpDate.timeIntervalSince1970
             ]
             
-            if let jsonData = try? JSONSerialization.data(withJSONObject: formData),
+            if let jsonData = try? JSONSerialization.data(withJSONObject: formData, options: [.sortedKeys]),
                let jsonString = String(data: jsonData, encoding: .utf8) {
                 submission.dataJSON = jsonString
             }

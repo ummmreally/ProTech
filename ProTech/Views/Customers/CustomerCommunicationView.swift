@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CoreData
+import AppKit
 
 struct CustomerCommunicationView: View {
     @ObservedObject var customer: Customer
@@ -152,7 +153,7 @@ struct CustomerCommunicationView: View {
                     type: .note,
                     content: note.text,
                     timestamp: note.timestamp,
-                    direction: .internal,
+                    direction: .internalNote,
                     status: nil
                 ))
             }
@@ -217,7 +218,7 @@ struct CommunicationEntry: Identifiable {
 enum CommunicationDirection {
     case incoming
     case outgoing
-    case internal
+    case internalNote
 }
 
 // MARK: - Communication Card
@@ -245,6 +246,10 @@ struct CommunicationCard: View {
                         } else if entry.direction == .incoming {
                             Image(systemName: "arrow.down.circle.fill")
                                 .foregroundColor(.green)
+                                .font(.caption)
+                        } else if entry.direction == .internalNote {
+                            Image(systemName: "lock.circle.fill")
+                                .foregroundColor(.secondary)
                                 .font(.caption)
                         }
                     }
@@ -303,7 +308,7 @@ struct EmailComposerView: View {
     let customer: Customer
     
     @State private var subject = ""
-    @State private var body = ""
+    @State private var emailBody = ""
     @State private var template: EmailTemplate = .custom
     
     var body: some View {
@@ -329,7 +334,7 @@ struct EmailComposerView: View {
                 Section("Message") {
                     TextField("Subject", text: $subject)
                     
-                    TextEditor(text: $body)
+                    TextEditor(text: $emailBody)
                         .frame(minHeight: 200)
                 }
             }
@@ -345,7 +350,7 @@ struct EmailComposerView: View {
                     Button("Send") {
                         sendEmail()
                     }
-                    .disabled(subject.isEmpty || body.isEmpty || customer.email == nil)
+                    .disabled(subject.isEmpty || emailBody.isEmpty || customer.email == nil)
                 }
             }
         }
@@ -360,7 +365,7 @@ struct EmailComposerView: View {
             break
         case .repairComplete:
             subject = "Your Device is Ready for Pickup"
-            body = """
+            emailBody = """
             Hi \(customerName),
             
             Great news! Your device repair has been completed and is ready for pickup.
@@ -374,7 +379,7 @@ struct EmailComposerView: View {
             """
         case .statusUpdate:
             subject = "Update on Your Device Repair"
-            body = """
+            emailBody = """
             Hi \(customerName),
             
             We wanted to give you an update on your device repair.
@@ -388,7 +393,7 @@ struct EmailComposerView: View {
             """
         case .followUp:
             subject = "How is Your Repaired Device?"
-            body = """
+            emailBody = """
             Hi \(customerName),
             
             We hope your repaired device is working perfectly!
@@ -406,7 +411,7 @@ struct EmailComposerView: View {
     private func sendEmail() {
         // Open default email client
         if let email = customer.email,
-           let url = URL(string: "mailto:\(email)?subject=\(subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")&body=\(body.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") {
+           let url = URL(string: "mailto:\(email)?subject=\(subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")&body=\(emailBody.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") {
             NSWorkspace.shared.open(url)
         }
         dismiss()

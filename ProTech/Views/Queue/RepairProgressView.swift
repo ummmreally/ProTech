@@ -9,6 +9,7 @@ import SwiftUI
 import CoreData
 
 struct RepairProgressView: View {
+    @Environment(\.managedObjectContext) private var viewContext
     @ObservedObject var ticket: Ticket
     @State private var currentStage: RepairStage = .diagnostic
     @State private var stageNotes: [RepairStage: String] = [:]
@@ -16,6 +17,10 @@ struct RepairProgressView: View {
     @State private var partsOrdered: [RepairPart] = []
     @State private var showingAddPart = false
     @State private var laborHours: Double = 0
+    @State private var progressRecord: RepairProgress?
+    @State private var stageRecords: [RepairStage: RepairStageRecord] = [:]
+    @State private var partUsageMap: [UUID: RepairPartUsage] = [:]
+    @State private var hasLoadedProgress = false
     
     var body: some View {
         ScrollView {
@@ -39,6 +44,11 @@ struct RepairProgressView: View {
         }
         .onAppear {
             loadProgress()
+        }
+        .onChange(of: partsOrdered) { _, _ in
+            if hasLoadedProgress {
+                saveProgress()
+            }
         }
     }
     
@@ -91,8 +101,7 @@ struct RepairProgressView: View {
                         toggleStage(stage)
                     },
                     onNotesChange: { notes in
-                        stageNotes[stage] = notes
-                        saveProgress()
+                        updateNotes(notes, for: stage)
                     }
                 )
             }
@@ -150,7 +159,7 @@ struct RepairProgressView: View {
             }
         }
         .sheet(isPresented: $showingAddPart) {
-            AddPartView(parts: $partsOrdered)
+            AddPartView(parts: $partsOrdered, defaultStage: currentStage)
         }
     }
     
@@ -215,7 +224,7 @@ struct RepairProgressView: View {
     // MARK: - Computed Properties
     
     private var totalPartsCost: Double {
-        partsOrdered.reduce(0) { $0 + $1.cost }
+        partsOrdered.reduce(0) { $0 + $1.totalCost }
     }
     
     private var laborCost: Double {
@@ -225,15 +234,37 @@ struct RepairProgressView: View {
     // MARK: - Methods
     
     private func toggleStage(_ stage: RepairStage) {
+        guard let record = stageRecords[stage] else {
+            return
+        }
+
         if completedStages.contains(stage) {
             completedStages.remove(stage)
+            record.isCompleted = false
+            record.completedAt = nil
+            currentStage = stage
+            markStageAsCurrent(stage)
         } else {
             completedStages.insert(stage)
-            // Auto-advance current stage
+            record.isCompleted = true
+            if record.startedAt == nil {
+                record.startedAt = Date()
+            }
+            if record.completedAt == nil {
+                record.completedAt = Date()
+            }
+
             if let nextStage = RepairStage.allCases.first(where: { !completedStages.contains($0) }) {
                 currentStage = nextStage
+                markStageAsCurrent(nextStage)
+            } else {
+                currentStage = stage
+                markStageAsCurrent(stage)
             }
         }
+
+        record.notes = stageNotes[stage] ?? record.notes
+        record.lastUpdated = Date()
         saveProgress()
     }
     
@@ -258,39 +289,214 @@ struct RepairProgressView: View {
     }
     
     private func loadProgress() {
-        // Load from ticket notes or custom fields
-        if let notes = ticket.notes {
-            // Parse progress data from notes
-            // This is simplified - you'd want proper JSON storage
+        guard let ticketId = ticket.id else { return }
+
+        do {
+            let request: NSFetchRequest<RepairProgress> = RepairProgress.fetchRequest()
+            request.predicate = NSPredicate(format: "ticketId == %@", ticketId as CVarArg)
+            request.fetchLimit = 1
+
+            let progress = try viewContext.fetch(request).first ?? createProgress(for: ticketId)
+            progressRecord = progress
+
+            laborHours = progress.laborHours
+            if let stageKey = progress.currentStage, let storedStage = RepairStage(rawValue: stageKey) {
+                currentStage = storedStage
+            }
+
+            try loadStageRecords(for: progress)
+            try loadPartUsages(for: progress)
+
+            var noteDictionary: [RepairStage: String] = [:]
+            var completedSet: Set<RepairStage> = []
+            for stage in RepairStage.allCases {
+                let record = stageRecords[stage]
+                noteDictionary[stage] = record?.notes ?? ""
+                if record?.isCompleted == true {
+                    completedSet.insert(stage)
+                }
+            }
+            stageNotes = noteDictionary
+            completedStages = completedSet
+
+            if progress.currentStage == nil,
+               let nextStage = RepairStage.allCases.first(where: { !completedStages.contains($0) }) {
+                currentStage = nextStage
+            }
+
+            markStageAsCurrent(currentStage)
+            hasLoadedProgress = true
+            CoreDataManager.shared.save()
+        } catch {
+            print("Failed to load repair progress: \(error.localizedDescription)")
         }
     }
-    
+
     private func saveProgress() {
-        // Save progress to ticket
-        var progressData: [String: Any] = [:]
-        progressData["currentStage"] = currentStage.rawValue
-        progressData["completedStages"] = completedStages.map { $0.rawValue }
-        progressData["laborHours"] = laborHours
-        
-        // Save parts
-        let partsData = partsOrdered.map { [
-            "name": $0.name,
-            "partNumber": $0.partNumber,
-            "cost": $0.cost,
-            "quantity": $0.quantity
-        ]}
-        progressData["parts"] = partsData
-        
-        // Convert to JSON and save
-        if let jsonData = try? JSONSerialization.data(withJSONObject: progressData),
-           let jsonString = String(data: jsonData, encoding: .utf8) {
-            // Store in ticket's custom field or notes
-            var currentNotes = ticket.notes ?? ""
-            currentNotes += "\n\n=== PROGRESS DATA ===\n\(jsonString)"
-            ticket.notes = currentNotes
-            ticket.updatedAt = Date()
-            CoreDataManager.shared.save()
+        guard let ticketId = ticket.id else { return }
+
+        let progress = progressRecord ?? createProgress(for: ticketId)
+        if progress.id == nil {
+            progress.id = UUID()
         }
+
+        progress.ticketId = ticketId
+        progress.currentStage = currentStage.rawValue
+        progress.laborHours = laborHours
+        progress.updatedAt = Date()
+        if progress.createdAt == nil {
+            progress.createdAt = Date()
+        }
+
+        for stage in RepairStage.allCases {
+            guard let record = stageRecords[stage] else { continue }
+
+            record.progressId = progress.id
+            record.stageKey = stage.rawValue
+            record.notes = stageNotes[stage] ?? ""
+            record.isCompleted = completedStages.contains(stage)
+            if record.isCompleted {
+                if record.startedAt == nil { record.startedAt = Date() }
+                if record.completedAt == nil { record.completedAt = Date() }
+            } else {
+                record.completedAt = nil
+            }
+            record.lastUpdated = Date()
+        }
+
+        syncParts(with: progress)
+
+        ticket.updatedAt = Date()
+        progressRecord = progress
+        CoreDataManager.shared.save()
+    }
+
+    private func createProgress(for ticketId: UUID) -> RepairProgress {
+        let progress = RepairProgress(context: viewContext)
+        progress.id = UUID()
+        progress.ticketId = ticketId
+        progress.currentStage = RepairStage.diagnostic.rawValue
+        progress.laborHours = 0
+        progress.laborRate = 75
+        progress.createdAt = Date()
+        progress.updatedAt = Date()
+        return progress
+    }
+
+    private func loadStageRecords(for progress: RepairProgress) throws {
+        guard let progressId = progress.id else { return }
+
+        let request: NSFetchRequest<RepairStageRecord> = RepairStageRecord.fetchRequest()
+        request.predicate = NSPredicate(format: "progressId == %@", progressId as CVarArg)
+        let existing = try viewContext.fetch(request)
+
+        var recordMap: [RepairStage: RepairStageRecord] = [:]
+        for record in existing {
+            if let key = record.stageKey, let stage = RepairStage(rawValue: key) {
+                recordMap[stage] = record
+            }
+        }
+
+        for (index, stage) in RepairStage.allCases.enumerated() {
+            if recordMap[stage] == nil {
+                let newRecord = RepairStageRecord(context: viewContext)
+                newRecord.id = UUID()
+                newRecord.progressId = progressId
+                newRecord.stageKey = stage.rawValue
+                newRecord.sortOrder = Int16(index)
+                newRecord.isCompleted = false
+                newRecord.lastUpdated = Date()
+                recordMap[stage] = newRecord
+            }
+        }
+
+        stageRecords = recordMap
+    }
+
+    private func loadPartUsages(for progress: RepairProgress) throws {
+        guard let progressId = progress.id else { return }
+
+        let request: NSFetchRequest<RepairPartUsage> = RepairPartUsage.fetchRequest()
+        request.predicate = NSPredicate(format: "progressId == %@", progressId as CVarArg)
+        let usages = try viewContext.fetch(request)
+
+        partUsageMap = Dictionary(uniqueKeysWithValues: usages.compactMap { usage in
+            guard let usageId = usage.id else { return nil }
+            return (usageId, usage)
+        })
+
+        partsOrdered = usages.compactMap { usage in
+            guard let usageId = usage.id else { return nil }
+            let stage = RepairStage(rawValue: usage.stageKey ?? "") ?? .diagnostic
+            return RepairPart(
+                id: usageId,
+                name: usage.name ?? "",
+                partNumber: usage.partNumber ?? "",
+                cost: usage.unitCost,
+                quantity: Int(usage.quantity),
+                stage: stage
+            )
+        }.sorted { lhs, rhs in
+            if lhs.stage == rhs.stage {
+                return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+            }
+            return lhs.stage.sortOrder < rhs.stage.sortOrder
+        }
+    }
+
+    private func syncParts(with progress: RepairProgress) {
+        guard let progressId = progress.id else { return }
+
+        var unusedIdentifiers = Set(partUsageMap.keys)
+
+        for part in partsOrdered {
+            if let usage = partUsageMap[part.id] {
+                usage.name = part.name
+                usage.partNumber = part.partNumber
+                usage.unitCost = part.cost
+                usage.quantity = Int32(part.quantity)
+                usage.stageKey = part.stage.rawValue
+                usage.progressId = progressId
+                usage.updatedAt = Date()
+                unusedIdentifiers.remove(part.id)
+            } else {
+                let usage = RepairPartUsage(context: viewContext)
+                usage.id = part.id
+                usage.progressId = progressId
+                usage.stageKey = part.stage.rawValue
+                usage.name = part.name
+                usage.partNumber = part.partNumber
+                usage.unitCost = part.cost
+                usage.quantity = Int32(part.quantity)
+                usage.createdAt = Date()
+                usage.updatedAt = Date()
+                partUsageMap[part.id] = usage
+            }
+        }
+
+        for identifier in unusedIdentifiers {
+            if let usage = partUsageMap[identifier] {
+                viewContext.delete(usage)
+                partUsageMap.removeValue(forKey: identifier)
+            }
+        }
+    }
+
+    private func markStageAsCurrent(_ stage: RepairStage) {
+        guard let record = stageRecords[stage] else { return }
+        if record.startedAt == nil {
+            record.startedAt = Date()
+        }
+        record.lastUpdated = Date()
+    }
+
+    private func updateNotes(_ notes: String, for stage: RepairStage) {
+        stageNotes[stage] = notes
+        if let record = stageRecords[stage] {
+            record.notes = notes
+            record.lastUpdated = Date()
+        }
+        saveProgress()
     }
 }
 
@@ -343,6 +549,10 @@ enum RepairStage: String, CaseIterable {
         case .qualityCheck: return .mint
         case .cleanup: return .cyan
         }
+    }
+
+    var sortOrder: Int {
+        Self.allCases.firstIndex(of: self) ?? 0
     }
 }
 
@@ -439,19 +649,25 @@ struct RepairStageCard: View {
 
 // MARK: - Repair Part
 
-struct RepairPart: Identifiable, Codable {
+struct RepairPart: Identifiable, Equatable {
     let id: UUID
     var name: String
     var partNumber: String
     var cost: Double
     var quantity: Int
-    
-    init(id: UUID = UUID(), name: String, partNumber: String, cost: Double, quantity: Int) {
+    var stage: RepairStage
+
+    init(id: UUID = UUID(), name: String, partNumber: String, cost: Double, quantity: Int, stage: RepairStage) {
         self.id = id
         self.name = name
         self.partNumber = partNumber
         self.cost = cost
         self.quantity = quantity
+        self.stage = stage
+    }
+
+    var totalCost: Double {
+        cost * Double(quantity)
     }
 }
 
@@ -469,15 +685,22 @@ struct PartRow: View {
                 Text("Part #: \(part.partNumber)")
                     .font(.caption)
                     .foregroundColor(.secondary)
+                Text(part.stage.displayName)
+                    .font(.caption2)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(part.stage.color.opacity(0.15))
+                    .foregroundColor(part.stage.color)
+                    .cornerRadius(6)
             }
             
             Spacer()
             
             VStack(alignment: .trailing, spacing: 4) {
-                Text("$\(part.cost, specifier: "%.2f")")
+                Text("$\(part.totalCost, specifier: "%.2f")")
                     .font(.body)
                     .bold()
-                Text("Qty: \(part.quantity)")
+                Text("Qty: \(part.quantity) @ $\(part.cost, specifier: "%.2f")")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -499,11 +722,19 @@ struct PartRow: View {
 struct AddPartView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var parts: [RepairPart]
+    let defaultStage: RepairStage
     
     @State private var name = ""
     @State private var partNumber = ""
     @State private var cost = ""
     @State private var quantity = 1
+    @State private var stage: RepairStage
+
+    init(parts: Binding<[RepairPart]>, defaultStage: RepairStage) {
+        self._parts = parts
+        self.defaultStage = defaultStage
+        _stage = State(initialValue: defaultStage)
+    }
     
     var body: some View {
         NavigationStack {
@@ -514,6 +745,11 @@ struct AddPartView: View {
                     TextField("Cost", text: $cost)
                         .help("Enter cost per unit")
                     Stepper("Quantity: \(quantity)", value: $quantity, in: 1...100)
+                    Picker("Stage", selection: $stage) {
+                        ForEach(RepairStage.allCases, id: \.self) { option in
+                            Text(option.displayName).tag(option)
+                        }
+                    }
                 }
                 
                 if let costValue = Double(cost), costValue > 0 {
@@ -547,7 +783,8 @@ struct AddPartView: View {
     }
     
     private var isValid: Bool {
-        !name.isEmpty && !partNumber.isEmpty && Double(cost) != nil
+        guard let costValue = Double(cost) else { return false }
+        return !name.isEmpty && !partNumber.isEmpty && costValue >= 0
     }
     
     private func addPart() {
@@ -557,10 +794,17 @@ struct AddPartView: View {
             name: name,
             partNumber: partNumber,
             cost: costValue,
-            quantity: quantity
+            quantity: quantity,
+            stage: stage
         )
-        
+
         parts.append(part)
+        parts.sort { lhs, rhs in
+            if lhs.stage == rhs.stage {
+                return lhs.name.localizedCaseInsensitiveCompare(rhs.name) == .orderedAscending
+            }
+            return lhs.stage.sortOrder < rhs.stage.sortOrder
+        }
         dismiss()
     }
 }
