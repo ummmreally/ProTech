@@ -36,13 +36,19 @@ struct SettingsView: View {
                     Label("Subscription", systemImage: "star")
                 }
                 .tag(SettingsTab.subscription)
+            
+            DeveloperSettingsView()
+                .tabItem {
+                    Label("Developer", systemImage: "hammer.fill")
+                }
+                .tag(SettingsTab.developer)
         }
         .frame(minWidth: 600, minHeight: 500)
     }
 }
 
 enum SettingsTab {
-    case general, sms, forms, subscription
+    case general, sms, forms, subscription, developer
 }
 
 // MARK: - General Settings
@@ -160,5 +166,97 @@ struct SubscriptionSettingsView: View {
         .sheet(isPresented: $showingUpgrade) {
             SubscriptionView()
         }
+    }
+}
+
+// MARK: - Developer Settings
+
+struct DeveloperSettingsView: View {
+    @AppStorage("developerProModeEnabled") private var proModeEnabled = false
+    @EnvironmentObject var subscriptionManager: SubscriptionManager
+    
+    var body: some View {
+        Form {
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "hammer.fill")
+                            .foregroundColor(.orange)
+                        Text("Developer Mode")
+                            .font(.headline)
+                    }
+                    Text("These settings are for testing and development only.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Section("Pro Features Testing") {
+                Toggle(isOn: $proModeEnabled) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Enable Pro Mode")
+                            .font(.body)
+                        Text("Test premium features without subscription")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .onChange(of: proModeEnabled) { _, newValue in
+                    // Force update subscription status
+                    subscriptionManager.objectWillChange.send()
+                }
+                
+                if proModeEnabled {
+                    HStack {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.green)
+                        Text("Pro Mode Active")
+                            .font(.subheadline)
+                            .foregroundColor(.green)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+            
+            Section("Current Status") {
+                LabeledContent("Real Subscription") {
+                    Text(subscriptionManager.hasActiveSubscription ? "Active" : "None")
+                        .foregroundColor(subscriptionManager.hasActiveSubscription ? .green : .secondary)
+                }
+                
+                LabeledContent("Developer Override") {
+                    Text(proModeEnabled ? "Enabled" : "Disabled")
+                        .foregroundColor(proModeEnabled ? .orange : .secondary)
+                }
+                
+                LabeledContent("Effective Status") {
+                    Text(subscriptionManager.isProSubscriber || proModeEnabled ? "Pro" : "Free")
+                        .foregroundColor(subscriptionManager.isProSubscriber || proModeEnabled ? .green : .secondary)
+                }
+            }
+            
+            Section("Features Unlocked") {
+                ForEach(PremiumFeature.allCases, id: \.self) { feature in
+                    HStack {
+                        Image(systemName: subscriptionManager.isProSubscriber || proModeEnabled ? "checkmark.circle.fill" : "lock.circle.fill")
+                            .foregroundColor(subscriptionManager.isProSubscriber || proModeEnabled ? .green : .gray)
+                        Text(feature.rawValue)
+                            .foregroundColor(subscriptionManager.isProSubscriber || proModeEnabled ? .primary : .secondary)
+                    }
+                }
+            }
+            
+            Section {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("⚠️ Important")
+                        .font(.headline)
+                        .foregroundColor(.orange)
+                    Text("Remember to disable Pro Mode before releasing to production or submitting to the App Store.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .formStyle(.grouped)
     }
 }

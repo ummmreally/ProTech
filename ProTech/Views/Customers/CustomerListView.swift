@@ -33,84 +33,86 @@ struct CustomerListView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            HStack {
-                Text("Customers")
-                    .font(.largeTitle)
-                    .bold()
-                Spacer()
-                Button {
-                    showingAddCustomer = true
-                } label: {
-                    Label("Add Customer", systemImage: "plus")
-                }
-                .buttonStyle(.borderedProminent)
-            }
-            .padding()
-            
-            // Search bar
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
-                TextField("Search customers...", text: $searchText)
-                    .textFieldStyle(.plain)
-                if !searchText.isEmpty {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Text("Customers")
+                        .font(.largeTitle)
+                        .bold()
+                    Spacer()
                     Button {
-                        searchText = ""
+                        showingAddCustomer = true
                     } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
+                        Label("Add Customer", systemImage: "plus")
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.borderedProminent)
                 }
-            }
-            .padding(8)
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(8)
-            .padding(.horizontal)
-            
-            Divider()
-                .padding(.top)
-            
-            // Customer list
-            if filteredCustomers.isEmpty {
-                VStack(spacing: 20) {
-                    Image(systemName: "person.3")
-                        .font(.system(size: 60))
+                .padding()
+                
+                // Search bar
+                HStack {
+                    Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
-                    Text(searchText.isEmpty ? "No customers yet" : "No customers found")
-                        .font(.title2)
-                        .foregroundColor(.secondary)
-                    if searchText.isEmpty {
+                    TextField("Search customers...", text: $searchText)
+                        .textFieldStyle(.plain)
+                    if !searchText.isEmpty {
                         Button {
-                            showingAddCustomer = true
+                            searchText = ""
                         } label: {
-                            Label("Add Your First Customer", systemImage: "plus")
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundColor(.secondary)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(.plain)
                     }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                List {
-                    ForEach(filteredCustomers) { customer in
-                        NavigationLink {
-                            CustomerDetailView(customer: customer)
-                        } label: {
-                            CustomerRowView(customer: customer)
+                .padding(8)
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(8)
+                .padding(.horizontal)
+                
+                Divider()
+                    .padding(.top)
+                
+                // Customer list
+                if filteredCustomers.isEmpty {
+                    VStack(spacing: 20) {
+                        Image(systemName: "person.3")
+                            .font(.system(size: 60))
+                            .foregroundColor(.secondary)
+                        Text(searchText.isEmpty ? "No customers yet" : "No customers found")
+                            .font(.title2)
+                            .foregroundColor(.secondary)
+                        if searchText.isEmpty {
+                            Button {
+                                showingAddCustomer = true
+                            } label: {
+                                Label("Add Your First Customer", systemImage: "plus")
+                            }
+                            .buttonStyle(.borderedProminent)
                         }
                     }
-                    .onDelete(perform: deleteCustomers)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    List {
+                        ForEach(filteredCustomers) { customer in
+                            NavigationLink {
+                                CustomerDetailView(customer: customer)
+                            } label: {
+                                CustomerRowView(customer: customer)
+                            }
+                        }
+                        .onDelete(perform: deleteCustomers)
+                    }
+                    .listStyle(.inset)
                 }
-                .listStyle(.inset)
             }
-        }
-        .sheet(isPresented: $showingAddCustomer) {
-            AddCustomerView()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .newCustomer)) { _ in
-            showingAddCustomer = true
+            .sheet(isPresented: $showingAddCustomer) {
+                AddCustomerView()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .newCustomer)) { _ in
+                showingAddCustomer = true
+            }
         }
     }
     

@@ -223,7 +223,7 @@ struct QueueTicketCard: View {
                         .foregroundColor(.secondary)
                 }
                 
-                StatusBadge(status: ticket.status ?? "waiting")
+                QueueView.QueueStatusBadge(status: ticket.status ?? "waiting")
             }
         }
         .padding()
@@ -279,7 +279,7 @@ struct QueueTicketCard: View {
 // MARK: - Status Badge (reuse from SMS view)
 
 extension QueueView {
-    struct StatusBadge: View {
+    struct QueueStatusBadge: View {
         let status: String
         
         var body: some View {

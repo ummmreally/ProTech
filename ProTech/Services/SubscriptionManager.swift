@@ -20,6 +20,14 @@ class SubscriptionManager: ObservableObject {
     private var updateListenerTask: Task<Void, Error>?
     
     var isProSubscriber: Bool {
+        // Check developer override first
+        if UserDefaults.standard.bool(forKey: "developerProModeEnabled") {
+            return true
+        }
+        return !purchasedProductIDs.isEmpty
+    }
+    
+    var hasActiveSubscription: Bool {
         !purchasedProductIDs.isEmpty
     }
     

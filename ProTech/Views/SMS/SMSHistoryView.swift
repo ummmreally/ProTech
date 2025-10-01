@@ -89,7 +89,7 @@ struct SMSMessageRow: View {
                 .lineLimit(2)
             
             HStack {
-                StatusBadge(status: message.status ?? "unknown")
+                SMSStatusBadge(status: message.status ?? "unknown")
                 
                 if message.direction == "outbound" {
                     Image(systemName: "arrow.up.circle.fill")
@@ -106,7 +106,7 @@ struct SMSMessageRow: View {
     }
 }
 
-struct StatusBadge: View {
+struct SMSStatusBadge: View {
     let status: String
     
     var body: some View {
