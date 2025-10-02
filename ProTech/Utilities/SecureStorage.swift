@@ -93,9 +93,12 @@ class SecureStorage {
 
 extension SecureStorage {
     enum Keys {
-        static let twilioAccountSID = "TwilioAccountSID"
-        static let twilioAuthToken = "TwilioAuthToken"
-        static let twilioPhoneNumber = "TwilioPhoneNumber"
+        static let twilioAccountSID = "twilio_account_sid"
+        static let twilioAuthToken = "twilio_auth_token"
+        static let twilioPhoneNumber = "twilio_phone_number"
+        static let squareAccessToken = "square_access_token"
+        static let squareLocationId = "square_location_id"
+        static let squareEnvironment = "square_environment"
         static let userAuthToken = "UserAuthToken"
     }
 }

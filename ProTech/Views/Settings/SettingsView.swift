@@ -25,6 +25,18 @@ struct SettingsView: View {
                 }
                 .tag(SettingsTab.sms)
             
+            SquareSettingsView()
+                .tabItem {
+                    Label("Square POS", systemImage: "cart")
+                }
+                .tag(SettingsTab.square)
+            
+            SocialMediaPlatformSettingsView()
+                .tabItem {
+                    Label("Social Media", systemImage: "bubble.left.and.bubble.right")
+                }
+                .tag(SettingsTab.socialMedia)
+            
             FormsSettingsView()
                 .tabItem {
                     Label("Forms", systemImage: "doc.text")
@@ -48,7 +60,7 @@ struct SettingsView: View {
 }
 
 enum SettingsTab {
-    case general, sms, forms, subscription, developer
+    case general, sms, square, socialMedia, forms, subscription, developer
 }
 
 // MARK: - General Settings

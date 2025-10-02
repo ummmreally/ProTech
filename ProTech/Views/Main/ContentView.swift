@@ -56,6 +56,7 @@ enum Tab: String, CaseIterable {
     case estimates = "Estimates"
     case payments = "Payments"
     case inventory = "Inventory"
+    case pointOfSale = "Point of Sale"
     case forms = "Forms"
     case sms = "SMS"
     case marketing = "Marketing"
@@ -75,6 +76,7 @@ enum Tab: String, CaseIterable {
         case .estimates: return "doc.plaintext.fill"
         case .payments: return "dollarsign.circle.fill"
         case .inventory: return "shippingbox.fill"
+        case .pointOfSale: return "cart.fill"
         case .forms: return "doc.fill"
         case .sms: return "message.fill"
         case .marketing: return "megaphone.fill"
@@ -88,7 +90,7 @@ enum Tab: String, CaseIterable {
     
     var isPremium: Bool {
         switch self {
-        case .dashboard, .queue, .customers, .calendar, .invoices, .estimates, .payments, .inventory, .settings:
+        case .dashboard, .queue, .customers, .calendar, .invoices, .estimates, .payments, .inventory, .pointOfSale, .settings:
             return false
         case .forms, .sms, .marketing, .timeTracking, .employees, .timeClock, .reports:
             return true
@@ -124,7 +126,9 @@ struct DetailView: View {
                 case .payments:
                     PaymentHistoryView()
                 case .inventory:
-                    InventoryDashboardView()
+                    ModernInventoryDashboardView()
+                case .pointOfSale:
+                    PointOfSaleView()
                 case .forms:
                     FormsListView()
                 case .sms:

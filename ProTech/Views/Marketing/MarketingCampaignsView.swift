@@ -96,6 +96,16 @@ struct MarketingCampaignsView: View {
             
             Spacer()
             
+            NavigationLink(destination: SocialMediaManagerView()) {
+                Label("Social Media", systemImage: "bubble.left.and.bubble.right.fill")
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color(hex: "00C853"))
+                    .cornerRadius(8)
+            }
+            .buttonStyle(.plain)
+            
             Button {
                 showingNewCampaign = true
             } label: {
