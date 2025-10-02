@@ -130,19 +130,19 @@ struct HistoryTicketCard: View {
                 
                 VStack(alignment: .leading, spacing: 8) {
                     if let model = ticket.deviceModel {
-                        DetailRow(label: "Model", value: model)
+                        CustomerDetailRow(label: "Model", value: model)
                     }
                     
                     if let priority = ticket.priority {
-                        DetailRow(label: "Priority", value: priority.capitalized)
+                        CustomerDetailRow(label: "Priority", value: priority.capitalized)
                     }
                     
                     if let checkedIn = ticket.checkedInAt {
-                        DetailRow(label: "Checked In", value: checkedIn.formatted(date: .abbreviated, time: .shortened))
+                        CustomerDetailRow(label: "Checked In", value: checkedIn.formatted(date: .abbreviated, time: .shortened))
                     }
                     
                     if let completed = ticket.completedAt {
-                        DetailRow(label: "Completed", value: completed.formatted(date: .abbreviated, time: .shortened))
+                        CustomerDetailRow(label: "Completed", value: completed.formatted(date: .abbreviated, time: .shortened))
                         
                         // Calculate turnaround time
                         if let checkedIn = ticket.checkedInAt {
@@ -151,9 +151,9 @@ struct HistoryTicketCard: View {
                             let days = hours / 24
                             
                             if days > 0 {
-                                DetailRow(label: "Turnaround", value: "\(days) day\(days == 1 ? "" : "s")")
+                                CustomerDetailRow(label: "Turnaround", value: "\(days) day\(days == 1 ? "" : "s")")
                             } else {
-                                DetailRow(label: "Turnaround", value: "\(hours) hour\(hours == 1 ? "" : "s")")
+                                CustomerDetailRow(label: "Turnaround", value: "\(hours) hour\(hours == 1 ? "" : "s")")
                             }
                         }
                     }
@@ -192,7 +192,7 @@ struct HistoryTicketCard: View {
 
 // MARK: - Detail Row
 
-struct DetailRow: View {
+struct CustomerDetailRow: View {
     let label: String
     let value: String
     

@@ -13,4 +13,5 @@ extension Notification.Name {
     static let newCustomer = Notification.Name("newCustomer")
     static let openTwilioTutorial = Notification.Name("openTwilioTutorial")
     static let openTwilioSettings = Notification.Name("openTwilioSettings")
+    static let appointmentsDidChange = Notification.Name("appointmentsDidChange")
 }

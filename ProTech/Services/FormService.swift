@@ -1,16 +1,18 @@
 //
 //  FormService.swift
-//  TechStorePro
+//  ProTech
 //
-//  Form template management and PDF generation
+//  Form template management and PDF generation with print support
 //
 
 import Foundation
 import PDFKit
 import AppKit
+import CoreData
 
 class FormService {
     static let shared = FormService()
+    private let coreDataManager = CoreDataManager.shared
     
     private init() {}
     
@@ -150,7 +152,7 @@ class FormService {
         yPosition -= 20
         
         // Draw fields
-        for field in formTemplate.fields where field.type != "divider" && field.type != "header" {
+        for field in formTemplate.fields {
             // Check if we need a new page
             if yPosition < 100 {
                 pdfContext.endPDFPage()
@@ -168,14 +170,14 @@ class FormService {
             yPosition -= labelSize.height + 8
             
             // Field value
-            if field.type == "signature", let signatureData = submission.signatureData {
+            if field.type == .signature, let signatureData = submission.signatureData {
                 if let signatureImage = NSImage(data: signatureData) {
                     let imageRect = CGRect(x: leftMargin, y: yPosition - 60, width: 200, height: 60)
                     signatureImage.draw(in: imageRect)
                     yPosition -= 70
                 }
             } else {
-                let value = answers[field.id] ?? "(No answer provided)"
+                let value = answers[field.id.uuidString] ?? "(No answer provided)"
                 let valueAttrs: [NSAttributedString.Key: Any] = [
                     .font: NSFont.systemFont(ofSize: 11),
                     .foregroundColor: NSColor.darkGray
@@ -246,14 +248,14 @@ class FormService {
             headerText: "Device Repair Authorization Form",
             footerText: "Thank you for your business!",
             fields: [
-                FormField(id: "customer_name", type: "text", label: "Customer Name", placeholder: "John Doe", required: true, defaultValue: nil, options: nil, rows: nil),
-                FormField(id: "customer_phone", type: "text", label: "Phone Number", placeholder: "+1 (555) 123-4567", required: true, defaultValue: nil, options: nil, rows: nil),
-                FormField(id: "customer_email", type: "text", label: "Email Address", placeholder: "john@example.com", required: false, defaultValue: nil, options: nil, rows: nil),
-                FormField(id: "device_type", type: "dropdown", label: "Device Type", placeholder: nil, required: true, defaultValue: nil, options: ["iPhone", "iPad", "Mac", "Android Phone", "Android Tablet", "Other"], rows: nil),
-                FormField(id: "device_model", type: "text", label: "Device Model", placeholder: "iPhone 14 Pro", required: false, defaultValue: nil, options: nil, rows: nil),
-                FormField(id: "issue_description", type: "textarea", label: "Issue Description", placeholder: "Describe the problem...", required: true, defaultValue: nil, options: nil, rows: 4),
-                FormField(id: "terms", type: "checkbox", label: "I authorize the repair and agree to the terms", placeholder: nil, required: true, defaultValue: nil, options: nil, rows: nil),
-                FormField(id: "signature", type: "signature", label: "Customer Signature", placeholder: nil, required: true, defaultValue: nil, options: nil, rows: nil)
+                FormField(id: UUID(), type: .text, label: "Customer Name", placeholder: "John Doe", isRequired: true, options: nil, defaultValue: nil, order: 0),
+                FormField(id: UUID(), type: .phone, label: "Phone Number", placeholder: "+1 (555) 123-4567", isRequired: true, options: nil, defaultValue: nil, order: 1),
+                FormField(id: UUID(), type: .email, label: "Email Address", placeholder: "john@example.com", isRequired: false, options: nil, defaultValue: nil, order: 2),
+                FormField(id: UUID(), type: .dropdown, label: "Device Type", placeholder: nil, isRequired: true, options: ["iPhone", "iPad", "Mac", "Android Phone", "Android Tablet", "Other"], defaultValue: nil, order: 3),
+                FormField(id: UUID(), type: .text, label: "Device Model", placeholder: "iPhone 14 Pro", isRequired: false, options: nil, defaultValue: nil, order: 4),
+                FormField(id: UUID(), type: .multiline, label: "Issue Description", placeholder: "Describe the problem...", isRequired: true, options: nil, defaultValue: nil, order: 5),
+                FormField(id: UUID(), type: .checkbox, label: "Repair Authorization", placeholder: nil, isRequired: true, options: ["I authorize the repair and agree to the terms"], defaultValue: nil, order: 6),
+                FormField(id: UUID(), type: .signature, label: "Customer Signature", placeholder: nil, isRequired: true, options: nil, defaultValue: nil, order: 7)
             ]
         )
         
@@ -276,12 +278,12 @@ class FormService {
             headerText: "Service Completion Certificate",
             footerText: "Thank you for your business!",
             fields: [
-                FormField(id: "customer_name", type: "text", label: "Customer Name", placeholder: nil, required: true, defaultValue: nil, options: nil, rows: nil),
-                FormField(id: "work_performed", type: "textarea", label: "Work Performed", placeholder: nil, required: true, defaultValue: nil, options: nil, rows: 4),
-                FormField(id: "parts_used", type: "textarea", label: "Parts Used", placeholder: nil, required: false, defaultValue: nil, options: nil, rows: 3),
-                FormField(id: "total_cost", type: "number", label: "Total Cost", placeholder: "0.00", required: true, defaultValue: nil, options: nil, rows: nil),
-                FormField(id: "warranty", type: "dropdown", label: "Warranty Period", placeholder: nil, required: false, defaultValue: nil, options: ["No Warranty", "30 Days", "60 Days", "90 Days", "1 Year"], rows: nil),
-                FormField(id: "signature", type: "signature", label: "Customer Signature", placeholder: nil, required: true, defaultValue: nil, options: nil, rows: nil)
+                FormField(id: UUID(), type: .text, label: "Customer Name", placeholder: nil, isRequired: true, options: nil, defaultValue: nil, order: 0),
+                FormField(id: UUID(), type: .multiline, label: "Work Performed", placeholder: nil, isRequired: true, options: nil, defaultValue: nil, order: 1),
+                FormField(id: UUID(), type: .multiline, label: "Parts Used", placeholder: nil, isRequired: false, options: nil, defaultValue: nil, order: 2),
+                FormField(id: UUID(), type: .number, label: "Total Cost", placeholder: "0.00", isRequired: true, options: nil, defaultValue: nil, order: 3),
+                FormField(id: UUID(), type: .dropdown, label: "Warranty Period", placeholder: nil, isRequired: false, options: ["No Warranty", "30 Days", "60 Days", "90 Days", "1 Year"], defaultValue: nil, order: 4),
+                FormField(id: UUID(), type: .signature, label: "Customer Signature", placeholder: nil, isRequired: true, options: nil, defaultValue: nil, order: 5)
             ]
         )
         
@@ -308,7 +310,7 @@ struct FormTemplateModel: Codable {
     let fields: [FormField]
 }
 
-struct FormField: Codable, Identifiable, Hashable {
+struct FormFieldOld: Codable, Identifiable, Hashable {
     let id: String
     let type: String
     let label: String
@@ -317,4 +319,199 @@ struct FormField: Codable, Identifiable, Hashable {
     let defaultValue: String?
     let options: [String]?
     let rows: Int?
+}
+
+// MARK: - CRUD Operations
+
+extension FormService {
+    func createTemplate(name: String, type: String, fields: [FormField], description: String? = nil, instructions: String? = nil) -> FormTemplate {
+        let context = coreDataManager.viewContext
+        let template = FormTemplate(context: context)
+        template.id = UUID()
+        template.name = name
+        template.type = type
+        template.setFields(fields, description: description, instructions: instructions)
+        template.isDefault = false
+        template.createdAt = Date()
+        template.updatedAt = Date()
+        
+        coreDataManager.save()
+        return template
+    }
+    
+    func updateTemplate(_ template: FormTemplate, name: String? = nil, fields: [FormField]? = nil, description: String? = nil, instructions: String? = nil) {
+        if let name = name {
+            template.name = name
+        }
+        if let fields = fields {
+            template.setFields(fields, description: description, instructions: instructions)
+        }
+        template.updatedAt = Date()
+        coreDataManager.save()
+    }
+    
+    func deleteTemplate(_ template: FormTemplate) {
+        coreDataManager.viewContext.delete(template)
+        coreDataManager.save()
+    }
+    
+    func createSubmission(for template: FormTemplate, responses: [String: String], submitterName: String? = nil, submitterEmail: String? = nil, signatureData: Data? = nil) -> FormSubmission {
+        let context = coreDataManager.viewContext
+        let submission = FormSubmission(context: context)
+        submission.id = UUID()
+        submission.formID = template.id
+        submission.setResponses(responses, submitterName: submitterName, submitterEmail: submitterEmail)
+        submission.submittedAt = Date()
+        submission.signatureData = signatureData
+        
+        coreDataManager.save()
+        return submission
+    }
+    
+    // MARK: - PDF Generation with New Models
+    
+    func generateFormPDF(for template: FormTemplate, submission: FormSubmission? = nil) -> PDFDocument? {
+        let pageRect = CGRect(x: 0, y: 0, width: 612, height: 792) // US Letter
+        
+        let pdfMetaData = [
+            kCGPDFContextTitle as String: template.name ?? "Form",
+            kCGPDFContextCreator as String: "ProTech"
+        ]
+        
+        guard let pdfData = createFormPDF(
+            pageRect: pageRect,
+            metaData: pdfMetaData,
+            template: template,
+            submission: submission
+        ) else {
+            return nil
+        }
+        
+        return PDFDocument(data: pdfData)
+    }
+    
+    private func createFormPDF(pageRect: CGRect, metaData: [String: Any], template: FormTemplate, submission: FormSubmission?) -> Data? {
+        let pdfData = NSMutableData()
+        
+        guard let consumer = CGDataConsumer(data: pdfData as CFMutableData),
+              let pdfContext = CGContext(consumer: consumer, mediaBox: nil, metaData as CFDictionary) else {
+            return nil
+        }
+        
+        let pageInfo: CFDictionary? = nil
+        pdfContext.beginPDFPage(pageInfo)
+        
+        var yPosition: CGFloat = pageRect.height - 50
+        let leftMargin: CGFloat = 50
+        let rightMargin: CGFloat = pageRect.width - 50
+        
+        // Draw header
+        if let name = template.name {
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: NSFont.boldSystemFont(ofSize: 20),
+                .foregroundColor: NSColor.black
+            ]
+            let size = name.size(withAttributes: attrs)
+            name.draw(at: CGPoint(x: leftMargin, y: yPosition - size.height), withAttributes: attrs)
+            yPosition -= size.height + 20
+        }
+        
+        // Draw description if available
+        if let description = template.templateData?.description {
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: NSFont.systemFont(ofSize: 12),
+                .foregroundColor: NSColor.darkGray
+            ]
+            let size = description.size(withAttributes: attrs)
+            description.draw(at: CGPoint(x: leftMargin, y: yPosition - size.height), withAttributes: attrs)
+            yPosition -= size.height + 15
+        }
+        
+        // Draw date
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateStyle = .long
+        let dateString = "Date: \(dateFormatter.string(from: submission?.submittedAt ?? Date()))"
+        let dateAttrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 10),
+            .foregroundColor: NSColor.gray
+        ]
+        let dateSize = dateString.size(withAttributes: dateAttrs)
+        dateString.draw(at: CGPoint(x: leftMargin, y: yPosition - dateSize.height), withAttributes: dateAttrs)
+        yPosition -= dateSize.height + 20
+        
+        // Draw separator
+        pdfContext.setStrokeColor(NSColor.lightGray.cgColor)
+        pdfContext.setLineWidth(1)
+        pdfContext.move(to: CGPoint(x: leftMargin, y: yPosition))
+        pdfContext.addLine(to: CGPoint(x: rightMargin, y: yPosition))
+        pdfContext.strokePath()
+        yPosition -= 25
+        
+        // Draw fields
+        let fields = template.fields
+        let responses = submission?.responses ?? [:]
+        
+        for field in fields {
+            // Check if we need a new page
+            if yPosition < 100 {
+                pdfContext.endPDFPage()
+                pdfContext.beginPDFPage(pageInfo)
+                yPosition = pageRect.height - 50
+            }
+            
+            // Field label
+            let labelText = field.label + (field.isRequired ? " *" : "")
+            let labelAttrs: [NSAttributedString.Key: Any] = [
+                .font: NSFont.boldSystemFont(ofSize: 11),
+                .foregroundColor: NSColor.black
+            ]
+            let labelSize = labelText.size(withAttributes: labelAttrs)
+            labelText.draw(at: CGPoint(x: leftMargin, y: yPosition - labelSize.height), withAttributes: labelAttrs)
+            yPosition -= labelSize.height + 8
+            
+            // Field value or input area
+            if let submission = submission {
+                if field.type == .signature, let signatureData = submission.signatureData {
+                    if let signatureImage = NSImage(data: signatureData) {
+                        let imageRect = CGRect(x: leftMargin, y: yPosition - 50, width: 200, height: 50)
+                        signatureImage.draw(in: imageRect)
+                        yPosition -= 60
+                    }
+                } else {
+                    let value = responses[field.id.uuidString] ?? "(No answer provided)"
+                    let valueAttrs: [NSAttributedString.Key: Any] = [
+                        .font: NSFont.systemFont(ofSize: 10),
+                        .foregroundColor: NSColor.darkGray
+                    ]
+                    let textRect = CGRect(x: leftMargin, y: yPosition - 40, width: rightMargin - leftMargin, height: 40)
+                    value.draw(in: textRect, withAttributes: valueAttrs)
+                    yPosition -= 50
+                }
+            } else {
+                // Draw empty field for blank form
+                pdfContext.setStrokeColor(NSColor.lightGray.cgColor)
+                pdfContext.setLineWidth(0.5)
+                let lineY = yPosition - 5
+                pdfContext.move(to: CGPoint(x: leftMargin, y: lineY))
+                pdfContext.addLine(to: CGPoint(x: rightMargin, y: lineY))
+                pdfContext.strokePath()
+                yPosition -= 30
+            }
+            
+            yPosition -= 10
+        }
+        
+        // Draw footer
+        let footerText = "Generated by ProTech - \(Date().formatted())"
+        let footerAttrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 8),
+            .foregroundColor: NSColor.gray
+        ]
+        footerText.draw(at: CGPoint(x: leftMargin, y: 30), withAttributes: footerAttrs)
+        
+        pdfContext.endPDFPage()
+        pdfContext.closePDF()
+        
+        return pdfData as Data
+    }
 }

@@ -15,24 +15,18 @@ struct PickupFormView: View {
     @FetchRequest var customer: FetchedResults<Customer>
     
     @State private var repairCompleted = true
-    @State private var workPerformed = ""
-    @State private var partsReplaced: [String] = []
-    @State private var finalCost = ""
-    @State private var paymentMethod = "Cash"
-    @State private var paymentReceived = false
-    @State private var deviceTested = false
-    @State private var customerSatisfied = true
-    @State private var warrantyPeriod = 30
-    @State private var warrantyNotes = ""
-    @State private var customerSignature: NSImage?
+    @State private var technicianName = ""
+    @State private var completionDate = Date()
+    @State private var customerSignatureData: Data?
     @State private var showingSignaturePad = false
-    @State private var additionalNotes = ""
-    @State private var followUpRequired = false
-    @State private var followUpDate: Date = Calendar.current.date(byAdding: .day, value: 7, to: Date()) ?? Date()
+    @State private var serviceNotes = ""
     @State private var showingSuccess = false
+    @State private var shouldPrint = false
+    @State private var savedSubmission: FormSubmission?
     
-    private let paymentMethods = ["Cash", "Credit Card", "Debit Card", "Check", "Venmo", "PayPal", "Zelle", "Other"]
-    private let commonParts = ["Screen", "Battery", "Charging Port", "Camera", "Speaker", "Microphone", "Home Button", "Power Button", "Logic Board", "Back Glass"]
+    private let completionAgreement = """
+    By signing this document customer agrees that Tech Medics has completed the service(s) listed for the device(s) above. Customer understands that Tech Medics is not responsible for any data loss that may have occurred while in possession of the device(s). Tech Medics will warranty work performed on the device(s) listed above for 30 days from the day of pickup. This warranty does not cover accidental damage caused by the customer to the serviced part or device listed.
+    """
     
     init(ticket: Ticket) {
         self.ticket = ticket
@@ -45,32 +39,14 @@ struct PickupFormView: View {
     var body: some View {
         NavigationStack {
             Form {
-                // Customer Info
                 customerInfoSection
-                
-                // Repair Summary
-                repairSummarySection
-                
-                // Parts & Work
-                partsWorkSection
-                
-                // Payment
-                paymentSection
-                
-                // Quality Check
-                qualityCheckSection
-                
-                // Warranty
-                warrantySection
-                
-                // Follow-up
-                followUpSection
-                
-                // Signature
+                completionDetailsSection
+                notesSection
+                agreementSection
                 signatureSection
             }
             .formStyle(.grouped)
-            .navigationTitle("Device Pickup Form")
+            .navigationTitle("Service Completion Form")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
@@ -78,24 +54,34 @@ struct PickupFormView: View {
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Complete Pickup") {
-                        completePickup()
+                    Menu {
+                        Button("Complete Pickup") {
+                            completePickup()
+                        }
+                        Button("Complete & Print") {
+                            completeAndPrint()
+                        }
+                    } label: {
+                        Label("Complete", systemImage: "checkmark.circle.fill")
                     }
                     .disabled(!isValid)
                 }
             }
             .sheet(isPresented: $showingSignaturePad) {
-                SignaturePadView(signature: $customerSignature)
+                SignaturePadView(signatureData: $customerSignatureData)
             }
             .alert("Pickup Complete", isPresented: $showingSuccess) {
                 Button("OK") {
+                    if shouldPrint, let submission = savedSubmission {
+                        printForm(submission: submission)
+                    }
                     dismiss()
                 }
             } message: {
                 Text("Device has been marked as picked up.")
             }
         }
-        .frame(width: 700, height: 800)
+        .frame(width: 650, height: 700)
         .onAppear {
             loadTicketData()
         }
@@ -131,33 +117,32 @@ struct PickupFormView: View {
         }
     }
     
-    private var repairSummarySection: some View {
-        Section("Repair Summary") {
+    private var completionDetailsSection: some View {
+        Section("Service Completion") {
+            LabeledContent("Completion Date") {
+                DatePicker("", selection: $completionDate, displayedComponents: .date)
+                    .labelsHidden()
+            }
+            .padding(.top, 4)
+            
+            TextField("Technician Name", text: $technicianName)
+            
             Toggle("Repair Completed Successfully", isOn: $repairCompleted)
-            
-            if !repairCompleted {
-                TextEditor(text: $additionalNotes)
-                    .frame(minHeight: 60)
-                    .overlay(alignment: .topLeading) {
-                        if additionalNotes.isEmpty {
-                            Text("Explain why repair was not completed...")
-                                .foregroundColor(.secondary)
-                                .padding(8)
-                                .allowsHitTesting(false)
-                        }
-                    }
-            }
-            
+        }
+    }
+    
+    private var notesSection: some View {
+        Section("Service Notes") {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Work Performed:")
+                Text("Details about service performed")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                 
-                TextEditor(text: $workPerformed)
-                    .frame(minHeight: 80)
+                TextEditor(text: $serviceNotes)
+                    .frame(minHeight: 120)
                     .overlay(alignment: .topLeading) {
-                        if workPerformed.isEmpty {
-                            Text("Describe the work performed...")
+                        if serviceNotes.isEmpty {
+                            Text("Enter notes about the repair and service performed...")
                                 .foregroundColor(.secondary)
                                 .padding(8)
                                 .allowsHitTesting(false)
@@ -167,141 +152,20 @@ struct PickupFormView: View {
         }
     }
     
-    private var partsWorkSection: some View {
-        Section("Parts Replaced") {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Select parts that were replaced:")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                    ForEach(commonParts, id: \.self) { part in
-                        Toggle(part, isOn: Binding(
-                            get: { partsReplaced.contains(part) },
-                            set: { isOn in
-                                if isOn {
-                                    partsReplaced.append(part)
-                                } else {
-                                    partsReplaced.removeAll { $0 == part }
-                                }
-                            }
-                        ))
-                        .toggleStyle(.checkbox)
-                    }
-                }
-            }
-            
-            if !partsReplaced.isEmpty {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
-                    Text("\(partsReplaced.count) part(s) replaced")
-                        .font(.caption)
-                }
-            }
-        }
-    }
-    
-    private var paymentSection: some View {
-        Section("Payment") {
-            TextField("Final Cost", text: $finalCost, prompt: Text("$0.00"))
-                .help("Total amount charged")
-            
-            Picker("Payment Method", selection: $paymentMethod) {
-                ForEach(paymentMethods, id: \.self) { method in
-                    Text(method).tag(method)
-                }
-            }
-            
-            Toggle("Payment Received", isOn: $paymentReceived)
-            
-            if !paymentReceived {
-                HStack {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
-                    Text("Payment must be received before device pickup")
-                        .font(.caption)
-                        .foregroundColor(.orange)
-                }
-            }
-        }
-    }
-    
-    private var qualityCheckSection: some View {
-        Section("Quality Check") {
-            Toggle("Device Tested & Working", isOn: $deviceTested)
-            
-            Toggle("Customer Satisfied", isOn: $customerSatisfied)
-            
-            if !customerSatisfied {
-                TextEditor(text: $additionalNotes)
-                    .frame(minHeight: 60)
-                    .overlay(alignment: .topLeading) {
-                        if additionalNotes.isEmpty {
-                            Text("Note customer concerns...")
-                                .foregroundColor(.secondary)
-                                .padding(8)
-                                .allowsHitTesting(false)
-                        }
-                    }
-            }
-        }
-    }
-    
-    private var warrantySection: some View {
-        Section("Warranty") {
-            Stepper("Warranty Period: \(warrantyPeriod) days", value: $warrantyPeriod, in: 0...365, step: 30)
-            
-            if warrantyPeriod > 0 {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Warranty Expires:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    if let expiryDate = Calendar.current.date(byAdding: .day, value: warrantyPeriod, to: Date()) {
-                        Text(expiryDate, format: .dateTime.month().day().year())
-                            .font(.body)
-                            .bold()
-                    }
-                }
-            }
-            
-            TextEditor(text: $warrantyNotes)
-                .frame(minHeight: 60)
-                .overlay(alignment: .topLeading) {
-                    if warrantyNotes.isEmpty {
-                        Text("Warranty terms and conditions...")
-                            .foregroundColor(.secondary)
-                            .padding(8)
-                            .allowsHitTesting(false)
-                    }
-                }
-        }
-    }
-    
-    private var followUpSection: some View {
-        Section("Follow-up") {
-            Toggle("Follow-up Required", isOn: $followUpRequired)
-            
-            if followUpRequired {
-                DatePicker("Follow-up Date", selection: $followUpDate, in: Date()..., displayedComponents: .date)
-                
-                TextEditor(text: $additionalNotes)
-                    .frame(minHeight: 60)
-                    .overlay(alignment: .topLeading) {
-                        if additionalNotes.isEmpty {
-                            Text("Follow-up notes...")
-                                .foregroundColor(.secondary)
-                                .padding(8)
-                                .allowsHitTesting(false)
-                        }
-                    }
-            }
+    private var agreementSection: some View {
+        Section("Agreement") {
+            Text(completionAgreement)
+                .font(.footnote)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.vertical, 4)
         }
     }
     
     private var signatureSection: some View {
         Section("Customer Signature") {
-            if let signature = customerSignature {
+            if let signatureData = customerSignatureData,
+               let signature = NSImage(data: signatureData) {
                 VStack(spacing: 8) {
                     Image(nsImage: signature)
                         .resizable()
@@ -311,9 +175,10 @@ struct PickupFormView: View {
                         .cornerRadius(8)
                     
                     Button("Clear Signature") {
-                        customerSignature = nil
+                        customerSignatureData = nil
                     }
                     .foregroundColor(.red)
+                    .buttonStyle(.borderless)
                 }
             } else {
                 Button {
@@ -321,7 +186,7 @@ struct PickupFormView: View {
                 } label: {
                     HStack {
                         Image(systemName: "signature")
-                        Text("Customer Signature Required *")
+                        Text("Capture Customer Signature *")
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
@@ -330,97 +195,90 @@ struct PickupFormView: View {
                 }
                 .buttonStyle(.plain)
             }
-            
-            Text("By signing, customer acknowledges receipt of device in working condition and agrees to warranty terms.")
-                .font(.caption)
-                .foregroundColor(.secondary)
         }
     }
     
     // MARK: - Validation & Methods
     
     private var isValid: Bool {
-        !workPerformed.isEmpty &&
-        !finalCost.isEmpty &&
-        paymentReceived &&
-        deviceTested &&
-        customerSignature != nil
+        !technicianName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !serviceNotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        customerSignatureData != nil
     }
     
     private func loadTicketData() {
-        // Pre-fill from ticket
-        // Set default work performed from issue
+        completionDate = Date()
+        // Pre-populate service notes from ticket issue
         if let issue = ticket.issueDescription {
-            workPerformed = "Repaired: \(issue)"
+            serviceNotes = "Repaired: \(issue)"
         }
     }
     
+    private func completeAndPrint() {
+        shouldPrint = true
+        completePickup()
+    }
+    
     private func completePickup() {
+        let trimmedTechnician = technicianName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedNotes = serviceNotes.trimmingCharacters(in: .whitespacesAndNewlines)
+        
         // Update ticket
         ticket.status = "picked_up"
-        ticket.pickedUpAt = Date()
+        ticket.pickedUpAt = completionDate
         ticket.updatedAt = Date()
         
         // Add pickup notes
-        var pickupNotes = "\n\n=== PICKUP FORM ===\n"
-        pickupNotes += "Completed: \(repairCompleted ? "Yes" : "No")\n"
-        pickupNotes += "Work Performed: \(workPerformed)\n"
-        if !partsReplaced.isEmpty {
-            pickupNotes += "Parts Replaced: \(partsReplaced.joined(separator: ", "))\n"
-        }
-        pickupNotes += "Final Cost: \(finalCost)\n"
-        pickupNotes += "Payment: \(paymentMethod) - \(paymentReceived ? "Received" : "Pending")\n"
-        pickupNotes += "Device Tested: \(deviceTested ? "Yes" : "No")\n"
-        pickupNotes += "Customer Satisfied: \(customerSatisfied ? "Yes" : "No")\n"
-        pickupNotes += "Warranty: \(warrantyPeriod) days\n"
-        if !warrantyNotes.isEmpty {
-            pickupNotes += "Warranty Notes: \(warrantyNotes)\n"
-        }
-        if followUpRequired {
-            pickupNotes += "Follow-up: \(followUpDate.formatted(date: .abbreviated, time: .omitted))\n"
-        }
-        if !additionalNotes.isEmpty {
-            pickupNotes += "Additional Notes: \(additionalNotes)\n"
-        }
+        var pickupNotes = "\n\n=== SERVICE COMPLETION FORM ===\n"
+        pickupNotes += "Completion Date: \(completionDate.formatted(date: .long, time: .omitted))\n"
+        pickupNotes += "Technician: \(trimmedTechnician)\n"
+        pickupNotes += "Repair Completed: \(repairCompleted ? "Yes" : "No")\n"
+        pickupNotes += "Service Notes: \(trimmedNotes)\n"
+        pickupNotes += "Customer Signature: Captured\n"
         
         ticket.notes = (ticket.notes ?? "") + pickupNotes
         
         // Save signature and form submission
-        if let signatureImage = customerSignature,
-           let tiffData = signatureImage.tiffRepresentation {
+        if let signatureData = customerSignatureData {
             let submission = FormSubmission(context: CoreDataManager.shared.viewContext)
             submission.id = UUID()
             submission.formID = ticket.id
             submission.submittedAt = Date()
-            submission.signatureData = tiffData
+            submission.signatureData = signatureData
             
             let formData: [String: Any] = [
                 "type": "pickup",
                 "ticketId": ticket.id?.uuidString ?? "",
                 "customerId": ticket.customerId?.uuidString ?? "",
+                "completionDate": completionDate.timeIntervalSince1970,
+                "technicianName": trimmedTechnician,
                 "repairCompleted": repairCompleted,
-                "workPerformed": workPerformed,
-                "partsReplaced": partsReplaced,
-                "finalCost": finalCost,
-                "paymentMethod": paymentMethod,
-                "paymentReceived": paymentReceived,
-                "deviceTested": deviceTested,
-                "customerSatisfied": customerSatisfied,
-                "warrantyPeriod": warrantyPeriod,
-                "warrantyNotes": warrantyNotes,
-                "followUpRequired": followUpRequired,
-                "followUpDate": followUpDate.timeIntervalSince1970
+                "serviceNotes": trimmedNotes,
+                "agreementText": completionAgreement
             ]
             
             if let jsonData = try? JSONSerialization.data(withJSONObject: formData, options: [.sortedKeys]),
                let jsonString = String(data: jsonData, encoding: .utf8) {
                 submission.dataJSON = jsonString
             }
+            
+            savedSubmission = submission
         }
         
         // Save
         CoreDataManager.shared.save()
         
         showingSuccess = true
+    }
+    
+    private func printForm(submission: FormSubmission) {
+        // Get default pickup template
+        let fetchRequest = FormTemplate.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "type == %@ AND isDefault == true", "pickup")
+        fetchRequest.fetchLimit = 1
+        
+        if let template = try? CoreDataManager.shared.viewContext.fetch(fetchRequest).first {
+            FormService.shared.printFormDirectly(submission: submission, template: template)
+        }
     }
 }

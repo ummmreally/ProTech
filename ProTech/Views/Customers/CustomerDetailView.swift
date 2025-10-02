@@ -6,14 +6,37 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct CustomerDetailView: View {
-    @ObservedObject var customer: Customer
+    @ObservedObject private var customer: Customer
     @EnvironmentObject var subscriptionManager: SubscriptionManager
+    @FetchRequest private var appointments: FetchedResults<Appointment>
+    @FetchRequest private var tickets: FetchedResults<Ticket>
     @State private var isEditing = false
     @State private var showingSMSComposer = false
     @State private var showingUpgrade = false
     @State private var isTwilioConfigured = false
+    @State private var selectedAppointment: Appointment?
+    @State private var selectedTicket: Ticket?
+
+    init(customer: Customer) {
+        self._customer = ObservedObject(wrappedValue: customer)
+
+        if let id = customer.id {
+            _appointments = FetchRequest(
+                sortDescriptors: [NSSortDescriptor(keyPath: \Appointment.scheduledDate, ascending: true)],
+                predicate: NSPredicate(format: "customerId == %@", id as CVarArg)
+            )
+            _tickets = FetchRequest(
+                sortDescriptors: [NSSortDescriptor(keyPath: \Ticket.createdAt, ascending: false)],
+                predicate: NSPredicate(format: "customerId == %@", id as CVarArg)
+            )
+        } else {
+            _appointments = FetchRequest(sortDescriptors: [], predicate: NSPredicate(value: false))
+            _tickets = FetchRequest(sortDescriptors: [], predicate: NSPredicate(value: false))
+        }
+    }
     
     var body: some View {
         ScrollView {
@@ -79,6 +102,56 @@ struct CustomerDetailView: View {
                         .font(.headline)
                 }
                 .padding(.horizontal)
+
+                if !tickets.isEmpty {
+                    GroupBox {
+                        VStack(spacing: 12) {
+                            ForEach(tickets) { ticket in
+                                Button {
+                                    selectedTicket = ticket
+                                } label: {
+                                    CustomerRepairRow(ticket: ticket)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text("Repairs")
+                                .font(.headline)
+                            Spacer()
+                            Text("\(tickets.count)")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+
+                if !appointments.isEmpty {
+                    GroupBox {
+                        VStack(spacing: 12) {
+                            ForEach(appointments) { appointment in
+                                Button {
+                                    selectedAppointment = appointment
+                                } label: {
+                                    CustomerAppointmentRow(appointment: appointment)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    } label: {
+                        HStack {
+                            Text("Appointments")
+                                .font(.headline)
+                            Spacer()
+                            Text("\(appointments.count)")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding(.horizontal)
+                }
                 
                 // Notes
                 if let notes = customer.notes, !notes.isEmpty {
@@ -140,6 +213,12 @@ struct CustomerDetailView: View {
             SubscriptionView()
                 .frame(width: 600, height: 700)
         }
+        .sheet(item: $selectedAppointment) { appointment in
+            AppointmentDetailView(appointment: appointment)
+        }
+        .sheet(item: $selectedTicket) { ticket in
+            TicketDetailView(ticket: ticket)
+        }
         .task {
             // Cache the Twilio configuration lookup so the view body
             // isn't repeatedly hitting the Keychain on every render.
@@ -151,6 +230,162 @@ struct CustomerDetailView: View {
         let first = customer.firstName?.prefix(1).uppercased() ?? ""
         let last = customer.lastName?.prefix(1).uppercased() ?? ""
         return first + last
+    }
+}
+
+private struct CustomerAppointmentRow: View {
+    let appointment: Appointment
+
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter
+    }()
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(appointment.typeDisplayName)
+                    .font(.headline)
+
+                if let scheduledDate = appointment.scheduledDate {
+                    Text(dateFormatter.string(from: scheduledDate))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+
+                if let notes = appointment.notes, !notes.isEmpty {
+                    Text(notes)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                }
+            }
+
+            Spacer()
+
+            Text(appointment.status?.capitalized ?? "")
+                .font(.caption)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(statusColor.opacity(0.2))
+                .foregroundColor(statusColor)
+                .cornerRadius(6)
+        }
+        .padding(12)
+        .background(Color.gray.opacity(0.05))
+        .cornerRadius(8)
+    }
+
+    private var statusColor: Color {
+        switch appointment.status {
+        case "confirmed":
+            return .green
+        case "scheduled":
+            return .blue
+        case "completed":
+            return .gray
+        case "cancelled":
+            return .red
+        case "no_show":
+            return .orange
+        default:
+            return .gray
+        }
+    }
+}
+
+private struct CustomerRepairRow: View {
+    let ticket: Ticket
+
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter
+    }()
+
+    var body: some View {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Ticket #\(ticket.ticketNumber)")
+                    .font(.headline)
+
+                if let deviceType = ticket.deviceType, !deviceType.isEmpty {
+                    Text(deviceType)
+                        .font(.subheadline)
+                }
+
+                if let issue = ticket.issueDescription, !issue.isEmpty {
+                    Text(issue)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                }
+
+                if let createdAt = ticket.createdAt {
+                    Text("Opened: \(dateFormatter.string(from: createdAt))")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+
+            Spacer()
+
+            VStack(alignment: .trailing, spacing: 6) {
+                Text(ticket.status?.replacingOccurrences(of: "_", with: " ").capitalized ?? "")
+                    .font(.caption)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(statusColor.opacity(0.2))
+                    .foregroundColor(statusColor)
+                    .cornerRadius(6)
+
+                if let priority = ticket.priority, !priority.isEmpty {
+                    Text(priority.capitalized)
+                        .font(.caption2)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 3)
+                        .background(priorityColor.opacity(0.15))
+                        .foregroundColor(priorityColor)
+                        .cornerRadius(6)
+                }
+            }
+        }
+        .padding(12)
+        .background(Color.gray.opacity(0.05))
+        .cornerRadius(8)
+    }
+
+    private var statusColor: Color {
+        switch ticket.status {
+        case "waiting":
+            return .orange
+        case "in_progress":
+            return .blue
+        case "completed":
+            return .green
+        case "picked_up":
+            return .gray
+        case "cancelled":
+            return .red
+        default:
+            return .gray
+        }
+    }
+
+    private var priorityColor: Color {
+        switch ticket.priority?.lowercased() {
+        case "urgent":
+            return .red
+        case "high":
+            return .orange
+        case "low":
+            return .blue
+        default:
+            return .gray
+        }
     }
 }
 

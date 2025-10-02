@@ -37,14 +37,14 @@ struct DashboardView: View {
                 
                 // Stats Grid
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
-                    StatCard(
+                    DashboardStatCard(
                         title: "Total Customers",
                         value: "\(totalCustomers)",
                         icon: "person.3.fill",
                         color: .blue
                     )
                     
-                    StatCard(
+                    DashboardStatCard(
                         title: "Added This Month",
                         value: "\(customersThisMonth)",
                         icon: "person.badge.plus",
@@ -52,14 +52,14 @@ struct DashboardView: View {
                     )
                     
                     if subscriptionManager.isProSubscriber {
-                        StatCard(
+                        DashboardStatCard(
                             title: "Forms Created",
                             value: "0",
                             icon: "doc.text.fill",
                             color: .purple
                         )
                         
-                        StatCard(
+                        DashboardStatCard(
                             title: "SMS Sent",
                             value: "0",
                             icon: "message.fill",
@@ -166,7 +166,7 @@ struct DashboardView: View {
 
 // MARK: - Stat Card
 
-struct StatCard: View {
+struct DashboardStatCard: View {
     let title: String
     let value: String
     let icon: String

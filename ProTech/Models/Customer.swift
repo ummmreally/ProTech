@@ -25,6 +25,26 @@ extension Customer: Identifiable {}
 
 
 extension Customer {
+    /// Preferred display name using first/last name or fallback contact details.
+    var displayName: String {
+        let first = firstName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let last = lastName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let combined = "\(first) \(last)".trimmingCharacters(in: .whitespaces)
+        if !combined.isEmpty {
+            return combined
+        }
+        if let email = email, !email.isEmpty {
+            return email
+        }
+        if let phone = phone, !phone.isEmpty {
+            return phone
+        }
+        return "Customer"
+    }
+}
+
+
+extension Customer {
     static func entityDescription() -> NSEntityDescription {
         let entity = NSEntityDescription()
         entity.name = "Customer"

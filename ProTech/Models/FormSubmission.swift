@@ -18,6 +18,54 @@ extension FormSubmission {
 
 extension FormSubmission: Identifiable {}
 
+// MARK: - Form Submission Data
+
+struct FormResponseData: Codable {
+    var responses: [String: String] // Field ID : Value
+    var submitterName: String?
+    var submitterEmail: String?
+}
+
+extension FormSubmission {
+    var responses: [String: String] {
+        guard let json = dataJSON,
+              let data = json.data(using: .utf8),
+              let responseData = try? JSONDecoder().decode(FormResponseData.self, from: data) else {
+            return [:]
+        }
+        return responseData.responses
+    }
+    
+    var responseData: FormResponseData? {
+        guard let json = dataJSON,
+              let data = json.data(using: .utf8) else {
+            return nil
+        }
+        return try? JSONDecoder().decode(FormResponseData.self, from: data)
+    }
+    
+    func setResponses(_ responses: [String: String], submitterName: String? = nil, submitterEmail: String? = nil) {
+        let responseData = FormResponseData(responses: responses, submitterName: submitterName, submitterEmail: submitterEmail)
+        if let data = try? JSONEncoder().encode(responseData),
+           let json = String(data: data, encoding: .utf8) {
+            self.dataJSON = json
+        }
+    }
+    
+    static func fetchSubmissions(for formId: UUID, context: NSManagedObjectContext) -> [FormSubmission] {
+        let request = fetchRequest()
+        request.predicate = NSPredicate(format: "formID == %@", formId as CVarArg)
+        request.sortDescriptors = [NSSortDescriptor(key: "submittedAt", ascending: false)]
+        return (try? context.fetch(request)) ?? []
+    }
+    
+    static func fetchAllSubmissions(context: NSManagedObjectContext) -> [FormSubmission] {
+        let request = fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(key: "submittedAt", ascending: false)]
+        return (try? context.fetch(request)) ?? []
+    }
+}
+
 
 extension FormSubmission {
     static func entityDescription() -> NSEntityDescription {

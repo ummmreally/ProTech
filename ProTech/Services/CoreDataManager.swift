@@ -27,8 +27,48 @@ class CoreDataManager {
             Ticket.entityDescription(),
             RepairProgress.entityDescription(),
             RepairStageRecord.entityDescription(),
-            RepairPartUsage.entityDescription()
+            RepairPartUsage.entityDescription(),
+            Invoice.entityDescription(),
+            InvoiceLineItem.entityDescription(),
+            Estimate.entityDescription(),
+            EstimateLineItem.entityDescription(),
+            Payment.entityDescription(),
+            NotificationRule.entityDescription(),
+            NotificationLog.entityDescription(),
+            Appointment.entityDescription(),
+            InventoryItem.entityDescription(),
+            Supplier.entityDescription(),
+            StockAdjustment.entityDescription(),
+            PurchaseOrder.entityDescription(),
+            PaymentMethod.entityDescription(),
+            Campaign.entityDescription(),
+            RecurringInvoice.entityDescription(),
+            Transaction.entityDescription(),
+            TimeEntry.entityDescription(),
+            Employee.entityDescription(),
+            TimeClockEntry.entityDescription()
         ]
+
+        if let invoiceEntity = model.entities.first(where: { $0.name == "Invoice" }),
+           let lineItemEntity = model.entities.first(where: { $0.name == "InvoiceLineItem" }),
+           let lineItemsRelationship = invoiceEntity.relationshipsByName["lineItems"],
+           let invoiceRelationship = lineItemEntity.relationshipsByName["invoice"] {
+            lineItemsRelationship.destinationEntity = lineItemEntity
+            invoiceRelationship.destinationEntity = invoiceEntity
+            lineItemsRelationship.inverseRelationship = invoiceRelationship
+            invoiceRelationship.inverseRelationship = lineItemsRelationship
+        }
+
+        if let estimateEntity = model.entities.first(where: { $0.name == "Estimate" }),
+           let estimateLineItemEntity = model.entities.first(where: { $0.name == "EstimateLineItem" }),
+           let lineItemsRelationship = estimateEntity.relationshipsByName["lineItems"],
+           let estimateRelationship = estimateLineItemEntity.relationshipsByName["estimate"] {
+            lineItemsRelationship.destinationEntity = estimateLineItemEntity
+            estimateRelationship.destinationEntity = estimateEntity
+            lineItemsRelationship.inverseRelationship = estimateRelationship
+            estimateRelationship.inverseRelationship = lineItemsRelationship
+        }
+
         return model
     }()
     

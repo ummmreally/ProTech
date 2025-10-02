@@ -51,8 +51,17 @@ enum Tab: String, CaseIterable {
     case dashboard = "Dashboard"
     case queue = "Queue"
     case customers = "Customers"
+    case calendar = "Calendar"
+    case invoices = "Invoices"
+    case estimates = "Estimates"
+    case payments = "Payments"
+    case inventory = "Inventory"
     case forms = "Forms"
     case sms = "SMS"
+    case marketing = "Marketing"
+    case timeTracking = "Time"
+    case employees = "Employees"
+    case timeClock = "Time Clock"
     case reports = "Reports"
     case settings = "Settings"
     
@@ -61,8 +70,17 @@ enum Tab: String, CaseIterable {
         case .dashboard: return "chart.bar.fill"
         case .queue: return "line.3.horizontal.decrease.circle.fill"
         case .customers: return "person.3.fill"
-        case .forms: return "doc.text.fill"
+        case .calendar: return "calendar"
+        case .invoices: return "doc.text.fill"
+        case .estimates: return "doc.plaintext.fill"
+        case .payments: return "dollarsign.circle.fill"
+        case .inventory: return "shippingbox.fill"
+        case .forms: return "doc.fill"
         case .sms: return "message.fill"
+        case .marketing: return "megaphone.fill"
+        case .timeTracking: return "clock.fill"
+        case .employees: return "person.3.sequence.fill"
+        case .timeClock: return "clock.badge.checkmark.fill"
         case .reports: return "chart.line.uptrend.xyaxis"
         case .settings: return "gearshape.fill"
         }
@@ -70,9 +88,9 @@ enum Tab: String, CaseIterable {
     
     var isPremium: Bool {
         switch self {
-        case .dashboard, .queue, .customers, .settings:
+        case .dashboard, .queue, .customers, .calendar, .invoices, .estimates, .payments, .inventory, .settings:
             return false
-        case .forms, .sms, .reports:
+        case .forms, .sms, .marketing, .timeTracking, .employees, .timeClock, .reports:
             return true
         }
     }
@@ -97,12 +115,30 @@ struct DetailView: View {
                     QueueView()
                 case .customers:
                     CustomerListView()
+                case .calendar:
+                    AppointmentSchedulerView()
+                case .invoices:
+                    InvoiceListView()
+                case .estimates:
+                    EstimateListView()
+                case .payments:
+                    PaymentHistoryView()
+                case .inventory:
+                    InventoryDashboardView()
                 case .forms:
                     FormsListView()
                 case .sms:
                     SMSHistoryView()
+                case .marketing:
+                    MarketingCampaignsView()
                 case .reports:
                     ReportsView()
+                case .timeTracking:
+                    TimeEntriesView()
+                case .employees:
+                    EmployeeManagementView()
+                case .timeClock:
+                    TimeClockView()
                 case .settings:
                     SettingsView()
                 }

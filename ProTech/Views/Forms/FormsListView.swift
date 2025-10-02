@@ -8,46 +8,148 @@
 import SwiftUI
 
 struct FormsListView: View {
+    @Environment(\.managedObjectContext) private var viewContext
+    
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \FormTemplate.createdAt, ascending: false)]
     ) var templates: FetchedResults<FormTemplate>
     
     @State private var showingEditor = false
+    @State private var selectedTemplate: FormTemplate?
+    @State private var showingSubmissions = false
     
     var body: some View {
         VStack {
             if templates.isEmpty {
-                VStack(spacing: 20) {
-                    Image(systemName: "doc.text")
-                        .font(.system(size: 60))
-                        .foregroundColor(.secondary)
-                    Text("No Form Templates")
-                        .font(.title2)
-                        .foregroundColor(.secondary)
-                    Text("Form templates will be loaded automatically")
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                emptyStateView
             } else {
                 List {
                     ForEach(templates) { template in
                         FormRow(template: template)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                selectedTemplate = template
+                                showingEditor = true
+                            }
+                            .contextMenu {
+                                Button {
+                                    selectedTemplate = template
+                                    showingEditor = true
+                                } label: {
+                                    Label("Edit Template", systemImage: "pencil")
+                                }
+                                
+                                Button {
+                                    duplicateTemplate(template)
+                                } label: {
+                                    Label("Duplicate", systemImage: "plus.square.on.square")
+                                }
+                                
+                                Divider()
+                                
+                                Button(role: .destructive) {
+                                    deleteTemplate(template)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
                     }
                 }
                 .listStyle(.inset)
             }
         }
-        .navigationTitle("Forms")
+        .navigationTitle("Form Templates")
         .toolbar {
-            ToolbarItem {
+            ToolbarItemGroup {
                 Button {
-                    showingEditor = true
+                    showingSubmissions = true
+                } label: {
+                    Label("View Submissions", systemImage: "tray.full")
+                }
+                
+                Button {
+                    createNewForm()
                 } label: {
                     Label("New Form", systemImage: "plus")
                 }
             }
         }
+        .sheet(item: $selectedTemplate) { template in
+            FormEditorView(template: template)
+        }
+        .sheet(isPresented: $showingSubmissions) {
+            FormSubmissionsListView()
+        }
+        .onAppear {
+            // Load default templates if none exist
+            if templates.isEmpty {
+                FormService.shared.loadDefaultTemplates()
+            }
+        }
+    }
+    
+    private var emptyStateView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "doc.text")
+                .font(.system(size: 60))
+                .foregroundColor(.secondary)
+            Text("No Form Templates")
+                .font(.title2)
+                .foregroundColor(.secondary)
+            Text("Create your first custom form template")
+                .font(.body)
+                .foregroundColor(.secondary)
+            
+            HStack(spacing: 16) {
+                Button {
+                    FormService.shared.loadDefaultTemplates()
+                } label: {
+                    Label("Load Defaults", systemImage: "square.and.arrow.down")
+                }
+                .buttonStyle(.bordered)
+                
+                Button {
+                    createNewForm()
+                } label: {
+                    Label("Create New", systemImage: "plus.circle.fill")
+                }
+                .buttonStyle(.borderedProminent)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private func createNewForm() {
+        let newTemplate = FormTemplate(context: viewContext)
+        newTemplate.id = UUID()
+        newTemplate.name = "New Form"
+        newTemplate.type = "custom"
+        newTemplate.templateJSON = "{\"fields\":[]}"
+        newTemplate.isDefault = false
+        newTemplate.createdAt = Date()
+        newTemplate.updatedAt = Date()
+        
+        CoreDataManager.shared.save()
+        selectedTemplate = newTemplate
+        showingEditor = true
+    }
+    
+    private func duplicateTemplate(_ template: FormTemplate) {
+        let duplicate = FormTemplate(context: viewContext)
+        duplicate.id = UUID()
+        duplicate.name = "\(template.name ?? "Form") (Copy)"
+        duplicate.type = template.type
+        duplicate.templateJSON = template.templateJSON
+        duplicate.isDefault = false
+        duplicate.createdAt = Date()
+        duplicate.updatedAt = Date()
+        
+        CoreDataManager.shared.save()
+    }
+    
+    private func deleteTemplate(_ template: FormTemplate) {
+        viewContext.delete(template)
+        CoreDataManager.shared.save()
     }
 }
 

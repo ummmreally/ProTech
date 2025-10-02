@@ -10,6 +10,8 @@ import SwiftUI
 @main
 struct ProTechApp: App {
     @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @StateObject private var authService = AuthenticationService.shared
+    @StateObject private var employeeService = EmployeeService()
     let persistenceController = CoreDataManager.shared
     
     init() {
@@ -19,16 +21,28 @@ struct ProTechApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .environment(\.managedObjectContext, persistenceController.viewContext)
-                .environmentObject(subscriptionManager)
-                .frame(minWidth: 900, minHeight: 600)
-                .onAppear {
-                    // Check subscription status on launch
-                    Task {
-                        await subscriptionManager.checkSubscriptionStatus()
-                    }
+            Group {
+                if authService.isAuthenticated {
+                    ContentView()
+                        .environment(\.managedObjectContext, persistenceController.viewContext)
+                        .environmentObject(subscriptionManager)
+                        .environmentObject(authService)
+                        .frame(minWidth: 900, minHeight: 600)
+                        .onAppear {
+                            // Check subscription status on launch
+                            Task {
+                                await subscriptionManager.checkSubscriptionStatus()
+                            }
+                        }
+                } else {
+                    LoginView()
+                        .frame(minWidth: 600, minHeight: 700)
+                        .onAppear {
+                            // Create default admin if needed
+                            employeeService.createDefaultAdminIfNeeded()
+                        }
                 }
+            }
         }
         .commands {
             CommandGroup(replacing: .newItem) {

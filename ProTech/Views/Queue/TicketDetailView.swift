@@ -17,6 +17,16 @@ struct TicketDetailView: View {
     @State private var newStatus: String = ""
     @State private var notes: String = ""
     
+    // Barcode integration
+    @State private var showingBarcodeScanner = false
+    @State private var showingBarcodePrint = false
+    
+    // Time tracking integration
+    @State private var showingTimerWidget = false
+    
+    // Parts/Inventory integration
+    @State private var showingPartsSelector = false
+    
     init(ticket: Ticket) {
         self.ticket = ticket
         if let customerId = ticket.customerId {
@@ -36,6 +46,14 @@ struct TicketDetailView: View {
     var body: some View {
         NavigationStack {
             Form {
+                // Time Tracking Widget (if timer is active)
+                if let ticketId = ticket.id,
+                   TimeTrackingService.shared.hasActiveTimer(for: ticketId) {
+                    Section {
+                        CompactTimerWidget()
+                    }
+                }
+                
                 // Customer Info
                 Section("Customer") {
                     if let customer = customer.first {
@@ -122,6 +140,51 @@ struct TicketDetailView: View {
                     .disabled(notes == ticket.notes)
                 }
                 
+                // Time Tracking Section
+                Section("Time Tracking") {
+                    if ticket.id != nil {
+                        TimerControlPanel(ticket: ticket)
+                    } else {
+                        Text("Save ticket to enable time tracking")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                // Parts & Inventory
+                Section("Parts & Inventory") {
+                    Button {
+                        showingPartsSelector = true
+                    } label: {
+                        Label("Add Parts Used", systemImage: "wrench.and.screwdriver")
+                    }
+                    
+                    // Show parts already used for this ticket
+                    if let ticketId = ticket.id {
+                        PartsUsedList(ticketId: ticketId)
+                    }
+                }
+                
+                // Barcode Actions
+                Section("Barcode") {
+                    Button {
+                        showingBarcodePrint = true
+                    } label: {
+                        Label("Print Ticket Label", systemImage: "barcode")
+                    }
+                    
+                    if ticket.ticketNumber != 0 {
+                        HStack {
+                            Text("Ticket #\(ticket.ticketNumber)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Image(systemName: "qrcode")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+                
                 // Actions
                 Section("Actions") {
                     if ticket.status == "waiting" {
@@ -158,6 +221,14 @@ struct TicketDetailView: View {
             .formStyle(.grouped)
             .navigationTitle("Ticket Details")
             .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    Button {
+                        showingBarcodePrint = true
+                    } label: {
+                        Label("Print Label", systemImage: "barcode")
+                    }
+                }
+                
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
                         dismiss()
@@ -165,7 +236,15 @@ struct TicketDetailView: View {
                 }
             }
         }
-        .frame(width: 600, height: 700)
+        .frame(width: 600, height: 800)
+        .sheet(isPresented: $showingPartsSelector) {
+            if let ticketId = ticket.id {
+                PartsPickerView(ticketId: ticketId, ticketNumber: ticket.ticketNumber)
+            }
+        }
+        .sheet(isPresented: $showingBarcodePrint) {
+            BarcodePrintView(ticket: ticket)
+        }
     }
     
     private func deviceIcon(_ device: String) -> String {
@@ -226,5 +305,239 @@ struct StatusPicker: View {
             }
         }
         .pickerStyle(.menu)
+    }
+}
+
+// MARK: - Parts Used List
+
+struct PartsUsedList: View {
+    @FetchRequest var adjustments: FetchedResults<StockAdjustment>
+    
+    init(ticketId: UUID) {
+        _adjustments = FetchRequest<StockAdjustment>(
+            sortDescriptors: [NSSortDescriptor(keyPath: \StockAdjustment.createdAt, ascending: false)],
+            predicate: NSPredicate(format: "reference CONTAINS[c] %@", ticketId.uuidString)
+        )
+    }
+    
+    var body: some View {
+        if adjustments.isEmpty {
+            Text("No parts used yet")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        } else {
+            ForEach(adjustments.prefix(5)) { adjustment in
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(adjustment.itemName ?? "Unknown Part")
+                            .font(.subheadline)
+                        Text("Qty: \(abs(adjustment.quantityChange))")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                        .font(.caption)
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Parts Picker View
+
+struct PartsPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.managedObjectContext) private var viewContext
+    
+    let ticketId: UUID
+    let ticketNumber: Int32
+    
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \InventoryItem.name, ascending: true)],
+        predicate: NSPredicate(format: "isActive == true")
+    ) var items: FetchedResults<InventoryItem>
+    
+    @State private var selectedItems: [UUID: Int] = [:]
+    @State private var searchText = ""
+    
+    var filteredItems: [InventoryItem] {
+        if searchText.isEmpty {
+            return Array(items)
+        }
+        return items.filter {
+            ($0.name?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+            ($0.partNumber?.localizedCaseInsensitiveContains(searchText) ?? false)
+        }
+    }
+    
+    var body: some View {
+        NavigationStack {
+            VStack {
+                // Search
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+                    TextField("Search parts...", text: $searchText)
+                        .textFieldStyle(.plain)
+                }
+                .padding(10)
+                .background(Color.gray.opacity(0.1))
+                .cornerRadius(8)
+                .padding()
+                
+                // Parts List
+                List {
+                    ForEach(filteredItems, id: \.id) { item in
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(item.name ?? "Unknown")
+                                    .font(.headline)
+                                HStack {
+                                    Text("Stock: \(item.quantity)")
+                                        .font(.caption)
+                                        .foregroundColor(item.isLowStock ? .orange : .secondary)
+                                    Text("•")
+                                        .foregroundColor(.secondary)
+                                    Text(item.partNumber ?? "")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            if let itemId = item.id {
+                                Stepper("Qty: \(selectedItems[itemId] ?? 0)",
+                                       value: Binding(
+                                        get: { selectedItems[itemId] ?? 0 },
+                                        set: { selectedItems[itemId] = max(0, min($0, Int(item.quantity))) }
+                                       ),
+                                       in: 0...Int(item.quantity))
+                                .frame(width: 150)
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+            }
+            .navigationTitle("Select Parts")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Add Parts") {
+                        addParts()
+                    }
+                    .disabled(selectedItems.values.allSatisfy { $0 == 0 })
+                }
+            }
+        }
+        .frame(width: 600, height: 500)
+    }
+    
+    private func addParts() {
+        for (itemId, quantity) in selectedItems where quantity > 0 {
+            InventoryService.shared.usePartForTicket(
+                itemId: itemId,
+                quantity: quantity,
+                ticketNumber: ticketNumber
+            )
+        }
+        dismiss()
+    }
+}
+
+// MARK: - Barcode Print View
+
+struct BarcodePrintView: View {
+    @Environment(\.dismiss) private var dismiss
+    let ticket: Ticket
+    
+    @State private var barcodeImage: NSImage?
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                if let image = barcodeImage {
+                    Image(nsImage: image)
+                        .resizable()
+                        .interpolation(.none)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(height: 100)
+                } else {
+                    ProgressView("Generating barcode...")
+                }
+                
+                VStack(spacing: 8) {
+                    Text("Ticket #\(ticket.ticketNumber)")
+                        .font(.title2)
+                        .bold()
+                    
+                    if let customer = ticket.customerId {
+                        Text("Customer: \(customer.uuidString.prefix(8))")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    if let device = ticket.deviceType {
+                        Text(device)
+                            .font(.subheadline)
+                    }
+                }
+                
+                Button {
+                    printBarcode()
+                } label: {
+                    Label("Print Label", systemImage: "printer")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+            }
+            .padding()
+            .navigationTitle("Ticket Label")
+            .toolbar {
+                ToolbarItem {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+        .frame(width: 400, height: 350)
+        .onAppear {
+            generateBarcode()
+        }
+    }
+    
+    private func generateBarcode() {
+        let barcodeString = String(format: "T%05d", ticket.ticketNumber)
+        barcodeImage = BarcodeGenerator.shared.generateBarcode(from: barcodeString, type: .code128)
+    }
+    
+    private func printBarcode() {
+        guard let image = barcodeImage else { return }
+        
+        // Create print operation
+        let imageView = NSImageView(frame: NSRect(x: 0, y: 0, width: 400, height: 200))
+        imageView.image = image
+        imageView.imageScaling = .scaleProportionallyUpOrDown
+        
+        let printInfo = NSPrintInfo.shared
+        printInfo.paperSize = NSSize(width: 288, height: 144) // 4x2 inches at 72 DPI
+        printInfo.topMargin = 10
+        printInfo.bottomMargin = 10
+        printInfo.leftMargin = 10
+        printInfo.rightMargin = 10
+        
+        let printOperation = NSPrintOperation(view: imageView, printInfo: printInfo)
+        printOperation.showsPrintPanel = true
+        printOperation.run()
     }
 }

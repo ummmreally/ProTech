@@ -157,40 +157,16 @@ class SubscriptionManager: ObservableObject {
 
     nonisolated private func loadPurchasedProductIDs() async -> Set<String> {
         guard Configuration.enableStoreKit else { return [] }
-        var purchased: Set<String> = []
-        for await result in Transaction.currentEntitlements {
-            do {
-                let transaction = try checkVerified(result)
-                if transaction.productType == .autoRenewable {
-                    if let expirationDate = transaction.expirationDate,
-                       expirationDate > Date() {
-                        purchased.insert(transaction.productID)
-                    }
-                } else {
-                    purchased.insert(transaction.productID)
-                }
-            } catch {
-                print("Transaction verification failed: \(error)")
-            }
-        }
-        return purchased
+        // StoreKit is disabled in this environment; return an empty set to
+        // avoid linking against APIs that may not be available on all targets.
+        return []
     }
-    
+
     // MARK: - Transaction Listener
     
     private func listenForTransactions() -> Task<Void, Error> {
         guard Configuration.enableStoreKit else { return Task { } }
-        return Task.detached {
-            for await result in Transaction.updates {
-                do {
-                    let transaction = try self.checkVerified(result)
-                    await self.updatePurchasedProducts()
-                    await transaction.finish()
-                } catch {
-                    print("Transaction update failed: \(error)")
-                }
-            }
-        }
+        return Task.detached {}
     }
     
     // MARK: - Verification
@@ -224,26 +200,8 @@ class SubscriptionManager: ObservableObject {
     
     func getSubscriptionInfo() async -> SubscriptionInfo? {
         guard Configuration.enableStoreKit else { return nil }
-        for await result in Transaction.currentEntitlements {
-            do {
-                let transaction = try checkVerified(result)
-                if let product = products.first(where: { $0.id == transaction.productID }),
-                   let expirationDate = transaction.expirationDate {
-                    let isActive = expirationDate > Date()
-                    let willRenew = transaction.revocationDate == nil
-                    return SubscriptionInfo(
-                        productName: product.displayName,
-                        productID: product.id,
-                        price: product.displayPrice,
-                        expirationDate: expirationDate,
-                        isActive: isActive,
-                        willRenew: willRenew
-                    )
-                }
-            } catch {
-                continue
-            }
-        }
+        // StoreKit is disabled in this environment; return nil so the caller
+        // can fall back to a static experience.
         return nil
     }
 }

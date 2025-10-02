@@ -20,6 +20,86 @@ extension FormTemplate {
 
 extension FormTemplate: Identifiable {}
 
+// MARK: - Form Field Structures
+
+struct FormField: Codable, Identifiable {
+    var id: UUID
+    var type: FieldType
+    var label: String
+    var placeholder: String?
+    var isRequired: Bool
+    var options: [String]? // For dropdowns, checkboxes, radio buttons
+    var defaultValue: String?
+    var order: Int
+    
+    enum FieldType: String, Codable {
+        case text
+        case multiline
+        case number
+        case email
+        case phone
+        case date
+        case dropdown
+        case checkbox
+        case radio
+        case signature
+        case yesNo
+    }
+}
+
+struct FormTemplateData: Codable {
+    var fields: [FormField]
+    var description: String?
+    var instructions: String?
+}
+
+extension FormTemplate {
+    var fields: [FormField] {
+        guard let json = templateJSON,
+              let data = json.data(using: .utf8),
+              let templateData = try? JSONDecoder().decode(FormTemplateData.self, from: data) else {
+            return []
+        }
+        return templateData.fields.sorted { $0.order < $1.order }
+    }
+    
+    var templateData: FormTemplateData? {
+        guard let json = templateJSON,
+              let data = json.data(using: .utf8) else {
+            return nil
+        }
+        return try? JSONDecoder().decode(FormTemplateData.self, from: data)
+    }
+    
+    func setFields(_ fields: [FormField], description: String? = nil, instructions: String? = nil) {
+        let templateData = FormTemplateData(fields: fields, description: description, instructions: instructions)
+        if let data = try? JSONEncoder().encode(templateData),
+           let json = String(data: data, encoding: .utf8) {
+            self.templateJSON = json
+        }
+    }
+    
+    static func fetchAllTemplates(context: NSManagedObjectContext) -> [FormTemplate] {
+        let request = fetchRequest()
+        request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
+        return (try? context.fetch(request)) ?? []
+    }
+    
+    static func fetchDefaultTemplates(context: NSManagedObjectContext) -> [FormTemplate] {
+        let request = fetchRequest()
+        request.predicate = NSPredicate(format: "isDefault == true")
+        request.sortDescriptors = [NSSortDescriptor(key: "name", ascending: true)]
+        return (try? context.fetch(request)) ?? []
+    }
+    
+    static func fetchTemplate(byId id: UUID, context: NSManagedObjectContext) -> FormTemplate? {
+        let request = fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.fetchLimit = 1
+        return try? context.fetch(request).first
+    }
+}
+
 
 extension FormTemplate {
     static func entityDescription() -> NSEntityDescription {
