@@ -11,6 +11,7 @@ extension SMSMessage {
     
     @NSManaged public var id: UUID?
     @NSManaged public var customerId: UUID?
+    @NSManaged public var ticketId: UUID?
     @NSManaged public var body: String?
     @NSManaged public var status: String?
     @NSManaged public var direction: String?
@@ -36,6 +37,11 @@ extension SMSMessage {
         customerIdAttribute.name = "customerId"
         customerIdAttribute.attributeType = .UUIDAttributeType
         customerIdAttribute.isOptional = true
+
+        let ticketIdAttribute = NSAttributeDescription()
+        ticketIdAttribute.name = "ticketId"
+        ticketIdAttribute.attributeType = .UUIDAttributeType
+        ticketIdAttribute.isOptional = true
 
         let bodyAttribute = NSAttributeDescription()
         bodyAttribute.name = "body"
@@ -65,6 +71,7 @@ extension SMSMessage {
         entity.properties = [
             idAttribute,
             customerIdAttribute,
+            ticketIdAttribute,
             bodyAttribute,
             statusAttribute,
             directionAttribute,
@@ -74,7 +81,8 @@ extension SMSMessage {
 
         let idIndex = NSFetchIndexDescription(name: "sms_id_index", elements: [NSFetchIndexElementDescription(property: idAttribute, collationType: .binary)])
         let customerIndex = NSFetchIndexDescription(name: "sms_customer_index", elements: [NSFetchIndexElementDescription(property: customerIdAttribute, collationType: .binary)])
-        entity.indexes = [idIndex, customerIndex]
+        let ticketIndex = NSFetchIndexDescription(name: "sms_ticket_index", elements: [NSFetchIndexElementDescription(property: ticketIdAttribute, collationType: .binary)])
+        entity.indexes = [idIndex, customerIndex, ticketIndex]
 
         return entity
     }

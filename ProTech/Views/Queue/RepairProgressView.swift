@@ -22,6 +22,29 @@ struct RepairProgressView: View {
     @State private var partUsageMap: [UUID: RepairPartUsage] = [:]
     @State private var hasLoadedProgress = false
     
+    // SMS integration
+    @State private var showingSMSModal = false
+    @State private var smsMessage = ""
+    @State private var pendingStatusChange: String?
+    @State private var customer: Customer?
+    
+    @FetchRequest var customerRequest: FetchedResults<Customer>
+    
+    init(ticket: Ticket) {
+        self.ticket = ticket
+        if let customerId = ticket.customerId {
+            _customerRequest = FetchRequest<Customer>(
+                sortDescriptors: [],
+                predicate: NSPredicate(format: "id == %@", customerId as CVarArg)
+            )
+        } else {
+            _customerRequest = FetchRequest<Customer>(
+                sortDescriptors: [],
+                predicate: NSPredicate(value: false)
+            )
+        }
+    }
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -44,6 +67,19 @@ struct RepairProgressView: View {
         }
         .onAppear {
             loadProgress()
+            customer = customerRequest.first
+        }
+        .sheet(isPresented: $showingSMSModal) {
+            if let customer = customer {
+                SMSConfirmationModal(
+                    isPresented: $showingSMSModal,
+                    customer: customer,
+                    defaultMessage: smsMessage,
+                    onSend: { message in
+                        sendSMS(message: message)
+                    }
+                )
+            }
         }
         .onChange(of: partsOrdered) { _, _ in
             if hasLoadedProgress {
@@ -210,7 +246,12 @@ struct RepairProgressView: View {
                 .disabled(ticket.status == "in_progress")
                 
                 Button {
-                    updateStatus("completed")
+                    // Check if SMS should be sent
+                    if TwilioService.shared.isConfigured && customer?.phone != nil {
+                        prepareReadyForPickupSMS()
+                    } else {
+                        updateStatus("completed")
+                    }
                 } label: {
                     Label("Mark Complete", systemImage: "checkmark.circle.fill")
                 }
@@ -497,6 +538,69 @@ struct RepairProgressView: View {
             record.lastUpdated = Date()
         }
         saveProgress()
+    }
+    
+    // MARK: - SMS Functions
+    
+    private func prepareReadyForPickupSMS() {
+        guard let customer = customer else { return }
+        
+        let customerName = customer.firstName ?? "Customer"
+        let deviceType = ticket.deviceType ?? "device"
+        
+        smsMessage = SMSConfirmationModal.readyForPickupMessage(
+            customerName: customerName,
+            ticketNumber: ticket.ticketNumber,
+            deviceType: deviceType
+        )
+        pendingStatusChange = "completed"
+        showingSMSModal = true
+    }
+    
+    private func sendSMS(message: String) {
+        guard let customer = customer,
+              let phone = customer.phone else {
+            return
+        }
+        
+        Task {
+            do {
+                let result = try await TwilioService.shared.sendSMS(to: phone, body: message)
+                
+                // Save to database
+                await saveSMSToDatabase(result: result, customerId: customer.id)
+                
+                // Update status if pending
+                await MainActor.run {
+                    if let newStatus = pendingStatusChange {
+                        updateStatus(newStatus)
+                        pendingStatusChange = nil
+                    }
+                }
+                
+            } catch {
+                // Silently fail or handle error
+                print("SMS Error: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    private func saveSMSToDatabase(result: SMSResult, customerId: UUID?) async {
+        let context = CoreDataManager.shared.viewContext
+        
+        await context.perform {
+            let smsMessage = SMSMessage(context: context)
+            smsMessage.id = UUID()
+            smsMessage.customerId = customerId
+            smsMessage.ticketId = self.ticket.id
+            smsMessage.direction = "outbound"
+            smsMessage.body = result.body
+            smsMessage.status = result.status
+            smsMessage.twilioSid = result.sid
+            smsMessage.sentAt = Date()
+            
+            try? context.save()
+        }
     }
 }
 

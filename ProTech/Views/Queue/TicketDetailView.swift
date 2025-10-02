@@ -27,6 +27,13 @@ struct TicketDetailView: View {
     // Parts/Inventory integration
     @State private var showingPartsSelector = false
     
+    // SMS integration
+    @State private var showingSMSModal = false
+    @State private var smsMessage = ""
+    @State private var pendingStatusChange: String?
+    @State private var showingSMSError = false
+    @State private var smsErrorMessage = ""
+    
     init(ticket: Ticket) {
         self.ticket = ticket
         if let customerId = ticket.customerId {
@@ -193,11 +200,25 @@ struct TicketDetailView: View {
                         } label: {
                             Label("Start Working", systemImage: "play.fill")
                         }
+                        
+                        // Option to notify customer work is starting
+                        if TwilioService.shared.isConfigured && customer.first?.phone != nil {
+                            Button {
+                                prepareWorkStartedSMS()
+                            } label: {
+                                Label("Notify Work Started", systemImage: "message.fill")
+                            }
+                        }
                     }
                     
                     if ticket.status == "in_progress" {
                         Button {
-                            updateStatus("completed")
+                            // Check if SMS should be sent
+                            if TwilioService.shared.isConfigured && customer.first?.phone != nil {
+                                prepareReadyForPickupSMS()
+                            } else {
+                                updateStatus("completed")
+                            }
                         } label: {
                             Label("Mark as Completed", systemImage: "checkmark.circle.fill")
                         }
@@ -209,7 +230,28 @@ struct TicketDetailView: View {
                         } label: {
                             Label("Customer Picked Up", systemImage: "hand.thumbsup.fill")
                         }
+                        
+                        // Option to resend pickup notification
+                        if TwilioService.shared.isConfigured && customer.first?.phone != nil {
+                            Button {
+                                prepareReadyForPickupSMS()
+                            } label: {
+                                Label("Send Pickup Reminder", systemImage: "message.badge.fill")
+                            }
+                        }
                     }
+                    
+                    // Send custom SMS option for any status
+                    if TwilioService.shared.isConfigured && customer.first != nil {
+                        Divider()
+                        Button {
+                            prepareCustomSMS()
+                        } label: {
+                            Label("Send Custom SMS", systemImage: "text.bubble")
+                        }
+                    }
+                    
+                    Divider()
                     
                     Button(role: .destructive) {
                         deleteTicket()
@@ -244,6 +286,23 @@ struct TicketDetailView: View {
         }
         .sheet(isPresented: $showingBarcodePrint) {
             BarcodePrintView(ticket: ticket)
+        }
+        .sheet(isPresented: $showingSMSModal) {
+            if let customer = customer.first {
+                SMSConfirmationModal(
+                    isPresented: $showingSMSModal,
+                    customer: customer,
+                    defaultMessage: smsMessage,
+                    onSend: { message in
+                        sendSMS(message: message)
+                    }
+                )
+            }
+        }
+        .alert("SMS Error", isPresented: $showingSMSError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(smsErrorMessage)
         }
     }
     
@@ -286,6 +345,101 @@ struct TicketDetailView: View {
         CoreDataManager.shared.viewContext.delete(ticket)
         CoreDataManager.shared.save()
         dismiss()
+    }
+    
+    // MARK: - SMS Functions
+    
+    private func prepareReadyForPickupSMS() {
+        guard let customer = customer.first else { return }
+        
+        let customerName = customer.firstName ?? "Customer"
+        let deviceType = ticket.deviceType ?? "device"
+        
+        smsMessage = SMSConfirmationModal.readyForPickupMessage(
+            customerName: customerName,
+            ticketNumber: ticket.ticketNumber,
+            deviceType: deviceType
+        )
+        pendingStatusChange = "completed"
+        showingSMSModal = true
+    }
+    
+    private func prepareWorkStartedSMS() {
+        guard let customer = customer.first else { return }
+        
+        let customerName = customer.firstName ?? "Customer"
+        let deviceType = ticket.deviceType ?? "device"
+        
+        smsMessage = SMSConfirmationModal.repairStartedMessage(
+            customerName: customerName,
+            deviceType: deviceType
+        )
+        pendingStatusChange = nil
+        showingSMSModal = true
+    }
+    
+    private func prepareCustomSMS() {
+        guard let customer = customer.first else { return }
+        
+        let customerName = customer.firstName ?? "Customer"
+        smsMessage = "Hi \(customerName), "
+        pendingStatusChange = nil
+        showingSMSModal = true
+    }
+    
+    private func sendSMS(message: String) {
+        guard let customer = customer.first,
+              let phone = customer.phone else {
+            smsErrorMessage = "Customer phone number not found."
+            showingSMSError = true
+            return
+        }
+        
+        Task {
+            do {
+                let result = try await TwilioService.shared.sendSMS(to: phone, body: message)
+                
+                // Save to database
+                await saveSMSToDatabase(result: result, customerId: customer.id)
+                
+                // Update status if pending
+                await MainActor.run {
+                    if let newStatus = pendingStatusChange {
+                        updateStatus(newStatus)
+                        pendingStatusChange = nil
+                    }
+                }
+                
+            } catch let error as TwilioError {
+                await MainActor.run {
+                    smsErrorMessage = error.errorDescription ?? "Unknown error"
+                    showingSMSError = true
+                }
+            } catch {
+                await MainActor.run {
+                    smsErrorMessage = error.localizedDescription
+                    showingSMSError = true
+                }
+            }
+        }
+    }
+    
+    private func saveSMSToDatabase(result: SMSResult, customerId: UUID?) async {
+        let context = CoreDataManager.shared.viewContext
+        
+        await context.perform {
+            let smsMessage = SMSMessage(context: context)
+            smsMessage.id = UUID()
+            smsMessage.customerId = customerId
+            smsMessage.ticketId = self.ticket.id
+            smsMessage.direction = "outbound"
+            smsMessage.body = result.body
+            smsMessage.status = result.status
+            smsMessage.twilioSid = result.sid
+            smsMessage.sentAt = Date()
+            
+            try? context.save()
+        }
     }
 }
 
