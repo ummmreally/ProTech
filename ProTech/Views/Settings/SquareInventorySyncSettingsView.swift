@@ -204,6 +204,11 @@ struct SquareInventorySyncSettingsView: View {
                         Label("Open Sync Dashboard", systemImage: "chart.line.uptrend.xyaxis")
                     }
                     
+                    // Navigation to Customer Sync
+                    NavigationLink(destination: SquareCustomerSyncView(context: context)) {
+                        Label("Customer Sync", systemImage: "person.2.badge.gearshape")
+                    }
+                    
                     Divider()
                     
                     // Quick Sync Actions
@@ -260,12 +265,11 @@ struct SquareInventorySyncSettingsView: View {
                     Text("Actions")
                 } footer: {
                     if syncManager.syncStatus == .syncing {
-                        HStack {
-                            ProgressView()
-                                .scaleEffect(0.7)
-                            Text(syncManager.currentOperation ?? "Syncing...")
-                                .font(.caption)
-                        }
+                        SyncProgressBar(
+                            progress: syncManager.syncProgress,
+                            currentOperation: syncManager.currentOperation
+                        )
+                        .padding(.top, 8)
                     }
                 }
             }

@@ -34,28 +34,41 @@ struct SquareSyncDashboardView: View {
     }
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                // Status Card
-                statusCard
-                
-                // Statistics Cards
-                statisticsCards
-                
-                // Sync Progress
-                if syncManager.syncStatus == .syncing {
-                    syncProgressCard
+        ZStack {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Status Card
+                    statusCard
+                    
+                    // Statistics Cards
+                    statisticsCards
+                    
+                    // Sync Progress
+                    if syncManager.syncStatus == .syncing {
+                        syncProgressCard
+                    }
+                    
+                    // Quick Actions
+                    quickActionsCard
+                    
+                    // Sync History
+                    syncHistoryCard
                 }
-                
-                // Quick Actions
-                quickActionsCard
-                
-                // Sync History
-                syncHistoryCard
+                .padding()
             }
-            .padding()
+            .navigationTitle("Square Sync")
+            
+            // Prominent loading overlay when syncing
+            if syncManager.syncStatus == .syncing {
+                SyncProgressOverlay(
+                    progress: syncManager.syncProgress,
+                    currentOperation: syncManager.currentOperation,
+                    status: syncManager.syncStatus
+                )
+                .transition(.opacity)
+                .animation(.easeInOut, value: syncManager.syncStatus)
+            }
         }
-        .navigationTitle("Square Sync")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Menu {
@@ -464,16 +477,10 @@ struct ImportFromSquareSheet: View {
                     .padding(.horizontal)
                 
                 if isImporting {
-                    VStack(spacing: 12) {
-                        ProgressView(value: syncManager.syncProgress)
-                            .progressViewStyle(.linear)
-                        
-                        if let operation = syncManager.currentOperation {
-                            Text(operation)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
+                    SyncProgressBar(
+                        progress: syncManager.syncProgress,
+                        currentOperation: syncManager.currentOperation
+                    )
                     .padding()
                 }
                 
@@ -543,16 +550,10 @@ struct ExportToSquareSheet: View {
                     .padding(.horizontal)
                 
                 if isExporting {
-                    VStack(spacing: 12) {
-                        ProgressView(value: syncManager.syncProgress)
-                            .progressViewStyle(.linear)
-                        
-                        if let operation = syncManager.currentOperation {
-                            Text(operation)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
+                    SyncProgressBar(
+                        progress: syncManager.syncProgress,
+                        currentOperation: syncManager.currentOperation
+                    )
                     .padding()
                 }
                 

@@ -725,3 +725,172 @@ struct TerminalDevicesResponse: Codable {
         case deviceCodes = "device_codes"
     }
 }
+
+// MARK: - Customer API Extension
+
+extension SquareAPIService {
+    
+    /// Lists all customers with pagination support
+    func listCustomers(cursor: String? = nil, limit: Int = 100) async throws -> CustomersListResponse {
+        guard let config = configuration else {
+            throw SquareAPIError.notConfigured
+        }
+        
+        var components = URLComponents(string: "\(config.baseURL)/v2/customers")!
+        var queryItems: [URLQueryItem] = []
+        
+        if let cursor = cursor {
+            queryItems.append(URLQueryItem(name: "cursor", value: cursor))
+        }
+        
+        queryItems.append(URLQueryItem(name: "limit", value: String(limit)))
+        
+        if !queryItems.isEmpty {
+            components.queryItems = queryItems
+        }
+        
+        let request = try createAuthenticatedRequest(url: components.url!, method: "GET")
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response, data: data)
+        
+        return try JSONDecoder().decode(CustomersListResponse.self, from: data)
+    }
+    
+    /// Searches for customers based on query criteria
+    func searchCustomers(query: CustomerQuery? = nil, cursor: String? = nil, limit: Int = 100) async throws -> SearchCustomersResponse {
+        guard let config = configuration else {
+            throw SquareAPIError.notConfigured
+        }
+        
+        let url = URL(string: "\(config.baseURL)/v2/customers/search")!
+        var request = try createAuthenticatedRequest(url: url, method: "POST")
+        
+        let searchRequest = SearchCustomersRequest(
+            limit: limit,
+            cursor: cursor,
+            query: query
+        )
+        
+        request.httpBody = try JSONEncoder().encode(searchRequest)
+        
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response, data: data)
+        
+        return try JSONDecoder().decode(SearchCustomersResponse.self, from: data)
+    }
+    
+    /// Gets a specific customer by ID
+    func getCustomer(customerId: String) async throws -> SquareCustomer {
+        guard let config = configuration else {
+            throw SquareAPIError.notConfigured
+        }
+        
+        let url = URL(string: "\(config.baseURL)/v2/customers/\(customerId)")!
+        let request = try createAuthenticatedRequest(url: url, method: "GET")
+        
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response, data: data)
+        
+        let customerResponse = try JSONDecoder().decode(CustomerResponse.self, from: data)
+        guard let customer = customerResponse.customer else {
+            throw SquareAPIError.apiError(message: "Customer not found")
+        }
+        
+        return customer
+    }
+    
+    /// Creates a new customer
+    func createCustomer(
+        givenName: String? = nil,
+        familyName: String? = nil,
+        emailAddress: String? = nil,
+        phoneNumber: String? = nil,
+        address: SquareAddress? = nil,
+        note: String? = nil,
+        referenceId: String? = nil
+    ) async throws -> SquareCustomer {
+        guard let config = configuration else {
+            throw SquareAPIError.notConfigured
+        }
+        
+        let url = URL(string: "\(config.baseURL)/v2/customers")!
+        var request = try createAuthenticatedRequest(url: url, method: "POST")
+        
+        let createRequest = CreateCustomerRequest(
+            givenName: givenName,
+            familyName: familyName,
+            emailAddress: emailAddress,
+            phoneNumber: phoneNumber,
+            address: address,
+            note: note,
+            referenceId: referenceId,
+            idempotencyKey: UUID().uuidString
+        )
+        
+        request.httpBody = try JSONEncoder().encode(createRequest)
+        
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response, data: data)
+        
+        let customerResponse = try JSONDecoder().decode(CustomerResponse.self, from: data)
+        guard let customer = customerResponse.customer else {
+            throw SquareAPIError.apiError(message: "Failed to create customer")
+        }
+        
+        return customer
+    }
+    
+    /// Updates an existing customer
+    func updateCustomer(
+        customerId: String,
+        givenName: String? = nil,
+        familyName: String? = nil,
+        emailAddress: String? = nil,
+        phoneNumber: String? = nil,
+        address: SquareAddress? = nil,
+        note: String? = nil,
+        version: Int? = nil
+    ) async throws -> SquareCustomer {
+        guard let config = configuration else {
+            throw SquareAPIError.notConfigured
+        }
+        
+        let url = URL(string: "\(config.baseURL)/v2/customers/\(customerId)")!
+        var request = try createAuthenticatedRequest(url: url, method: "PUT")
+        
+        let updateRequest = UpdateCustomerRequest(
+            givenName: givenName,
+            familyName: familyName,
+            emailAddress: emailAddress,
+            phoneNumber: phoneNumber,
+            address: address,
+            note: note,
+            version: version
+        )
+        
+        request.httpBody = try JSONEncoder().encode(updateRequest)
+        
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response, data: data)
+        
+        let customerResponse = try JSONDecoder().decode(CustomerResponse.self, from: data)
+        guard let customer = customerResponse.customer else {
+            throw SquareAPIError.apiError(message: "Failed to update customer")
+        }
+        
+        return customer
+    }
+    
+    /// Deletes a customer
+    func deleteCustomer(customerId: String) async throws {
+        guard let config = configuration else {
+            throw SquareAPIError.notConfigured
+        }
+        
+        let url = URL(string: "\(config.baseURL)/v2/customers/\(customerId)")!
+        let request = try createAuthenticatedRequest(url: url, method: "DELETE")
+        
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response, data: data)
+    }
+}

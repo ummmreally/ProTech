@@ -19,6 +19,7 @@ extension Customer {
     @NSManaged public var createdAt: Date?
     @NSManaged public var updatedAt: Date?
     @NSManaged public var cloudSyncStatus: String?
+    @NSManaged public var squareCustomerId: String?
 }
 
 extension Customer: Identifiable {}
@@ -100,6 +101,11 @@ extension Customer {
         cloudSyncStatusAttribute.attributeType = .stringAttributeType
         cloudSyncStatusAttribute.isOptional = true
 
+        let squareCustomerIdAttribute = NSAttributeDescription()
+        squareCustomerIdAttribute.name = "squareCustomerId"
+        squareCustomerIdAttribute.attributeType = .stringAttributeType
+        squareCustomerIdAttribute.isOptional = true
+
         entity.properties = [
             idAttribute,
             firstNameAttribute,
@@ -110,7 +116,8 @@ extension Customer {
             notesAttribute,
             createdAtAttribute,
             updatedAtAttribute,
-            cloudSyncStatusAttribute
+            cloudSyncStatusAttribute,
+            squareCustomerIdAttribute
         ]
 
         let idIndex = NSFetchIndexDescription(name: "customer_id_index", elements: [NSFetchIndexElementDescription(property: idAttribute, collationType: .binary)])
