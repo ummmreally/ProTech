@@ -9,12 +9,44 @@ import SwiftUI
 
 struct PointOfSaleView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.managedObjectContext) private var viewContext
     @StateObject private var cart = POSCart()
     @State private var searchText = ""
     @State private var selectedPaymentMode: PaymentMode?
     @State private var showingCheckout = false
     @State private var discountCode = ""
     @State private var discountAmount: Double = 0
+    @State private var selectedCategory: InventoryCategory = .all
+    @State private var squareDevices: [TerminalDevice] = []
+    @State private var selectedDeviceId: String? = nil
+    @State private var terminalCheckoutId: String? = nil
+    @State private var isProcessingSquare = false
+    @State private var squarePaymentStatus: String = ""
+    @State private var showSquareError = false
+    @State private var squareErrorMessage = ""
+    
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \InventoryItem.name, ascending: true)],
+        predicate: NSPredicate(format: "isActive == true AND quantity > 0")
+    ) var availableItems: FetchedResults<InventoryItem>
+    
+    var filteredItems: [InventoryItem] {
+        var filtered = Array(availableItems)
+        
+        if !searchText.isEmpty {
+            filtered = filtered.filter {
+                ($0.name?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                ($0.sku?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                ($0.partNumber?.localizedCaseInsensitiveContains(searchText) ?? false)
+            }
+        }
+        
+        if selectedCategory != .all {
+            filtered = filtered.filter { $0.inventoryCategory == selectedCategory }
+        }
+        
+        return filtered
+    }
     
     var body: some View {
         HStack(spacing: 0) {
@@ -36,6 +68,17 @@ struct PointOfSaleView: View {
                 }
             }
         }
+        .sheet(isPresented: $isProcessingSquare) {
+            squarePaymentProcessingView
+        }
+        .alert("Square Payment Error", isPresented: $showSquareError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(squareErrorMessage)
+        }
+        .task {
+            await loadSquareDevices()
+        }
     }
     
     // MARK: - Order Details Panel (Left)
@@ -45,6 +88,17 @@ struct PointOfSaleView: View {
             // Search Bar
             searchBar
                 .padding()
+            
+            // Category Filter
+            categoryFilter
+                .padding(.horizontal)
+            
+            // Product Grid
+            productGrid
+                .frame(height: 300)
+                .padding()
+            
+            Divider()
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
@@ -58,6 +112,68 @@ struct PointOfSaleView: View {
                     discountCard
                 }
                 .padding()
+            }
+        }
+    }
+    
+    private var categoryFilter: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(InventoryCategory.allCases, id: \.self) { category in
+                    Button {
+                        selectedCategory = category
+                    } label: {
+                        HStack {
+                            Image(systemName: category.icon)
+                            Text(category.displayName)
+                        }
+                        .font(.subheadline)
+                        .fontWeight(selectedCategory == category ? .semibold : .regular)
+                        .foregroundColor(selectedCategory == category ? .white : Color(hex: "212121"))
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(selectedCategory == category ? Color(hex: "00C853") : Color.white)
+                        .cornerRadius(20)
+                        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+    
+    private var productGrid: some View {
+        ScrollView {
+            if filteredItems.isEmpty {
+                VStack(spacing: 16) {
+                    Image(systemName: "magnifyingglass")
+                        .font(.system(size: 48))
+                        .foregroundColor(.secondary)
+                    Text(searchText.isEmpty ? "No products available" : "No products found")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    if !searchText.isEmpty {
+                        Button("Clear Search") {
+                            searchText = ""
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
+            } else {
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible()),
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: 12) {
+                    ForEach(filteredItems, id: \.id) { item in
+                        ProductCard(item: item) {
+                            addToCart(item)
+                        }
+                    }
+                }
             }
         }
     }
@@ -182,11 +298,14 @@ struct PointOfSaleView: View {
                         .foregroundColor(Color(hex: "00C853"))
                 }
                 
+                HStack {
                     Text("Tax (8.25%)")
                         .foregroundColor(Color(hex: "757575"))
                     Spacer()
                     Text("+ \(formatCurrency(cart.taxAmount))")
                         .fontWeight(.medium)
+                }
+                
                 Divider()
                 
                 HStack {
@@ -282,6 +401,25 @@ struct PointOfSaleView: View {
                 Text("Select a payment method that helps our customers to feel seamless experience during checkout")
                     .font(.caption)
                     .foregroundColor(Color(hex: "757575"))
+                
+                // Square Terminal Device Selector
+                if selectedPaymentMode == .card && !squareDevices.isEmpty {
+                    Divider()
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Square Terminal Device")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundColor(Color(hex: "212121"))
+                        
+                        Picker("Select Device", selection: $selectedDeviceId) {
+                            Text("Select Terminal...").tag(nil as String?)
+                            ForEach(squareDevices) { device in
+                                Text(device.name ?? "Terminal \(device.code)").tag(device.deviceId as String?)
+                            }
+                        }
+                        .labelsHidden()
+                    }
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 24)
@@ -335,20 +473,89 @@ struct PointOfSaleView: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 18)
                     .background(
-                        selectedPaymentMode != nil ?
+                        canConfirmPayment ?
                         Color(hex: "00C853") :
                         Color.gray.opacity(0.3)
                     )
                     .cornerRadius(16)
             }
             .buttonStyle(.plain)
-            .disabled(selectedPaymentMode == nil || cart.items.isEmpty)
+            .disabled(!canConfirmPayment)
             .padding(.horizontal, 24)
             .padding(.bottom, 24)
         }
     }
     
+    // MARK: - Computed Properties
+    
+    private var canConfirmPayment: Bool {
+        guard selectedPaymentMode != nil, !cart.items.isEmpty else {
+            return false
+        }
+        
+        // If card payment is selected, must have a device selected
+        if selectedPaymentMode == .card {
+            return selectedDeviceId != nil
+        }
+        
+        return true
+    }
+    
+    private var squarePaymentProcessingView: some View {
+        VStack(spacing: 24) {
+            ProgressView()
+                .scaleEffect(1.5)
+            
+            Text(squarePaymentStatus)
+                .font(.title3)
+                .fontWeight(.medium)
+            
+            if let checkoutId = terminalCheckoutId {
+                Text("Checkout ID: \(checkoutId)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Text("Please complete payment on Square Terminal")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Button("Cancel") {
+                cancelSquarePayment()
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding(40)
+        .frame(width: 400, height: 300)
+    }
+    
     // MARK: - Helper Methods
+    
+    private func loadSquareDevices() async {
+        do {
+            let devices = try await SquareAPIService.shared.listTerminalDevices()
+            await MainActor.run {
+                self.squareDevices = devices
+                // Auto-select first device if available
+                if let firstDevice = devices.first {
+                    self.selectedDeviceId = firstDevice.deviceId
+                }
+            }
+        } catch {
+            print("Failed to load Square devices: \(error.localizedDescription)")
+        }
+    }
+    
+    private func addToCart(_ item: InventoryItem) {
+        let cartItem = CartItem(
+            name: item.name ?? "Unknown",
+            price: item.sellingPrice,
+            quantity: 1,
+            icon: item.inventoryCategory.icon,
+            addOns: []
+        )
+        cart.addItem(cartItem)
+    }
     
     private func formatCurrency(_ amount: Double) -> String {
         return String(format: "$%.2f", amount)
@@ -362,11 +569,193 @@ struct PointOfSaleView: View {
     }
     
     private func processPayment() {
-        guard selectedPaymentMode != nil else { return }
+        guard let paymentMode = selectedPaymentMode else { return }
         
-        // TODO: Process payment through Square
-        // For now, just show success
+        switch paymentMode {
+        case .card:
+            // Process through Square Terminal
+            processSquareTerminalPayment()
+        case .cash, .upi:
+            // Process locally
+            processLocalPayment()
+        }
+    }
+    
+    private func processSquareTerminalPayment() {
+        guard let deviceId = selectedDeviceId else {
+            squareErrorMessage = "Please select a Square Terminal device"
+            showSquareError = true
+            return
+        }
+        
+        Task {
+            do {
+                // Convert cart total to cents
+                let amountInCents = Int((cart.total - discountAmount) * 100)
+                
+                isProcessingSquare = true
+                squarePaymentStatus = "Creating checkout..."
+                
+                // Create terminal checkout
+                let checkout = try await SquareAPIService.shared.createTerminalCheckout(
+                    amount: amountInCents,
+                    deviceId: deviceId,
+                    referenceId: "POS-\(UUID().uuidString.prefix(8))",
+                    note: "ProTech POS Sale"
+                )
+                
+                terminalCheckoutId = checkout.id
+                squarePaymentStatus = "Waiting for payment on terminal..."
+                
+                // Poll for checkout completion
+                let completed = try await pollCheckoutStatus(checkoutId: checkout.id)
+                
+                if completed {
+                    // Payment successful!
+                    await MainActor.run {
+                        isProcessingSquare = false
+                        cart.clear()
+                        selectedPaymentMode = nil
+                        discountAmount = 0
+                        discountCode = ""
+                        terminalCheckoutId = nil
+                    }
+                } else {
+                    throw SquareAPIError.apiError(message: "Payment was not completed")
+                }
+            } catch {
+                await MainActor.run {
+                    isProcessingSquare = false
+                    squareErrorMessage = "Payment failed: \(error.localizedDescription)"
+                    showSquareError = true
+                    terminalCheckoutId = nil
+                }
+            }
+        }
+    }
+    
+    private func pollCheckoutStatus(checkoutId: String) async throws -> Bool {
+        // Poll every 2 seconds for up to 5 minutes
+        for _ in 0..<150 {
+            try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
+            
+            let checkout = try await SquareAPIService.shared.getTerminalCheckout(checkoutId: checkoutId)
+            
+            await MainActor.run {
+                squarePaymentStatus = "Status: \(checkout.status)"
+            }
+            
+            if checkout.isCompleted {
+                return true
+            } else if checkout.isCanceled {
+                return false
+            }
+            // Continue polling if pending
+        }
+        
+        return false // Timeout
+    }
+    
+    private func cancelSquarePayment() {
+        guard let checkoutId = terminalCheckoutId else {
+            isProcessingSquare = false
+            return
+        }
+        
+        Task {
+            do {
+                _ = try await SquareAPIService.shared.cancelTerminalCheckout(checkoutId: checkoutId)
+                await MainActor.run {
+                    isProcessingSquare = false
+                    terminalCheckoutId = nil
+                }
+            } catch {
+                await MainActor.run {
+                    isProcessingSquare = false
+                    terminalCheckoutId = nil
+                    squareErrorMessage = "Failed to cancel: \(error.localizedDescription)"
+                    showSquareError = true
+                }
+            }
+        }
+    }
+    
+    private func processLocalPayment() {
+        // For cash and UPI payments - process locally
         showingCheckout = true
+        
+        // Clear cart after successful payment
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            cart.clear()
+            selectedPaymentMode = nil
+            discountAmount = 0
+            discountCode = ""
+            showingCheckout = false
+        }
+    }
+}
+
+// MARK: - Product Card
+
+struct ProductCard: View {
+    let item: InventoryItem
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                // Icon
+                ZStack {
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(categoryColor.opacity(0.1))
+                        .frame(height: 80)
+                    
+                    Image(systemName: item.inventoryCategory.icon)
+                        .font(.system(size: 32))
+                        .foregroundColor(categoryColor)
+                }
+                
+                // Name
+                Text(item.name ?? "Unknown")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(Color(hex: "212121"))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .frame(height: 36)
+                
+                // Price
+                Text(String(format: "$%.2f", item.sellingPrice))
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(hex: "00C853"))
+                
+                // Stock
+                HStack(spacing: 4) {
+                    Image(systemName: "cube.box")
+                        .font(.caption2)
+                    Text("\(item.quantity) in stock")
+                        .font(.caption2)
+                }
+                .foregroundColor(.secondary)
+            }
+            .padding(12)
+            .background(Color.white)
+            .cornerRadius(16)
+            .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private var categoryColor: Color {
+        switch item.inventoryCategory {
+        case .screens: return .blue
+        case .batteries: return .green
+        case .cables: return .orange
+        case .chargers: return .purple
+        case .tools: return .red
+        default: return .gray
+        }
     }
 }
 

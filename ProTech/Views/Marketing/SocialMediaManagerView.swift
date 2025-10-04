@@ -374,6 +374,9 @@ struct SocialMediaManagerView: View {
     private func postToSocialMedia() {
         isPosting = true
         
+        // Capture image on MainActor to avoid Sendable warnings
+        let imageToPost = selectedImage
+        
         Task {
             var successCount = 0
             var errorMessages: [String] = []
@@ -382,13 +385,13 @@ struct SocialMediaManagerView: View {
                 do {
                     switch platform {
                     case .x:
-                        _ = try await SocialMediaAPIService.shared.postToX(content: postContent, image: selectedImage)
+                        _ = try await SocialMediaAPIService.shared.postToX(content: postContent, image: imageToPost)
                         successCount += 1
                     case .facebook:
-                        _ = try await SocialMediaAPIService.shared.postToFacebook(content: postContent, image: selectedImage)
+                        _ = try await SocialMediaAPIService.shared.postToFacebook(content: postContent, image: imageToPost)
                         successCount += 1
                     case .linkedin:
-                        _ = try await SocialMediaAPIService.shared.postToLinkedIn(content: postContent, image: selectedImage)
+                        _ = try await SocialMediaAPIService.shared.postToLinkedIn(content: postContent, image: imageToPost)
                         successCount += 1
                     default:
                         errorMessages.append("\(platform.displayName): Not yet implemented")

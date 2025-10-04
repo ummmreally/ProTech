@@ -563,13 +563,21 @@ struct PartsPickerView: View {
                             Spacer()
                             
                             if let itemId = item.id {
-                                Stepper("Qty: \(selectedItems[itemId] ?? 0)",
-                                       value: Binding(
-                                        get: { selectedItems[itemId] ?? 0 },
-                                        set: { selectedItems[itemId] = max(0, min($0, Int(item.quantity))) }
-                                       ),
-                                       in: 0...Int(item.quantity))
-                                .frame(width: 150)
+                                let maxQty = max(0, Int(item.quantity))
+                                if maxQty > 0 {
+                                    Stepper("Qty: \(selectedItems[itemId] ?? 0)",
+                                           value: Binding(
+                                            get: { selectedItems[itemId] ?? 0 },
+                                            set: { selectedItems[itemId] = max(0, min($0, maxQty)) }
+                                           ),
+                                           in: 0...maxQty)
+                                    .frame(width: 150)
+                                } else {
+                                    Text("Qty: 0 (Out of Stock)")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                        .frame(width: 150)
+                                }
                             }
                         }
                         .padding(.vertical, 4)

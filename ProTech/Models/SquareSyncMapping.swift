@@ -6,46 +6,112 @@
 //
 
 import Foundation
-import SwiftData
+import CoreData
 
-@Model
-class SquareSyncMapping {
-    @Attribute(.unique) var id: UUID
-    var proTechItemId: UUID
-    var squareCatalogObjectId: String
-    var squareVariationId: String?
-    var lastSyncedAt: Date
-    var syncStatus: SyncStatus
-    var syncDirection: SyncDirection
-    var conflictResolution: ConflictResolutionStrategy
-    var metadata: [String: String]
-    var version: Int
-    var errorMessage: String?
+@objc(SquareSyncMapping)
+public class SquareSyncMapping: NSManagedObject {}
+
+extension SquareSyncMapping {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<SquareSyncMapping> {
+        NSFetchRequest<SquareSyncMapping>(entityName: "SquareSyncMapping")
+    }
     
-    init(
-        id: UUID = UUID(),
-        proTechItemId: UUID,
-        squareCatalogObjectId: String,
-        squareVariationId: String? = nil,
-        lastSyncedAt: Date = Date(),
-        syncStatus: SyncStatus = .pending,
-        syncDirection: SyncDirection = .bidirectional,
-        conflictResolution: ConflictResolutionStrategy = .mostRecent,
-        metadata: [String: String] = [:],
-        version: Int = 1,
-        errorMessage: String? = nil
-    ) {
-        self.id = id
-        self.proTechItemId = proTechItemId
-        self.squareCatalogObjectId = squareCatalogObjectId
-        self.squareVariationId = squareVariationId
-        self.lastSyncedAt = lastSyncedAt
-        self.syncStatus = syncStatus
-        self.syncDirection = syncDirection
-        self.conflictResolution = conflictResolution
-        self.metadata = metadata
-        self.version = version
-        self.errorMessage = errorMessage
+    @NSManaged public var id: UUID?
+    @NSManaged public var proTechItemId: UUID?
+    @NSManaged public var squareCatalogObjectId: String?
+    @NSManaged public var squareVariationId: String?
+    @NSManaged public var lastSyncedAt: Date?
+    @NSManaged public var syncStatusRaw: String?
+    @NSManaged public var syncDirectionRaw: String?
+    @NSManaged public var conflictResolutionRaw: String?
+    @NSManaged public var metadataData: Data?
+    @NSManaged public var version: Int32
+    @NSManaged public var errorMessage: String?
+    
+    // Computed properties for enums
+    var syncStatus: SyncStatus {
+        get {
+            guard let raw = syncStatusRaw else { return .pending }
+            return SyncStatus(rawValue: raw) ?? .pending
+        }
+        set {
+            syncStatusRaw = newValue.rawValue
+        }
+    }
+    
+    var syncDirection: SyncDirection {
+        get {
+            guard let raw = syncDirectionRaw else { return .bidirectional }
+            return SyncDirection(rawValue: raw) ?? .bidirectional
+        }
+        set {
+            syncDirectionRaw = newValue.rawValue
+        }
+    }
+    
+    var conflictResolution: ConflictResolutionStrategy {
+        get {
+            guard let raw = conflictResolutionRaw else { return .mostRecent }
+            return ConflictResolutionStrategy(rawValue: raw) ?? .mostRecent
+        }
+        set {
+            conflictResolutionRaw = newValue.rawValue
+        }
+    }
+    
+    var metadata: [String: String] {
+        get {
+            guard let data = metadataData,
+                  let dict = try? JSONDecoder().decode([String: String].self, from: data) else {
+                return [:]
+            }
+            return dict
+        }
+        set {
+            metadataData = try? JSONEncoder().encode(newValue)
+        }
+    }
+}
+
+extension SquareSyncMapping: Identifiable {}
+
+extension SquareSyncMapping {
+    static func entityDescription() -> NSEntityDescription {
+        let entity = NSEntityDescription()
+        entity.name = "SquareSyncMapping"
+        entity.managedObjectClassName = NSStringFromClass(SquareSyncMapping.self)
+        
+        func makeAttribute(_ name: String, type: NSAttributeType, optional: Bool = true, defaultValue: Any? = nil) -> NSAttributeDescription {
+            let attribute = NSAttributeDescription()
+            attribute.name = name
+            attribute.attributeType = type
+            attribute.isOptional = optional
+            if let defaultValue {
+                attribute.defaultValue = defaultValue
+            }
+            return attribute
+        }
+        
+        entity.properties = [
+            makeAttribute("id", type: .UUIDAttributeType, optional: false),
+            makeAttribute("proTechItemId", type: .UUIDAttributeType, optional: false),
+            makeAttribute("squareCatalogObjectId", type: .stringAttributeType, optional: false),
+            makeAttribute("squareVariationId", type: .stringAttributeType),
+            makeAttribute("lastSyncedAt", type: .dateAttributeType, optional: false),
+            makeAttribute("syncStatusRaw", type: .stringAttributeType, optional: false, defaultValue: "pending"),
+            makeAttribute("syncDirectionRaw", type: .stringAttributeType, optional: false, defaultValue: "bidirectional"),
+            makeAttribute("conflictResolutionRaw", type: .stringAttributeType, optional: false, defaultValue: "mostRecent"),
+            makeAttribute("metadataData", type: .binaryDataAttributeType),
+            makeAttribute("version", type: .integer32AttributeType, optional: false, defaultValue: 1),
+            makeAttribute("errorMessage", type: .stringAttributeType)
+        ]
+        
+        // Create unique index on id
+        let idAttr = entity.properties.first { $0.name == "id" } as! NSAttributeDescription
+        let idIndex = NSFetchIndexDescription(name: "square_sync_mapping_id_index", elements: [NSFetchIndexElementDescription(property: idAttr, collationType: .binary)])
+        entity.indexes = [idIndex]
+        
+        return entity
     }
 }
 

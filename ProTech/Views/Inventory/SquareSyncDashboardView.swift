@@ -6,14 +6,22 @@
 //
 
 import SwiftUI
-import SwiftData
+import CoreData
 import Charts
 
 struct SquareSyncDashboardView: View {
-    @Environment(\.modelContext) private var modelContext
     @StateObject private var syncManager: SquareInventorySyncManager
-    @Query private var syncLogs: [SyncLog]
-    @Query private var mappings: [SquareSyncMapping]
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \SyncLog.timestamp, ascending: false)],
+        animation: .default
+    )
+    private var syncLogs: FetchedResults<SyncLog>
+    
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \SquareSyncMapping.lastSyncedAt, ascending: false)],
+        animation: .default
+    )
+    private var mappings: FetchedResults<SquareSyncMapping>
     
     @State private var showingImportSheet = false
     @State private var showingExportSheet = false
@@ -21,16 +29,8 @@ struct SquareSyncDashboardView: View {
     @State private var conflicts: [SyncConflict] = []
     @State private var statistics: SyncStatistics?
     
-    init(modelContext: ModelContext) {
-        _syncManager = StateObject(wrappedValue: SquareInventorySyncManager(modelContext: modelContext))
-        
-        let logsDescriptor = FetchDescriptor<SyncLog>(
-            sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
-        )
-        _syncLogs = Query(logsDescriptor)
-        
-        let mappingsDescriptor = FetchDescriptor<SquareSyncMapping>()
-        _mappings = Query(mappingsDescriptor)
+    init(context: NSManagedObjectContext = CoreDataManager.shared.viewContext) {
+        _syncManager = StateObject(wrappedValue: SquareInventorySyncManager(context: context))
     }
     
     var body: some View {
@@ -413,9 +413,11 @@ struct SyncLogRow: View {
             Spacer()
             
             VStack(alignment: .trailing, spacing: 2) {
-                Text(log.timestamp.formatted(.relative(presentation: .named)))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                if let timestamp = log.timestamp {
+                    Text(timestamp.formatted(.relative(presentation: .named)))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
                 
                 if log.syncDuration > 0 {
                     Text(String(format: "%.1fs", log.syncDuration))
@@ -726,6 +728,6 @@ struct ConflictRow: View {
 
 #Preview {
     NavigationStack {
-        SquareSyncDashboardView(modelContext: ModelContext(try! ModelContainer(for: SyncLog.self, SquareSyncMapping.self)))
+        SquareSyncDashboardView(context: CoreDataManager.shared.viewContext)
     }
 }

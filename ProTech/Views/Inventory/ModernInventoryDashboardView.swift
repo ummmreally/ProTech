@@ -169,34 +169,46 @@ struct ModernInventoryDashboardView: View {
                 .foregroundColor(Color(hex: "212121"))
             
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                ModernActionCard(
-                    title: "Manage Inventory",
-                    subtitle: "View and edit items",
-                    icon: "shippingbox.fill",
-                    color: Color(hex: "2196F3")
-                )
+                NavigationLink(destination: InventoryListView()) {
+                    ModernActionCard(
+                        title: "Manage Inventory",
+                        subtitle: "View and edit items",
+                        icon: "shippingbox.fill",
+                        color: Color(hex: "2196F3")
+                    )
+                }
+                .buttonStyle(.plain)
                 
-                ModernActionCard(
-                    title: "Purchase Orders",
-                    subtitle: "\(pendingOrders.count) pending",
-                    icon: "doc.text.fill",
-                    color: Color(hex: "9C27B0"),
-                    badge: pendingOrders.count > 0 ? "\(pendingOrders.count)" : nil
-                )
+                NavigationLink(destination: PurchaseOrdersListView()) {
+                    ModernActionCard(
+                        title: "Purchase Orders",
+                        subtitle: "\(pendingOrders.count) pending",
+                        icon: "doc.text.fill",
+                        color: Color(hex: "9C27B0"),
+                        badge: pendingOrders.count > 0 ? "\(pendingOrders.count)" : nil
+                    )
+                }
+                .buttonStyle(.plain)
                 
-                ModernActionCard(
-                    title: "Suppliers",
-                    subtitle: "Manage suppliers",
-                    icon: "building.2.fill",
-                    color: Color(hex: "00C853")
-                )
+                NavigationLink(destination: SquareSyncDashboardView(context: CoreDataManager.shared.viewContext)) {
+                    ModernActionCard(
+                        title: "Square Sync",
+                        subtitle: "Sync with Square",
+                        icon: "arrow.triangle.2.circlepath",
+                        color: Color(hex: "4CAF50")
+                    )
+                }
+                .buttonStyle(.plain)
                 
-                ModernActionCard(
-                    title: "Stock History",
-                    subtitle: "View adjustments",
-                    icon: "clock.arrow.circlepath",
-                    color: Color(hex: "FF9800")
-                )
+                NavigationLink(destination: SuppliersListView()) {
+                    ModernActionCard(
+                        title: "Suppliers",
+                        subtitle: "Manage suppliers",
+                        icon: "building.2.fill",
+                        color: Color(hex: "00C853")
+                    )
+                }
+                .buttonStyle(.plain)
             }
         }
     }

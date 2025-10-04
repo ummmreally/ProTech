@@ -268,7 +268,7 @@ class SocialMediaOAuthService: NSObject, ASWebAuthenticationPresentationContextP
     
     // MARK: - Token Management
     
-    func getAccessToken(for platform: String) -> String? {
+    nonisolated func getAccessToken(for platform: String) -> String? {
         return SecureStorage.retrieve(key: "\(platform.lowercased())_access_token")
     }
     

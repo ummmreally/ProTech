@@ -46,7 +46,11 @@ class CoreDataManager {
             Transaction.entityDescription(),
             TimeEntry.entityDescription(),
             Employee.entityDescription(),
-            TimeClockEntry.entityDescription()
+            TimeClockEntry.entityDescription(),
+            // Square Integration entities
+            SquareSyncMapping.entityDescription(),
+            SyncLog.entityDescription(),
+            SquareConfiguration.entityDescription()
         ]
 
         if let invoiceEntity = model.entities.first(where: { $0.name == "Invoice" }),

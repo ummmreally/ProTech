@@ -274,7 +274,7 @@ class SquareAPIService {
     }
     
     func setInventoryCount(catalogObjectId: String, locationId: String, quantity: Int) async throws -> [InventoryCount] {
-        guard let config = configuration else {
+        guard configuration != nil else {
             throw SquareAPIError.notConfigured
         }
         
@@ -363,13 +363,13 @@ class SquareAPIService {
     // MARK: - Helper Methods
     
     private func createAuthenticatedRequest(url: URL, method: String) throws -> URLRequest {
-        guard let config = configuration else {
+        guard let config = configuration, let accessToken = config.accessToken else {
             throw SquareAPIError.notConfigured
         }
         
         var request = URLRequest(url: url)
         request.httpMethod = method
-        request.setValue("Bearer \(config.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("2023-12-13", forHTTPHeaderField: "Square-Version")
         
@@ -456,5 +456,272 @@ enum SquareAPIError: Error, LocalizedError {
         case .networkError(let error):
             return "Network error: \(error.localizedDescription)"
         }
+    }
+}
+
+// MARK: - Square Terminal API Extension
+
+extension SquareAPIService {
+    
+    /// Creates a Terminal Checkout to process payment on Square Terminal/Stand
+    func createTerminalCheckout(
+        amount: Int, // Amount in cents
+        deviceId: String,
+        referenceId: String? = nil,
+        note: String? = nil
+    ) async throws -> TerminalCheckout {
+        guard let config = configuration else {
+            throw SquareAPIError.notConfigured
+        }
+        
+        let endpoint = "/v2/terminal/checkouts"
+        let url = URL(string: "\(config.baseURL)\(endpoint)")!
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(config.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("2024-10-17", forHTTPHeaderField: "Square-Version")
+        
+        let checkoutRequest = TerminalCheckoutRequest(
+            idempotencyKey: UUID().uuidString,
+            checkout: TerminalCheckoutData(
+                amountMoney: TerminalMoney(amount: amount, currency: "USD"),
+                deviceOptions: DeviceOptions(deviceId: deviceId),
+                referenceId: referenceId,
+                note: note
+            )
+        )
+        
+        request.httpBody = try JSONEncoder().encode(checkoutRequest)
+        
+        let (data, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw SquareAPIError.networkError(NSError(domain: "Invalid response", code: -1))
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            if let errorResponse = try? JSONDecoder().decode(SquareErrorResponse.self, from: data),
+               let firstError = errorResponse.errors?.first {
+                throw SquareAPIError.apiError(message: firstError.detail ?? "Terminal checkout creation failed")
+            }
+            throw SquareAPIError.httpError(statusCode: httpResponse.statusCode)
+        }
+        
+        let checkoutResponse = try JSONDecoder().decode(TerminalCheckoutResponse.self, from: data)
+        guard let checkout = checkoutResponse.checkout else {
+            throw SquareAPIError.apiError(message: "No checkout in response")
+        }
+        
+        return checkout
+    }
+    
+    /// Gets the status of a Terminal Checkout
+    func getTerminalCheckout(checkoutId: String) async throws -> TerminalCheckout {
+        guard let config = configuration else {
+            throw SquareAPIError.notConfigured
+        }
+        
+        let endpoint = "/v2/terminal/checkouts/\(checkoutId)"
+        let url = URL(string: "\(config.baseURL)\(endpoint)")!
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(config.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("2024-10-17", forHTTPHeaderField: "Square-Version")
+        
+        let (data, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw SquareAPIError.networkError(NSError(domain: "Invalid response", code: -1))
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            if let errorResponse = try? JSONDecoder().decode(SquareErrorResponse.self, from: data),
+               let firstError = errorResponse.errors?.first {
+                throw SquareAPIError.apiError(message: firstError.detail ?? "Failed to get checkout status")
+            }
+            throw SquareAPIError.httpError(statusCode: httpResponse.statusCode)
+        }
+        
+        let checkoutResponse = try JSONDecoder().decode(TerminalCheckoutResponse.self, from: data)
+        guard let checkout = checkoutResponse.checkout else {
+            throw SquareAPIError.apiError(message: "No checkout in response")
+        }
+        
+        return checkout
+    }
+    
+    /// Cancels a Terminal Checkout
+    func cancelTerminalCheckout(checkoutId: String) async throws -> TerminalCheckout {
+        guard let config = configuration else {
+            throw SquareAPIError.notConfigured
+        }
+        
+        let endpoint = "/v2/terminal/checkouts/\(checkoutId)/cancel"
+        let url = URL(string: "\(config.baseURL)\(endpoint)")!
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(config.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("2024-10-17", forHTTPHeaderField: "Square-Version")
+        
+        let (data, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw SquareAPIError.networkError(NSError(domain: "Invalid response", code: -1))
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            if let errorResponse = try? JSONDecoder().decode(SquareErrorResponse.self, from: data),
+               let firstError = errorResponse.errors?.first {
+                throw SquareAPIError.apiError(message: firstError.detail ?? "Failed to cancel checkout")
+            }
+            throw SquareAPIError.httpError(statusCode: httpResponse.statusCode)
+        }
+        
+        let checkoutResponse = try JSONDecoder().decode(TerminalCheckoutResponse.self, from: data)
+        guard let checkout = checkoutResponse.checkout else {
+            throw SquareAPIError.apiError(message: "No checkout in response")
+        }
+        
+        return checkout
+    }
+    
+    /// Lists available Terminal devices
+    func listTerminalDevices() async throws -> [TerminalDevice] {
+        guard let config = configuration else {
+            throw SquareAPIError.notConfigured
+        }
+        
+        let endpoint = "/v2/devices/codes"
+        let url = URL(string: "\(config.baseURL)\(endpoint)")!
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.setValue("Bearer \(config.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("2024-10-17", forHTTPHeaderField: "Square-Version")
+        
+        let (data, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw SquareAPIError.networkError(NSError(domain: "Invalid response", code: -1))
+        }
+        
+        guard httpResponse.statusCode == 200 else {
+            throw SquareAPIError.httpError(statusCode: httpResponse.statusCode)
+        }
+        
+        let devicesResponse = try JSONDecoder().decode(TerminalDevicesResponse.self, from: data)
+        return devicesResponse.deviceCodes ?? []
+    }
+}
+
+// MARK: - Terminal API Models
+
+struct SquareErrorResponse: Codable {
+    let errors: [SquareError]?
+}
+
+struct TerminalCheckoutRequest: Codable {
+    let idempotencyKey: String
+    let checkout: TerminalCheckoutData
+    
+    enum CodingKeys: String, CodingKey {
+        case idempotencyKey = "idempotency_key"
+        case checkout
+    }
+}
+
+struct TerminalCheckoutData: Codable {
+    let amountMoney: TerminalMoney
+    let deviceOptions: DeviceOptions
+    let referenceId: String?
+    let note: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case amountMoney = "amount_money"
+        case deviceOptions = "device_options"
+        case referenceId = "reference_id"
+        case note
+    }
+}
+
+struct TerminalMoney: Codable {
+    let amount: Int // In cents
+    let currency: String
+}
+
+struct DeviceOptions: Codable {
+    let deviceId: String
+    
+    enum CodingKeys: String, CodingKey {
+        case deviceId = "device_id"
+    }
+}
+
+struct TerminalCheckoutResponse: Codable {
+    let checkout: TerminalCheckout?
+    let errors: [SquareError]?
+}
+
+struct TerminalCheckout: Codable {
+    let id: String
+    let amountMoney: TerminalMoney
+    let referenceId: String?
+    let note: String?
+    let deviceOptions: DeviceOptions
+    let status: String
+    let paymentIds: [String]?
+    let createdAt: String?
+    let updatedAt: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case amountMoney = "amount_money"
+        case referenceId = "reference_id"
+        case note
+        case deviceOptions = "device_options"
+        case status
+        case paymentIds = "payment_ids"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+    }
+    
+    var isCompleted: Bool {
+        status == "COMPLETED"
+    }
+    
+    var isCanceled: Bool {
+        status == "CANCELED"
+    }
+    
+    var isPending: Bool {
+        status == "PENDING" || status == "IN_PROGRESS"
+    }
+}
+
+struct TerminalDevice: Codable, Identifiable {
+    let id: String
+    let name: String?
+    let deviceId: String
+    let code: String
+    let status: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case deviceId = "device_id"
+        case code
+        case status
+    }
+}
+
+struct TerminalDevicesResponse: Codable {
+    let deviceCodes: [TerminalDevice]?
+    
+    enum CodingKeys: String, CodingKey {
+        case deviceCodes = "device_codes"
     }
 }

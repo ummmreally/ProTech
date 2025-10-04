@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftData
+import CoreData
 import Combine
 
 @MainActor
@@ -18,26 +18,34 @@ class SquareInventorySyncManager: ObservableObject {
     @Published var currentOperation: String?
     
     private let apiService: SquareAPIService
-    private let modelContext: ModelContext
+    private let context: NSManagedObjectContext
     private var syncTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
     
-    init(modelContext: ModelContext, apiService: SquareAPIService = .shared) {
-        self.modelContext = modelContext
+    init(context: NSManagedObjectContext = CoreDataManager.shared.viewContext, apiService: SquareAPIService = .shared) {
+        self.context = context
         self.apiService = apiService
         loadLastSyncDate()
+        
+        // Load and set configuration on initialization
+        if let config = getConfiguration() {
+            apiService.setConfiguration(config)
+            print("✅ SquareInventorySyncManager initialized with configuration")
+        } else {
+            print("⚠️ SquareInventorySyncManager initialized WITHOUT configuration - sync will fail until credentials are entered")
+        }
     }
     
     // MARK: - Configuration
     
     func getConfiguration() -> SquareConfiguration? {
-        let descriptor = FetchDescriptor<SquareConfiguration>()
-        return try? modelContext.fetch(descriptor).first
+        let fetchRequest: NSFetchRequest<SquareConfiguration> = SquareConfiguration.fetchRequest()
+        return try? context.fetch(fetchRequest).first
     }
     
     func saveConfiguration(_ config: SquareConfiguration) throws {
-        modelContext.insert(config)
-        try modelContext.save()
+        context.insert(config)
+        try context.save()
         apiService.setConfiguration(config)
     }
     
@@ -47,12 +55,14 @@ class SquareInventorySyncManager: ObservableObject {
         syncStatus = .syncing
         currentOperation = "Setting up Square integration..."
         
-        let config = SquareConfiguration(
-            accessToken: accessToken,
-            merchantId: merchantId,
-            locationId: locationId,
-            environment: environment
-        )
+        let config = SquareConfiguration(context: context)
+        config.id = UUID()
+        config.accessToken = accessToken
+        config.merchantId = merchantId
+        config.locationId = locationId
+        config.environment = environment
+        config.createdAt = Date()
+        config.updatedAt = Date()
         
         try saveConfiguration(config)
         
@@ -61,7 +71,7 @@ class SquareInventorySyncManager: ObservableObject {
     }
     
     func importAllFromSquare() async throws {
-        guard let config = getConfiguration() else {
+        guard let config = getConfiguration(), let locationId = config.locationId else {
             throw SyncError.notConfigured
         }
         
@@ -80,7 +90,7 @@ class SquareInventorySyncManager: ObservableObject {
             if let objects = response.objects {
                 for object in objects {
                     if object.type == .item, let itemData = object.itemData {
-                        try await importSquareItem(object: object, itemData: itemData, locationId: config.locationId)
+                        try await importSquareItem(object: object, itemData: itemData, locationId: locationId)
                         importedCount += 1
                     }
                 }
@@ -93,15 +103,15 @@ class SquareInventorySyncManager: ObservableObject {
         }
         
         // Log the import
-        let log = SyncLog(
-            operation: .batchImport,
-            status: .synced,
-            changedFields: [],
-            syncDuration: Date().timeIntervalSince(startTime),
-            details: "Imported \(importedCount) items from Square"
-        )
-        modelContext.insert(log)
-        try modelContext.save()
+        let log = SyncLog(context: context)
+        log.id = UUID()
+        log.timestamp = Date()
+        log.operation = .batchImport
+        log.status = .synced
+        log.changedFields = []
+        log.syncDuration = Date().timeIntervalSince(startTime)
+        log.details = "Imported \(importedCount) items from Square"
+        try context.save()
         
         lastSyncDate = Date()
         syncProgress = 1.0
@@ -110,7 +120,7 @@ class SquareInventorySyncManager: ObservableObject {
     }
     
     func exportAllToSquare() async throws {
-        guard let config = getConfiguration() else {
+        guard let config = getConfiguration(), let locationId = config.locationId else {
             throw SyncError.notConfigured
         }
         
@@ -121,8 +131,8 @@ class SquareInventorySyncManager: ObservableObject {
         let startTime = Date()
         
         // Fetch all inventory items
-        let descriptor = FetchDescriptor<InventoryItem>()
-        let items = try modelContext.fetch(descriptor)
+        let fetchRequest: NSFetchRequest<InventoryItem> = InventoryItem.fetchRequest()
+        let items = try context.fetch(fetchRequest)
         
         var exportedCount = 0
         let totalItems = items.count
@@ -130,7 +140,7 @@ class SquareInventorySyncManager: ObservableObject {
         for item in items {
             // Check if already mapped
             if getMapping(for: item) == nil {
-                try await exportItemToSquare(item: item, locationId: config.locationId)
+                try await exportItemToSquare(item: item, locationId: locationId)
                 exportedCount += 1
             }
             
@@ -138,15 +148,15 @@ class SquareInventorySyncManager: ObservableObject {
         }
         
         // Log the export
-        let log = SyncLog(
-            operation: .batchExport,
-            status: .synced,
-            changedFields: [],
-            syncDuration: Date().timeIntervalSince(startTime),
-            details: "Exported \(exportedCount) items to Square"
-        )
-        modelContext.insert(log)
-        try modelContext.save()
+        let log = SyncLog(context: context)
+        log.id = UUID()
+        log.timestamp = Date()
+        log.operation = .batchExport
+        log.status = .synced
+        log.changedFields = []
+        log.syncDuration = Date().timeIntervalSince(startTime)
+        log.details = "Exported \(exportedCount) items to Square"
+        try context.save()
         
         lastSyncDate = Date()
         syncProgress = 1.0
@@ -157,7 +167,7 @@ class SquareInventorySyncManager: ObservableObject {
     // MARK: - Sync Operations
     
     func syncItem(_ item: InventoryItem, direction: SyncDirection) async throws {
-        guard let config = getConfiguration() else {
+        guard let config = getConfiguration(), let locationId = config.locationId else {
             throw SyncError.notConfigured
         }
         
@@ -167,29 +177,29 @@ class SquareInventorySyncManager: ObservableObject {
             // Item is already mapped, sync based on direction
             switch direction {
             case .toSquare:
-                try await updateSquareItem(item: item, mapping: mapping, locationId: config.locationId)
+                try await updateSquareItem(item: item, mapping: mapping, locationId: locationId)
             case .fromSquare:
                 try await updateProTechItem(item: item, mapping: mapping)
             case .bidirectional:
-                try await bidirectionalSync(item: item, mapping: mapping, locationId: config.locationId)
+                try await bidirectionalSync(item: item, mapping: mapping, locationId: locationId)
             }
         } else {
             // No mapping exists, create new item
             if direction == .toSquare || direction == .bidirectional {
-                try await exportItemToSquare(item: item, locationId: config.locationId)
+                try await exportItemToSquare(item: item, locationId: locationId)
             }
         }
         
         // Log the sync
-        let log = SyncLog(
-            operation: .update,
-            itemId: item.id,
-            status: .synced,
-            changedFields: [],
-            syncDuration: Date().timeIntervalSince(startTime)
-        )
-        modelContext.insert(log)
-        try modelContext.save()
+        let log = SyncLog(context: context)
+        log.id = UUID()
+        log.timestamp = Date()
+        log.operation = .update
+        log.itemId = item.id
+        log.status = .synced
+        log.changedFields = []
+        log.syncDuration = Date().timeIntervalSince(startTime)
+        try context.save()
     }
     
     func syncAllItems() async throws {
@@ -201,8 +211,8 @@ class SquareInventorySyncManager: ObservableObject {
         currentOperation = "Syncing all items..."
         syncProgress = 0.0
         
-        let descriptor = FetchDescriptor<InventoryItem>()
-        let items = try modelContext.fetch(descriptor)
+        let fetchRequest: NSFetchRequest<InventoryItem> = InventoryItem.fetchRequest()
+        let items = try context.fetch(fetchRequest)
         
         var syncedCount = 0
         let totalItems = items.count
@@ -228,10 +238,9 @@ class SquareInventorySyncManager: ObservableObject {
         currentOperation = "Syncing changed items..."
         
         // Fetch items modified since date
-        var descriptor = FetchDescriptor<InventoryItem>(
-            predicate: #Predicate { $0.lastModified ?? Date.distantPast > date }
-        )
-        let changedItems = try modelContext.fetch(descriptor)
+        let fetchRequest: NSFetchRequest<InventoryItem> = InventoryItem.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "updatedAt > %@", date as NSDate)
+        let changedItems = try context.fetch(fetchRequest)
         
         for item in changedItems {
             try await syncItem(item, direction: config.defaultSyncDirection)
@@ -245,58 +254,62 @@ class SquareInventorySyncManager: ObservableObject {
     // MARK: - Mapping Management
     
     func createMapping(proTechItem: InventoryItem, squareObjectId: String, squareVariationId: String? = nil) throws -> SquareSyncMapping {
-        let mapping = SquareSyncMapping(
-            proTechItemId: proTechItem.id,
-            squareCatalogObjectId: squareObjectId,
-            squareVariationId: squareVariationId,
-            syncStatus: .synced
-        )
+        guard let itemId = proTechItem.id else {
+            throw SyncError.invalidData("Item missing ID")
+        }
         
-        modelContext.insert(mapping)
-        try modelContext.save()
+        let mapping = SquareSyncMapping(context: context)
+        mapping.id = UUID()
+        mapping.proTechItemId = itemId
+        mapping.squareCatalogObjectId = squareObjectId
+        mapping.squareVariationId = squareVariationId
+        mapping.lastSyncedAt = Date()
+        mapping.syncStatus = .synced
+        mapping.version = 1
+        
+        try context.save()
         
         // Log mapping creation
-        let log = SyncLog(
-            operation: .mappingCreated,
-            itemId: proTechItem.id,
-            squareObjectId: squareObjectId,
-            status: .synced,
-            changedFields: []
-        )
-        modelContext.insert(log)
-        try modelContext.save()
+        let log = SyncLog(context: context)
+        log.id = UUID()
+        log.timestamp = Date()
+        log.operation = .mappingCreated
+        log.itemId = itemId
+        log.squareObjectId = squareObjectId
+        log.status = .synced
+        log.changedFields = []
+        try context.save()
         
         return mapping
     }
     
     func getMapping(for item: InventoryItem) -> SquareSyncMapping? {
-        let descriptor = FetchDescriptor<SquareSyncMapping>(
-            predicate: #Predicate { $0.proTechItemId == item.id }
-        )
-        return try? modelContext.fetch(descriptor).first
+        guard let itemId = item.id else { return nil }
+        let fetchRequest: NSFetchRequest<SquareSyncMapping> = SquareSyncMapping.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "proTechItemId == %@", itemId as CVarArg)
+        return try? context.fetch(fetchRequest).first
     }
     
     func getMapping(forSquareObjectId objectId: String) -> SquareSyncMapping? {
-        let descriptor = FetchDescriptor<SquareSyncMapping>(
-            predicate: #Predicate { $0.squareCatalogObjectId == objectId }
-        )
-        return try? modelContext.fetch(descriptor).first
+        let fetchRequest: NSFetchRequest<SquareSyncMapping> = SquareSyncMapping.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "squareCatalogObjectId == %@", objectId)
+        return try? context.fetch(fetchRequest).first
     }
     
     func removeMapping(_ mapping: SquareSyncMapping) throws {
-        modelContext.delete(mapping)
-        try modelContext.save()
+        context.delete(mapping)
+        try context.save()
         
         // Log mapping deletion
-        let log = SyncLog(
-            operation: .mappingDeleted,
-            itemId: mapping.proTechItemId,
-            squareObjectId: mapping.squareCatalogObjectId,
-            status: .synced,
-            changedFields: []
-        )
-        modelContext.insert(log)
-        try modelContext.save()
+        let log = SyncLog(context: context)
+        log.id = UUID()
+        log.timestamp = Date()
+        log.operation = .mappingDeleted
+        log.itemId = mapping.proTechItemId
+        log.squareObjectId = mapping.squareCatalogObjectId
+        log.status = .synced
+        log.changedFields = []
+        try context.save()
     }
     
     // MARK: - Conflict Resolution
@@ -304,27 +317,27 @@ class SquareInventorySyncManager: ObservableObject {
     func detectConflicts() async throws -> [SyncConflict] {
         var conflicts: [SyncConflict] = []
         
-        let descriptor = FetchDescriptor<SquareSyncMapping>(
-            predicate: #Predicate { $0.syncStatus == .conflict }
-        )
-        let conflictMappings = try modelContext.fetch(descriptor)
+        let fetchRequest: NSFetchRequest<SquareSyncMapping> = SquareSyncMapping.fetchRequest()
+        fetchRequest.predicate = NSPredicate(format: "syncStatusRaw == %@", "conflict")
+        let conflictMappings = try context.fetch(fetchRequest)
         
         for mapping in conflictMappings {
             // Fetch ProTech item
-            let itemDescriptor = FetchDescriptor<InventoryItem>(
-                predicate: #Predicate { $0.id == mapping.proTechItemId }
-            )
-            guard let proTechItem = try modelContext.fetch(itemDescriptor).first else { continue }
+            guard let proTechItemId = mapping.proTechItemId else { continue }
+            let itemFetchRequest: NSFetchRequest<InventoryItem> = InventoryItem.fetchRequest()
+            itemFetchRequest.predicate = NSPredicate(format: "id == %@", proTechItemId as CVarArg)
+            guard let proTechItem = try context.fetch(itemFetchRequest).first else { continue }
             
             // Fetch Square item
-            let squareResponse = try await apiService.getCatalogItem(objectId: mapping.squareCatalogObjectId)
+            guard let squareObjectId = mapping.squareCatalogObjectId else { continue }
+            let squareResponse = try await apiService.getCatalogItem(objectId: squareObjectId)
             guard let squareObject = squareResponse.object else { continue }
             
             let conflict = SyncConflict(
                 proTechItem: proTechItem,
                 squareObject: squareObject,
                 conflictingFields: detectConflictingFields(proTechItem: proTechItem, squareObject: squareObject),
-                proTechLastModified: proTechItem.lastModified ?? Date.distantPast,
+                proTechLastModified: proTechItem.updatedAt ?? Date.distantPast,
                 squareLastModified: ISO8601DateFormatter().date(from: squareObject.updatedAt) ?? Date.distantPast
             )
             
@@ -336,6 +349,7 @@ class SquareInventorySyncManager: ObservableObject {
     
     func resolveConflict(_ conflict: SyncConflict, strategy: ConflictResolutionStrategy) async throws {
         guard let config = getConfiguration(),
+              let locationId = config.locationId,
               let mapping = getMapping(for: conflict.proTechItem) else {
             throw SyncError.mappingNotFound
         }
@@ -344,12 +358,12 @@ class SquareInventorySyncManager: ObservableObject {
         case .squareWins:
             try await updateProTechItem(item: conflict.proTechItem, mapping: mapping)
         case .proTechWins:
-            try await updateSquareItem(item: conflict.proTechItem, mapping: mapping, locationId: config.locationId)
+            try await updateSquareItem(item: conflict.proTechItem, mapping: mapping, locationId: locationId)
         case .mostRecent:
             if conflict.squareLastModified > conflict.proTechLastModified {
                 try await updateProTechItem(item: conflict.proTechItem, mapping: mapping)
             } else {
-                try await updateSquareItem(item: conflict.proTechItem, mapping: mapping, locationId: config.locationId)
+                try await updateSquareItem(item: conflict.proTechItem, mapping: mapping, locationId: locationId)
             }
         case .manual:
             // Manual resolution handled by UI
@@ -359,19 +373,19 @@ class SquareInventorySyncManager: ObservableObject {
         // Update mapping status
         mapping.syncStatus = .synced
         mapping.lastSyncedAt = Date()
-        try modelContext.save()
+        try context.save()
         
         // Log conflict resolution
-        let log = SyncLog(
-            operation: .conflictResolved,
-            itemId: conflict.proTechItem.id,
-            squareObjectId: mapping.squareCatalogObjectId,
-            status: .synced,
-            changedFields: conflict.conflictingFields,
-            details: "Resolved using strategy: \(strategy.displayName)"
-        )
-        modelContext.insert(log)
-        try modelContext.save()
+        let log = SyncLog(context: context)
+        log.id = UUID()
+        log.timestamp = Date()
+        log.operation = .conflictResolved
+        log.itemId = conflict.proTechItem.id
+        log.squareObjectId = mapping.squareCatalogObjectId
+        log.status = .synced
+        log.changedFields = conflict.conflictingFields
+        log.details = "Resolved using strategy: \(strategy.displayName)"
+        try context.save()
     }
     
     // MARK: - Scheduling
@@ -406,23 +420,23 @@ class SquareInventorySyncManager: ObservableObject {
         if event.type.contains("inventory") {
             // Inventory change event
             if let objectId = event.data.object?.id,
-               let mapping = getMapping(forSquareObjectId: objectId) {
-                let itemDescriptor = FetchDescriptor<InventoryItem>(
-                    predicate: #Predicate { $0.id == mapping.proTechItemId }
-                )
-                if let item = try modelContext.fetch(itemDescriptor).first {
+               let mapping = getMapping(forSquareObjectId: objectId),
+               let proTechItemId = mapping.proTechItemId {
+                let itemFetchRequest: NSFetchRequest<InventoryItem> = InventoryItem.fetchRequest()
+                itemFetchRequest.predicate = NSPredicate(format: "id == %@", proTechItemId as CVarArg)
+                if let item = try? context.fetch(itemFetchRequest).first {
                     try await updateProTechItem(item: item, mapping: mapping)
                 }
             }
         } else if event.type.contains("catalog") {
             // Catalog change event
             if let object = event.data.object {
-                if let mapping = getMapping(forSquareObjectId: object.id) {
+                if let mapping = getMapping(forSquareObjectId: object.id),
+                   let proTechItemId = mapping.proTechItemId {
                     // Update existing item
-                    let itemDescriptor = FetchDescriptor<InventoryItem>(
-                        predicate: #Predicate { $0.id == mapping.proTechItemId }
-                    )
-                    if let item = try modelContext.fetch(itemDescriptor).first {
+                    let itemFetchRequest: NSFetchRequest<InventoryItem> = InventoryItem.fetchRequest()
+                    itemFetchRequest.predicate = NSPredicate(format: "id == %@", proTechItemId as CVarArg)
+                    if let item = try? context.fetch(itemFetchRequest).first {
                         try await updateProTechItem(item: item, mapping: mapping)
                     }
                 }
@@ -430,16 +444,16 @@ class SquareInventorySyncManager: ObservableObject {
         }
         
         // Log webhook event
-        let log = SyncLog(
-            operation: .webhookReceived,
-            squareObjectId: event.data.id,
-            status: .synced,
-            changedFields: [],
-            syncDuration: Date().timeIntervalSince(startTime),
-            details: "Event type: \(event.type)"
-        )
-        modelContext.insert(log)
-        try modelContext.save()
+        let log = SyncLog(context: context)
+        log.id = UUID()
+        log.timestamp = Date()
+        log.operation = .webhookReceived
+        log.squareObjectId = event.data.id
+        log.status = .synced
+        log.changedFields = []
+        log.syncDuration = Date().timeIntervalSince(startTime)
+        log.details = "Event type: \(event.type)"
+        try context.save()
     }
     
     // MARK: - Utilities
@@ -451,18 +465,18 @@ class SquareInventorySyncManager: ObservableObject {
     }
     
     func getSyncStatistics() -> SyncStatistics {
-        let mappingDescriptor = FetchDescriptor<SquareSyncMapping>()
-        let allMappings = (try? modelContext.fetch(mappingDescriptor)) ?? []
+        let mappingFetchRequest: NSFetchRequest<SquareSyncMapping> = SquareSyncMapping.fetchRequest()
+        let allMappings = (try? context.fetch(mappingFetchRequest)) ?? []
         
         let syncedItems = allMappings.filter { $0.syncStatus == .synced }.count
         let pendingItems = allMappings.filter { $0.syncStatus == .pending }.count
         let failedItems = allMappings.filter { $0.syncStatus == .failed }.count
         
-        let logDescriptor = FetchDescriptor<SyncLog>()
-        let logs = (try? modelContext.fetch(logDescriptor)) ?? []
+        let logFetchRequest: NSFetchRequest<SyncLog> = SyncLog.fetchRequest()
+        let logs = (try? context.fetch(logFetchRequest)) ?? []
         
         let averageSyncTime = logs.isEmpty ? nil : logs.map { $0.syncDuration }.reduce(0, +) / Double(logs.count)
-        let lastLog = logs.sorted(by: { $0.timestamp > $1.timestamp }).first
+        let lastLog = logs.sorted(by: { ($0.timestamp ?? .distantPast) > ($1.timestamp ?? .distantPast) }).first
         
         return SyncStatistics(
             totalItems: allMappings.count,
@@ -480,10 +494,9 @@ class SquareInventorySyncManager: ObservableObject {
         // Check if item already exists by SKU
         if let variation = itemData.variations?.first,
            let sku = variation.itemVariationData.sku {
-            let descriptor = FetchDescriptor<InventoryItem>(
-                predicate: #Predicate { $0.sku == sku }
-            )
-            if let existingItem = try modelContext.fetch(descriptor).first {
+            let fetchRequest: NSFetchRequest<InventoryItem> = InventoryItem.fetchRequest()
+            fetchRequest.predicate = NSPredicate(format: "sku == %@", sku)
+            if let existingItem = try? context.fetch(fetchRequest).first {
                 // Create mapping for existing item
                 _ = try createMapping(
                     proTechItem: existingItem,
@@ -495,21 +508,20 @@ class SquareInventorySyncManager: ObservableObject {
         }
         
         // Create new inventory item
-        let newItem = InventoryItem(
-            name: itemData.name,
-            sku: itemData.variations?.first?.itemVariationData.sku ?? "",
-            category: itemData.categoryId ?? "",
-            quantity: 0,
-            reorderPoint: itemData.variations?.first?.itemVariationData.inventoryAlertThreshold ?? 0,
-            cost: 0,
-            price: Double(itemData.variations?.first?.itemVariationData.priceMoney?.amount ?? 0) / 100.0,
-            supplier: nil,
-            location: "",
-            notes: itemData.description
-        )
+        let newItem = InventoryItem(context: context)
+        newItem.id = UUID()
+        newItem.name = itemData.name
+        newItem.sku = itemData.variations?.first?.itemVariationData.sku ?? ""
+        newItem.category = itemData.categoryId ?? ""
+        newItem.quantity = 0
+        newItem.reorderPoint = Int32(itemData.variations?.first?.itemVariationData.inventoryAlertThreshold ?? 0)
+        newItem.costPrice = 0
+        newItem.sellingPrice = Double(itemData.variations?.first?.itemVariationData.priceMoney?.amount ?? 0) / 100.0
+        newItem.notes = itemData.description
+        newItem.createdAt = Date()
+        newItem.updatedAt = Date()
         
-        modelContext.insert(newItem)
-        try modelContext.save()
+        try context.save()
         
         // Create mapping
         _ = try createMapping(
@@ -521,16 +533,20 @@ class SquareInventorySyncManager: ObservableObject {
         // Sync inventory count
         if let variationId = itemData.variations?.first?.id {
             if let count = try await apiService.getInventoryCount(catalogObjectId: variationId, locationId: locationId) {
-                newItem.quantity = count.quantityInt
-                try modelContext.save()
+                newItem.quantity = Int32(count.quantityInt)
+                try context.save()
             }
         }
     }
     
     private func exportItemToSquare(item: InventoryItem, locationId: String) async throws {
+        guard let itemId = item.id else {
+            throw SyncError.invalidData("Item missing ID")
+        }
+        
         // Create catalog object
         let variation = CatalogItemVariation(
-            id: "#\(item.id.uuidString)",
+            id: "#\(itemId.uuidString)",
             type: "ITEM_VARIATION",
             updatedAt: nil,
             version: nil,
@@ -541,11 +557,11 @@ class SquareInventorySyncManager: ObservableObject {
                 upc: nil,
                 ordinal: 0,
                 pricingType: "FIXED_PRICING",
-                priceMoney: Money(dollars: item.price),
+                priceMoney: Money(dollars: item.sellingPrice),
                 locationOverrides: nil,
                 trackInventory: true,
                 inventoryAlertType: "LOW_QUANTITY",
-                inventoryAlertThreshold: item.reorderPoint,
+                inventoryAlertThreshold: Int(item.reorderPoint),
                 userData: nil,
                 serviceDuration: nil,
                 availableForBooking: nil,
@@ -557,7 +573,7 @@ class SquareInventorySyncManager: ObservableObject {
         )
         
         let catalogItem = CatalogItem(
-            name: item.name,
+            name: item.name ?? "Unnamed Item",
             description: item.notes,
             abbreviation: nil,
             labelColor: nil,
@@ -574,7 +590,7 @@ class SquareInventorySyncManager: ObservableObject {
         )
         
         let catalogObject = CatalogObject(
-            id: "#\(item.id.uuidString)",
+            id: "#\(itemId.uuidString)",
             type: .item,
             updatedAt: ISO8601DateFormatter().string(from: Date()),
             version: 1,
@@ -607,48 +623,106 @@ class SquareInventorySyncManager: ObservableObject {
             _ = try await apiService.setInventoryCount(
                 catalogObjectId: variationId,
                 locationId: locationId,
-                quantity: item.quantity
+                quantity: Int(item.quantity)
             )
         }
     }
     
     private func updateSquareItem(item: InventoryItem, mapping: SquareSyncMapping, locationId: String) async throws {
+        guard let squareObjectId = mapping.squareCatalogObjectId else {
+            throw SyncError.invalidData("Missing Square object ID")
+        }
+        
         // Fetch current Square item
-        let response = try await apiService.getCatalogItem(objectId: mapping.squareCatalogObjectId)
+        let response = try await apiService.getCatalogItem(objectId: squareObjectId)
         guard var catalogObject = response.object else {
             throw SyncError.invalidResponse
         }
         
-        // Update item data
-        catalogObject.itemData?.name = item.name
-        catalogObject.itemData?.description = item.notes
-        catalogObject.itemData?.variations?.first?.itemVariationData.sku = item.sku
-        catalogObject.itemData?.variations?.first?.itemVariationData.priceMoney = Money(dollars: item.price)
-        catalogObject.itemData?.variations?.first?.itemVariationData.inventoryAlertThreshold = item.reorderPoint
+        // Update item data (catalogObject properties are immutable, need to recreate)
+        if let existingItemData = catalogObject.itemData {
+            let updatedItem = CatalogItem(
+                name: item.name ?? existingItemData.name,
+                description: item.notes,
+                abbreviation: existingItemData.abbreviation,
+                labelColor: existingItemData.labelColor,
+                availableOnline: existingItemData.availableOnline,
+                availableForPickup: existingItemData.availableForPickup,
+                availableElectronically: existingItemData.availableElectronically,
+                categoryId: existingItemData.categoryId,
+                taxIds: existingItemData.taxIds,
+                modifierListInfo: existingItemData.modifierListInfo,
+                variations: existingItemData.variations?.map { variation in
+                    CatalogItemVariation(
+                        id: variation.id,
+                        type: variation.type,
+                        updatedAt: variation.updatedAt,
+                        version: variation.version,
+                        itemVariationData: ItemVariationData(
+                            itemId: variation.itemVariationData.itemId,
+                            name: variation.itemVariationData.name,
+                            sku: item.sku,
+                            upc: variation.itemVariationData.upc,
+                            ordinal: variation.itemVariationData.ordinal,
+                            pricingType: variation.itemVariationData.pricingType,
+                            priceMoney: Money(dollars: item.sellingPrice),
+                            locationOverrides: variation.itemVariationData.locationOverrides,
+                            trackInventory: variation.itemVariationData.trackInventory,
+                            inventoryAlertType: variation.itemVariationData.inventoryAlertType,
+                            inventoryAlertThreshold: Int(item.reorderPoint),
+                            userData: variation.itemVariationData.userData,
+                            serviceDuration: variation.itemVariationData.serviceDuration,
+                            availableForBooking: variation.itemVariationData.availableForBooking,
+                            itemOptionValues: variation.itemVariationData.itemOptionValues,
+                            measurementUnitId: variation.itemVariationData.measurementUnitId,
+                            sellable: variation.itemVariationData.sellable,
+                            stockable: variation.itemVariationData.stockable
+                        )
+                    )
+                } ?? [],
+                productType: existingItemData.productType,
+                skipModifierScreen: existingItemData.skipModifierScreen,
+                itemOptions: existingItemData.itemOptions
+            )
+            
+            catalogObject = CatalogObject(
+                id: catalogObject.id,
+                type: catalogObject.type,
+                updatedAt: ISO8601DateFormatter().string(from: Date()),
+                version: catalogObject.version,
+                isDeleted: catalogObject.isDeleted,
+                catalogV1Ids: catalogObject.catalogV1Ids,
+                itemData: updatedItem
+            )
+        }
         
         let request = CatalogItemRequest(
             idempotencyKey: UUID().uuidString,
             object: catalogObject
         )
         
-        _ = try await apiService.updateCatalogItem(objectId: mapping.squareCatalogObjectId, itemRequest: request)
+        _ = try await apiService.updateCatalogItem(objectId: squareObjectId, itemRequest: request)
         
         // Update inventory count
         if let variationId = mapping.squareVariationId {
             _ = try await apiService.setInventoryCount(
                 catalogObjectId: variationId,
                 locationId: locationId,
-                quantity: item.quantity
+                quantity: Int(item.quantity)
             )
         }
         
         mapping.lastSyncedAt = Date()
         mapping.syncStatus = .synced
-        try modelContext.save()
+        try context.save()
     }
     
     private func updateProTechItem(item: InventoryItem, mapping: SquareSyncMapping) async throws {
-        let response = try await apiService.getCatalogItem(objectId: mapping.squareCatalogObjectId)
+        guard let squareObjectId = mapping.squareCatalogObjectId else {
+            throw SyncError.invalidData("Missing Square object ID")
+        }
+        
+        let response = try await apiService.getCatalogItem(objectId: squareObjectId)
         guard let catalogObject = response.object,
               let itemData = catalogObject.itemData,
               let variation = itemData.variations?.first else {
@@ -658,41 +732,52 @@ class SquareInventorySyncManager: ObservableObject {
         item.name = itemData.name
         item.notes = itemData.description
         item.sku = variation.itemVariationData.sku ?? item.sku
-        item.price = Double(variation.itemVariationData.priceMoney?.amount ?? 0) / 100.0
-        item.reorderPoint = variation.itemVariationData.inventoryAlertThreshold ?? item.reorderPoint
+        item.sellingPrice = Double(variation.itemVariationData.priceMoney?.amount ?? 0) / 100.0
+        item.reorderPoint = Int32(variation.itemVariationData.inventoryAlertThreshold ?? Int(item.reorderPoint))
         
         // Update inventory count
         if let variationId = variation.id,
-           let config = getConfiguration() {
-            if let count = try await apiService.getInventoryCount(catalogObjectId: variationId, locationId: config.locationId) {
-                item.quantity = count.quantityInt
+           let config = getConfiguration(),
+           let locationId = config.locationId {
+            if let count = try await apiService.getInventoryCount(catalogObjectId: variationId, locationId: locationId) {
+                item.quantity = Int32(count.quantityInt)
             }
         }
         
         mapping.lastSyncedAt = Date()
         mapping.syncStatus = .synced
-        try modelContext.save()
+        try context.save()
     }
     
     private func bidirectionalSync(item: InventoryItem, mapping: SquareSyncMapping, locationId: String) async throws {
+        guard let squareObjectId = mapping.squareCatalogObjectId else {
+            throw SyncError.invalidData("Missing Square object ID")
+        }
+        
         // Fetch Square item
-        let response = try await apiService.getCatalogItem(objectId: mapping.squareCatalogObjectId)
+        let response = try await apiService.getCatalogItem(objectId: squareObjectId)
         guard let squareObject = response.object else {
             throw SyncError.invalidResponse
         }
         
         let squareLastModified = ISO8601DateFormatter().date(from: squareObject.updatedAt) ?? .distantPast
-        let proTechLastModified = item.lastModified ?? .distantPast
+        let proTechLastModified = item.updatedAt ?? .distantPast
         
-        if squareLastModified > mapping.lastSyncedAt && proTechLastModified > mapping.lastSyncedAt {
+        guard let mappingLastSynced = mapping.lastSyncedAt else {
+            // No last sync date, treat as new
+            try await updateProTechItem(item: item, mapping: mapping)
+            return
+        }
+        
+        if squareLastModified > mappingLastSynced && proTechLastModified > mappingLastSynced {
             // Both modified since last sync - conflict
             mapping.syncStatus = .conflict
-            try modelContext.save()
+            try context.save()
             throw SyncError.conflict
-        } else if squareLastModified > mapping.lastSyncedAt {
+        } else if squareLastModified > mappingLastSynced {
             // Square is newer
             try await updateProTechItem(item: item, mapping: mapping)
-        } else if proTechLastModified > mapping.lastSyncedAt {
+        } else if proTechLastModified > mappingLastSynced {
             // ProTech is newer
             try await updateSquareItem(item: item, mapping: mapping, locationId: locationId)
         }
@@ -715,7 +800,7 @@ class SquareInventorySyncManager: ObservableObject {
         }
         
         let squarePrice = Double(variation.itemVariationData.priceMoney?.amount ?? 0) / 100.0
-        if abs(proTechItem.price - squarePrice) > 0.01 {
+        if abs(proTechItem.sellingPrice - squarePrice) > 0.01 {
             conflicts.append("price")
         }
         
@@ -778,6 +863,7 @@ enum SyncError: Error, LocalizedError {
     case mappingNotFound
     case invalidResponse
     case conflict
+    case invalidData(String)
     
     var errorDescription: String? {
         switch self {
@@ -789,6 +875,8 @@ enum SyncError: Error, LocalizedError {
             return "Invalid response from Square"
         case .conflict:
             return "Sync conflict detected"
+        case .invalidData(let message):
+            return "Invalid data: \(message)"
         }
     }
 }

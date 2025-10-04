@@ -6,46 +6,102 @@
 //
 
 import Foundation
-import SwiftData
+import CoreData
 
-@Model
-class SyncLog {
-    @Attribute(.unique) var id: UUID
-    var timestamp: Date
-    var operation: SyncOperation
-    var itemId: UUID?
-    var squareObjectId: String?
-    var status: SyncStatus
-    var errorMessage: String?
-    var changedFields: [String]
-    var syncDuration: TimeInterval
-    var batchId: UUID?
-    var details: String?
+@objc(SyncLog)
+public class SyncLog: NSManagedObject {}
+
+extension SyncLog {
+    @nonobjc public class func fetchRequest() -> NSFetchRequest<SyncLog> {
+        NSFetchRequest<SyncLog>(entityName: "SyncLog")
+    }
     
-    init(
-        id: UUID = UUID(),
-        timestamp: Date = Date(),
-        operation: SyncOperation,
-        itemId: UUID? = nil,
-        squareObjectId: String? = nil,
-        status: SyncStatus,
-        errorMessage: String? = nil,
-        changedFields: [String] = [],
-        syncDuration: TimeInterval = 0,
-        batchId: UUID? = nil,
-        details: String? = nil
-    ) {
-        self.id = id
-        self.timestamp = timestamp
-        self.operation = operation
-        self.itemId = itemId
-        self.squareObjectId = squareObjectId
-        self.status = status
-        self.errorMessage = errorMessage
-        self.changedFields = changedFields
-        self.syncDuration = syncDuration
-        self.batchId = batchId
-        self.details = details
+    @NSManaged public var id: UUID?
+    @NSManaged public var timestamp: Date?
+    @NSManaged public var operationRaw: String?
+    @NSManaged public var itemId: UUID?
+    @NSManaged public var squareObjectId: String?
+    @NSManaged public var statusRaw: String?
+    @NSManaged public var errorMessage: String?
+    @NSManaged public var changedFieldsData: Data?
+    @NSManaged public var syncDuration: Double
+    @NSManaged public var batchId: UUID?
+    @NSManaged public var details: String?
+    
+    // Computed properties for enums
+    var operation: SyncOperation {
+        get {
+            guard let raw = operationRaw else { return .update }
+            return SyncOperation(rawValue: raw) ?? .update
+        }
+        set {
+            operationRaw = newValue.rawValue
+        }
+    }
+    
+    var status: SyncStatus {
+        get {
+            guard let raw = statusRaw else { return .pending }
+            return SyncStatus(rawValue: raw) ?? .pending
+        }
+        set {
+            statusRaw = newValue.rawValue
+        }
+    }
+    
+    var changedFields: [String] {
+        get {
+            guard let data = changedFieldsData,
+                  let array = try? JSONDecoder().decode([String].self, from: data) else {
+                return []
+            }
+            return array
+        }
+        set {
+            changedFieldsData = try? JSONEncoder().encode(newValue)
+        }
+    }
+}
+
+extension SyncLog: Identifiable {}
+
+extension SyncLog {
+    static func entityDescription() -> NSEntityDescription {
+        let entity = NSEntityDescription()
+        entity.name = "SyncLog"
+        entity.managedObjectClassName = NSStringFromClass(SyncLog.self)
+        
+        func makeAttribute(_ name: String, type: NSAttributeType, optional: Bool = true, defaultValue: Any? = nil) -> NSAttributeDescription {
+            let attribute = NSAttributeDescription()
+            attribute.name = name
+            attribute.attributeType = type
+            attribute.isOptional = optional
+            if let defaultValue {
+                attribute.defaultValue = defaultValue
+            }
+            return attribute
+        }
+        
+        entity.properties = [
+            makeAttribute("id", type: .UUIDAttributeType, optional: false),
+            makeAttribute("timestamp", type: .dateAttributeType, optional: false),
+            makeAttribute("operationRaw", type: .stringAttributeType, optional: false),
+            makeAttribute("itemId", type: .UUIDAttributeType),
+            makeAttribute("squareObjectId", type: .stringAttributeType),
+            makeAttribute("statusRaw", type: .stringAttributeType, optional: false),
+            makeAttribute("errorMessage", type: .stringAttributeType),
+            makeAttribute("changedFieldsData", type: .binaryDataAttributeType),
+            makeAttribute("syncDuration", type: .doubleAttributeType, optional: false, defaultValue: 0.0),
+            makeAttribute("batchId", type: .UUIDAttributeType),
+            makeAttribute("details", type: .stringAttributeType)
+        ]
+        
+        // Create index on timestamp for sorting
+        let timestampAttr = entity.properties.first { $0.name == "timestamp" } as! NSAttributeDescription
+        let timestampIndex = NSFetchIndexDescription(name: "sync_log_timestamp_index", elements: [NSFetchIndexElementDescription(property: timestampAttr, collationType: .binary)])
+        entity.indexes = [timestampIndex]
+        
+        return entity
     }
 }
 

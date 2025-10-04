@@ -25,9 +25,9 @@ struct SettingsView: View {
                 }
                 .tag(SettingsTab.sms)
             
-            SquareSettingsView()
+            SquareInventorySyncSettingsView()
                 .tabItem {
-                    Label("Square POS", systemImage: "cart")
+                    Label("Square", systemImage: "cart")
                 }
                 .tag(SettingsTab.square)
             
