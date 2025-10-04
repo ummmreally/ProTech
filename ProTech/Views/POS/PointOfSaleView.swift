@@ -25,10 +25,21 @@ struct PointOfSaleView: View {
     @State private var showSquareError = false
     @State private var squareErrorMessage = ""
     
+    // Customer selection and history
+    @State private var selectedCustomer: Customer?
+    @State private var showCustomerPicker = false
+    @State private var customerPurchases: [PurchaseHistory] = []
+    @State private var customerRepairs: [Ticket] = []
+    private let historyService: CustomerHistoryService
+    
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \InventoryItem.name, ascending: true)],
         predicate: NSPredicate(format: "isActive == true AND quantity > 0")
     ) var availableItems: FetchedResults<InventoryItem>
+    
+    init() {
+        self.historyService = CustomerHistoryService()
+    }
     
     var filteredItems: [InventoryItem] {
         var filtered = Array(availableItems)
@@ -71,10 +82,16 @@ struct PointOfSaleView: View {
         .sheet(isPresented: $isProcessingSquare) {
             squarePaymentProcessingView
         }
+        .sheet(isPresented: $showCustomerPicker) {
+            CustomerPickerView(selectedCustomer: $selectedCustomer)
+        }
         .alert("Square Payment Error", isPresented: $showSquareError) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(squareErrorMessage)
+        }
+        .onChange(of: selectedCustomer) { _, newCustomer in
+            loadCustomerHistory()
         }
         .task {
             await loadSquareDevices()
@@ -102,14 +119,16 @@ struct PointOfSaleView: View {
             
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // Customer Info (Optional)
-                    customerInfoCard
+                    // Customer Selection
+                    customerSelectionCard
                     
-                    // Order Details Section
-                    orderDetailsCard
-                    
-                    // Discount Section
-                    discountCard
+                    // Customer History
+                    if selectedCustomer != nil {
+                        CustomerPurchaseHistoryCard(purchases: customerPurchases)
+                        CustomerRepairHistoryCard(repairs: customerRepairs)
+                    } else {
+                        emptyCustomerHistoryView
+                    }
                 }
                 .padding()
             }
@@ -192,25 +211,25 @@ struct PointOfSaleView: View {
         .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
     
-    private var customerInfoCard: some View {
+    private var customerSelectionCard: some View {
         HStack(spacing: 15) {
             // Customer Avatar
             Circle()
-                .fill(Color.blue.opacity(0.1))
+                .fill(selectedCustomer == nil ? Color.gray.opacity(0.1) : Color.blue.opacity(0.1))
                 .frame(width: 50, height: 50)
                 .overlay(
                     Image(systemName: "person.fill")
-                        .foregroundColor(.blue)
+                        .foregroundColor(selectedCustomer == nil ? .gray : .blue)
                 )
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("Walk-in Customer")
+                Text(customerName)
                     .font(.headline)
                     .foregroundColor(Color(hex: "212121"))
                 HStack(spacing: 8) {
                     Image(systemName: "phone.fill")
                         .font(.caption)
-                    Text("No phone number")
+                    Text(customerPhone)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -218,20 +237,56 @@ struct PointOfSaleView: View {
             
             Spacer()
             
-            // Regular/VIP Badge
-            Text("Walk-in")
-                .font(.caption)
-                .fontWeight(.medium)
-                .foregroundColor(Color(hex: "00C853"))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(Color(hex: "B9F6CA"))
-                .cornerRadius(20)
+            // Select/Change Button
+            Button {
+                showCustomerPicker = true
+            } label: {
+                Text(selectedCustomer == nil ? "Select" : "Change")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color(hex: "00C853"))
+                    .cornerRadius(8)
+            }
+            .buttonStyle(.plain)
         }
         .padding()
         .background(Color.white)
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+    }
+    
+    private var customerName: String {
+        if let customer = selectedCustomer {
+            let firstName = customer.firstName ?? ""
+            let lastName = customer.lastName ?? ""
+            if !firstName.isEmpty || !lastName.isEmpty {
+                return "\(firstName) \(lastName)".trimmingCharacters(in: .whitespaces)
+            }
+        }
+        return "Walk-in Customer"
+    }
+    
+    private var customerPhone: String {
+        selectedCustomer?.phone ?? "No phone number"
+    }
+    
+    private var emptyCustomerHistoryView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "person.crop.circle.badge.questionmark")
+                .font(.system(size: 48))
+                .foregroundColor(Color(hex: "757575").opacity(0.3))
+            Text("Select a customer")
+                .font(.headline)
+                .foregroundColor(Color(hex: "757575"))
+            Text("View purchase and repair history")
+                .font(.caption)
+                .foregroundColor(Color(hex: "757575"))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 40)
     }
     
     private var orderDetailsCard: some View {
@@ -390,21 +445,32 @@ struct PointOfSaleView: View {
     // MARK: - Payment Selection Panel (Right)
     
     private var paymentSelectionPanel: some View {
-        VStack(spacing: 24) {
-            // Header
+        VStack(spacing: 16) {
+            // Customer Header
+            CustomerHeaderCard(customer: selectedCustomer)
+                .padding(.horizontal, 24)
+                .padding(.top, 16)
+            
+            // Order Details (moved from left panel)
+            orderDetailsCard
+                .padding(.horizontal, 24)
+            
+            // Discount Section
+            discountCard
+                .padding(.horizontal, 24)
+            
+            Divider()
+                .padding(.horizontal, 24)
+            
+            // Payment Mode Header
             VStack(alignment: .leading, spacing: 8) {
                 Text("Select payment mode")
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundColor(Color(hex: "212121"))
                 
-                Text("Select a payment method that helps our customers to feel seamless experience during checkout")
-                    .font(.caption)
-                    .foregroundColor(Color(hex: "757575"))
-                
                 // Square Terminal Device Selector
                 if selectedPaymentMode == .card && !squareDevices.isEmpty {
-                    Divider()
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Square Terminal Device")
                             .font(.caption)
@@ -417,13 +483,11 @@ struct PointOfSaleView: View {
                                 Text(device.name ?? "Terminal \(device.code)").tag(device.deviceId as String?)
                             }
                         }
-                        .labelsHidden()
                     }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 24)
-            .padding(.top, 24)
             
             ScrollView {
                 VStack(spacing: 16) {
@@ -611,6 +675,15 @@ struct PointOfSaleView: View {
                 let completed = try await pollCheckoutStatus(checkoutId: checkout.id)
                 
                 if completed {
+                    // Save purchase history
+                    _ = try? historyService.savePurchase(
+                        customer: selectedCustomer,
+                        cart: cart,
+                        paymentMethod: "card",
+                        squareCheckoutId: checkout.id,
+                        discount: discountAmount
+                    )
+                    
                     // Payment successful!
                     await MainActor.run {
                         isProcessingSquare = false
@@ -619,6 +692,9 @@ struct PointOfSaleView: View {
                         discountAmount = 0
                         discountCode = ""
                         terminalCheckoutId = nil
+                        
+                        // Reload customer history if customer selected
+                        loadCustomerHistory()
                     }
                 } else {
                     throw SquareAPIError.apiError(message: "Payment was not completed")
@@ -682,6 +758,16 @@ struct PointOfSaleView: View {
     
     private func processLocalPayment() {
         // For cash and UPI payments - process locally
+        let paymentMethod = selectedPaymentMode == .cash ? "cash" : "upi"
+        
+        // Save purchase history
+        _ = try? historyService.savePurchase(
+            customer: selectedCustomer,
+            cart: cart,
+            paymentMethod: paymentMethod,
+            discount: discountAmount
+        )
+        
         showingCheckout = true
         
         // Clear cart after successful payment
@@ -691,7 +777,23 @@ struct PointOfSaleView: View {
             discountAmount = 0
             discountCode = ""
             showingCheckout = false
+            
+            // Reload customer history
+            loadCustomerHistory()
         }
+    }
+    
+    // MARK: - Customer History
+    
+    private func loadCustomerHistory() {
+        guard let customer = selectedCustomer else {
+            customerPurchases = []
+            customerRepairs = []
+            return
+        }
+        
+        customerPurchases = historyService.fetchPurchaseHistory(for: customer, limit: 10)
+        customerRepairs = historyService.fetchRepairHistory(for: customer, limit: 10)
     }
 }
 

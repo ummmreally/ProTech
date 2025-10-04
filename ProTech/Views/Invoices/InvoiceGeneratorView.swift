@@ -583,7 +583,7 @@ struct CustomerPickerView: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 0) {
                 // Search
                 HStack {
                     Image(systemName: "magnifyingglass")
@@ -595,20 +595,68 @@ struct CustomerPickerView: View {
                 .cornerRadius(8)
                 .padding()
                 
+                Divider()
+                
+                // Walk-in option
+                Button(action: {
+                    selectedCustomer = nil
+                    dismiss()
+                }) {
+                    HStack {
+                        Circle()
+                            .fill(Color.gray.opacity(0.1))
+                            .frame(width: 40, height: 40)
+                            .overlay(
+                                Image(systemName: "person.fill.questionmark")
+                                    .foregroundColor(.gray)
+                            )
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Walk-in Customer")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                            Text("No customer selected")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        if selectedCustomer == nil {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                        }
+                    }
+                    .padding()
+                    .background(selectedCustomer == nil ? Color.green.opacity(0.1) : Color.clear)
+                }
+                .buttonStyle(.plain)
+                
+                Divider()
+                
                 // Customer list
                 List(filteredCustomers) { customer in
                     Button(action: {
                         selectedCustomer = customer
                         dismiss()
                     }) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("\(customer.firstName ?? "") \(customer.lastName ?? "")")
-                                .font(.headline)
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("\(customer.firstName ?? "") \(customer.lastName ?? "")")
+                                    .font(.headline)
+                                
+                                if let email = customer.email {
+                                    Text(email)
+                                        .font(.subheadline)
+                                        .foregroundColor(.secondary)
+                                }
+                            }
                             
-                            if let email = customer.email {
-                                Text(email)
-                                    .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                            Spacer()
+                            
+                            if selectedCustomer?.id == customer.id {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
                             }
                         }
                     }

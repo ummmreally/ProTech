@@ -16,7 +16,7 @@ class SocialMediaAPIService {
     // MARK: - Post to X/Twitter
     
     func postToX(content: String, image: NSImage? = nil) async throws -> PostResult {
-        guard let accessToken = SocialMediaOAuthService.shared.getAccessToken(for: "X") else {
+        guard let accessToken = await SocialMediaOAuthService.shared.getAccessToken(for: "X") else {
             throw SocialMediaError.notAuthenticated
         }
         
@@ -62,7 +62,7 @@ class SocialMediaAPIService {
     // MARK: - Post to Facebook
     
     func postToFacebook(content: String, image: NSImage? = nil) async throws -> PostResult {
-        guard let accessToken = SocialMediaOAuthService.shared.getAccessToken(for: "Facebook") else {
+        guard let accessToken = await SocialMediaOAuthService.shared.getAccessToken(for: "Facebook") else {
             throw SocialMediaError.notAuthenticated
         }
         
@@ -100,7 +100,7 @@ class SocialMediaAPIService {
     // MARK: - Post to LinkedIn
     
     func postToLinkedIn(content: String, image: NSImage? = nil) async throws -> PostResult {
-        guard let accessToken = SocialMediaOAuthService.shared.getAccessToken(for: "LinkedIn") else {
+        guard let accessToken = await SocialMediaOAuthService.shared.getAccessToken(for: "LinkedIn") else {
             throw SocialMediaError.notAuthenticated
         }
         
@@ -146,7 +146,7 @@ class SocialMediaAPIService {
     // MARK: - Fetch Analytics
     
     func fetchAnalytics(for platform: String, postId: String) async throws -> PostAnalytics {
-        guard let accessToken = SocialMediaOAuthService.shared.getAccessToken(for: platform) else {
+        guard let accessToken = await SocialMediaOAuthService.shared.getAccessToken(for: platform) else {
             throw SocialMediaError.notAuthenticated
         }
         

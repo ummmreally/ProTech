@@ -479,7 +479,7 @@ extension SquareAPIService {
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(config.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(config.accessToken ?? "")", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("2024-10-17", forHTTPHeaderField: "Square-Version")
         
@@ -528,7 +528,7 @@ extension SquareAPIService {
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        request.setValue("Bearer \(config.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(config.accessToken ?? "")", forHTTPHeaderField: "Authorization")
         request.setValue("2024-10-17", forHTTPHeaderField: "Square-Version")
         
         let (data, response) = try await session.data(for: request)
@@ -564,7 +564,7 @@ extension SquareAPIService {
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(config.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(config.accessToken ?? "")", forHTTPHeaderField: "Authorization")
         request.setValue("2024-10-17", forHTTPHeaderField: "Square-Version")
         
         let (data, response) = try await session.data(for: request)
@@ -600,7 +600,7 @@ extension SquareAPIService {
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        request.setValue("Bearer \(config.accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(config.accessToken ?? "")", forHTTPHeaderField: "Authorization")
         request.setValue("2024-10-17", forHTTPHeaderField: "Square-Version")
         
         let (data, response) = try await session.data(for: request)

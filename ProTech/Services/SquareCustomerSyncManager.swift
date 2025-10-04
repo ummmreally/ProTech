@@ -228,7 +228,7 @@ class SquareCustomerSyncManager: ObservableObject {
         
         if let squareId = customer.squareCustomerId, !squareId.isEmpty {
             // Update existing Square customer
-            let squareCustomer = try await apiService.updateCustomer(
+            _ = try await apiService.updateCustomer(
                 customerId: squareId,
                 givenName: customer.firstName,
                 familyName: customer.lastName,
