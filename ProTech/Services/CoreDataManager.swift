@@ -25,6 +25,7 @@ class CoreDataManager {
             FormSubmission.entityDescription(),
             SMSMessage.entityDescription(),
             Ticket.entityDescription(),
+            TicketNote.entityDescription(),
             RepairProgress.entityDescription(),
             RepairStageRecord.entityDescription(),
             RepairPartUsage.entityDescription(),

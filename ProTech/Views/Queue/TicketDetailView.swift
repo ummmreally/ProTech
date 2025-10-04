@@ -137,14 +137,36 @@ struct TicketDetailView: View {
                 }
                 
                 // Notes
-                Section("Technician Notes") {
+                Section("Add New Note") {
                     TextEditor(text: $notes)
-                        .frame(minHeight: 100)
+                        .frame(height: 80)
                     
-                    Button("Save Notes") {
-                        saveNotes()
+                    HStack {
+                        Text("Type your note here...")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                        
+                        Button {
+                            addNote()
+                        } label: {
+                            Label("Add Note", systemImage: "plus.circle.fill")
+                        }
+                        .disabled(notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                     }
-                    .disabled(notes == ticket.notes)
+                }
+                
+                // Notes History
+                Section("Notes History") {
+                    if let ticketId = ticket.id {
+                        NotesHistoryList(ticketId: ticketId)
+                            .frame(height: 200)
+                    } else {
+                        Text("No notes yet")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 
                 // Time Tracking Section
@@ -339,6 +361,35 @@ struct TicketDetailView: View {
         ticket.notes = notes
         ticket.updatedAt = Date()
         CoreDataManager.shared.save()
+    }
+    
+    private func addNote() {
+        guard let ticketId = ticket.id else { return }
+        
+        let trimmedNote = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedNote.isEmpty else { return }
+        
+        let context = CoreDataManager.shared.viewContext
+        let ticketNote = TicketNote(context: context)
+        ticketNote.id = UUID()
+        ticketNote.ticketId = ticketId
+        ticketNote.content = trimmedNote
+        ticketNote.technicianName = getCurrentTechnicianName()
+        ticketNote.createdAt = Date()
+        
+        // Also update the main ticket notes field with the latest note
+        ticket.notes = trimmedNote
+        ticket.updatedAt = Date()
+        
+        CoreDataManager.shared.save()
+        
+        // Clear the text field
+        notes = ""
+    }
+    
+    private func getCurrentTechnicianName() -> String {
+        // Get current logged-in user/technician name
+        return UserDefaults.standard.string(forKey: "currentTechnicianName") ?? "Technician"
     }
     
     private func deleteTicket() {

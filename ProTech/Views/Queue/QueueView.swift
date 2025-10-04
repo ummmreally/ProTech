@@ -28,6 +28,15 @@ struct QueueView: View {
         }
     }
     
+    // Count tickets by status
+    func countForStatus(_ status: TicketStatus) -> Int {
+        if status == .all {
+            return activeTickets.count
+        } else {
+            return activeTickets.filter { $0.status == status.rawValue }.count
+        }
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
             // Header
@@ -52,10 +61,15 @@ struct QueueView: View {
             }
             .padding()
             
-            // Filter
+            // Filter with counts
             Picker("Filter", selection: $filterStatus) {
                 ForEach(TicketStatus.allCases, id: \.self) { status in
-                    Text(status.displayName).tag(status)
+                    let count = countForStatus(status)
+                    if count > 0 {
+                        Text("\(status.displayName) (\(count))").tag(status)
+                    } else {
+                        Text(status.displayName).tag(status)
+                    }
                 }
             }
             .pickerStyle(.segmented)
@@ -89,10 +103,12 @@ struct QueueView: View {
                 ScrollView {
                     LazyVStack(spacing: 12) {
                         ForEach(filteredTickets) { ticket in
-                            QueueTicketCard(ticket: ticket)
-                                .onTapGesture {
+                            QueueTicketCard(
+                                ticket: ticket,
+                                onQuickView: {
                                     selectedTicket = ticket
                                 }
+                            )
                         }
                     }
                     .padding()
@@ -153,9 +169,11 @@ enum TicketStatus: String, CaseIterable {
 struct QueueTicketCard: View {
     @ObservedObject var ticket: Ticket
     @FetchRequest var customer: FetchedResults<Customer>
+    let onQuickView: () -> Void
     
-    init(ticket: Ticket) {
+    init(ticket: Ticket, onQuickView: @escaping () -> Void) {
         self.ticket = ticket
+        self.onQuickView = onQuickView
         _customer = FetchRequest<Customer>(
             sortDescriptors: [],
             predicate: NSPredicate(format: "id == %@", ticket.customerId! as CVarArg)
@@ -163,76 +181,91 @@ struct QueueTicketCard: View {
     }
     
     var body: some View {
-        HStack(spacing: 16) {
-            // Status indicator
-            VStack {
-                Circle()
-                    .fill(statusColor.gradient)
-                    .frame(width: 50, height: 50)
-                    .overlay {
-                        Image(systemName: statusIcon)
-                            .font(.title3)
-                            .foregroundColor(.white)
-                    }
-                
-                Text(ticketNumber)
-                    .font(.caption2)
-                    .bold()
-                    .foregroundColor(.secondary)
-            }
-            
-            // Customer info
-            VStack(alignment: .leading, spacing: 6) {
-                if let customer = customer.first {
-                    Text("\(customer.firstName ?? "") \(customer.lastName ?? "")")
-                        .font(.headline)
-                } else {
-                    Text("Unknown Customer")
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                }
-                
-                if let device = ticket.deviceType {
-                    HStack(spacing: 4) {
-                        Image(systemName: deviceIcon(device))
-                        Text(device)
-                    }
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                }
-                
-                if let issue = ticket.issueDescription {
-                    Text(issue)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
-                }
-            }
-            
-            Spacer()
-            
-            // Time info
-            VStack(alignment: .trailing, spacing: 4) {
-                if let checkedIn = ticket.checkedInAt {
-                    Text(timeAgo(checkedIn))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+        NavigationLink(destination: RepairDetailView(ticket: ticket)) {
+            HStack(spacing: 16) {
+                // Status indicator
+                VStack {
+                    Circle()
+                        .fill(statusColor.gradient)
+                        .frame(width: 50, height: 50)
+                        .overlay {
+                            Image(systemName: statusIcon)
+                                .font(.title3)
+                                .foregroundColor(.white)
+                        }
                     
-                    Text(checkedIn, format: .dateTime.hour().minute())
+                    Text(ticketNumber)
                         .font(.caption2)
+                        .bold()
                         .foregroundColor(.secondary)
                 }
                 
-                QueueView.QueueStatusBadge(status: ticket.status ?? "waiting")
+                // Customer info
+                VStack(alignment: .leading, spacing: 6) {
+                    if let customer = customer.first {
+                        Text("\(customer.firstName ?? "") \(customer.lastName ?? "")")
+                            .font(.headline)
+                    } else {
+                        Text("Unknown Customer")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    if let device = ticket.deviceType {
+                        HStack(spacing: 4) {
+                            Image(systemName: deviceIcon(device))
+                            Text(device)
+                        }
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    }
+                    
+                    if let issue = ticket.issueDescription {
+                        Text(issue)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .lineLimit(2)
+                    }
+                }
+                
+                Spacer()
+                
+                // Time info and Quick View button
+                VStack(alignment: .trailing, spacing: 4) {
+                    if let checkedIn = ticket.checkedInAt {
+                        Text(timeAgo(checkedIn))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Text(checkedIn, format: .dateTime.hour().minute())
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    QueueView.QueueStatusBadge(status: ticket.status ?? "waiting")
+                    
+                    // Quick View button
+                    Button {
+                        onQuickView()
+                    } label: {
+                        Label("Quick View", systemImage: "eye")
+                            .font(.caption)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
             }
+            .padding()
+            .background(Color.gray.opacity(0.05))
+            .cornerRadius(12)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(statusColor.opacity(0.3), lineWidth: 2)
+            )
         }
-        .padding()
-        .background(Color.gray.opacity(0.05))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(statusColor.opacity(0.3), lineWidth: 2)
-        )
+        .buttonStyle(.plain)
     }
     
     private var ticketNumber: String {
