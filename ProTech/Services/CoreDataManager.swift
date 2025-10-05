@@ -51,7 +51,13 @@ class CoreDataManager {
             // Square Integration entities
             SquareSyncMapping.entityDescription(),
             SyncLog.entityDescription(),
-            SquareConfiguration.entityDescription()
+            SquareConfiguration.entityDescription(),
+            // Loyalty Program entities
+            LoyaltyProgram.entityDescription(),
+            LoyaltyTier.entityDescription(),
+            LoyaltyMember.entityDescription(),
+            LoyaltyTransaction.entityDescription(),
+            LoyaltyReward.entityDescription()
         ]
 
         if let invoiceEntity = model.entities.first(where: { $0.name == "Invoice" }),

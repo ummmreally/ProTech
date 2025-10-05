@@ -38,6 +38,8 @@ struct CheckInCustomerView: View {
     @State private var showingSignaturePad = false
     @State private var searchText = ""
     @State private var showingNewCustomer = false
+    @State private var showingPrintDialog = false
+    @State private var createdTicket: Ticket?
     
     private let agreementText = """
     By signing this document customer agrees to allow Tech Medics to perform service on listed device above. Customer understands that Tech Medics is not responsible for any data loss that may occur while in possession of the device listed. Tech Medics will contact you 3 times within a 30 day period when the device is ready for pickup. After the 31st day if full balance is unpaid the device will be marked abandoned. Tech Medics will then take ownership of the device or the device may be recycled. Please sign below agreeing to these terms.
@@ -61,7 +63,12 @@ struct CheckInCustomerView: View {
             Form {
                 customerSelectionSection
                 
-                if selectedCustomer != nil {
+                if let selectedCustomer = selectedCustomer {
+                    // Loyalty Program Widget
+                    Section {
+                        LoyaltyWidget(customer: selectedCustomer)
+                    }
+                    
                     customerInformationSection
                     deviceInformationSection
                     promotionsSection
@@ -98,6 +105,18 @@ struct CheckInCustomerView: View {
         }
         .sheet(isPresented: $showingSignaturePad) {
             SignaturePadView(signatureData: $signatureData)
+        }
+        .sheet(isPresented: $showingPrintDialog) {
+            if let ticket = createdTicket, let customer = selectedCustomer {
+                CheckInPrintDialog(
+                    ticket: ticket,
+                    customer: customer,
+                    onDismiss: {
+                        showingPrintDialog = false
+                        dismiss()
+                    }
+                )
+            }
         }
         .onChange(of: selectedCustomer?.objectID) {
             if let customer = selectedCustomer {
@@ -418,8 +437,11 @@ struct CheckInCustomerView: View {
         // Save
         CoreDataManager.shared.save()
         
-        // Dismiss
-        dismiss()
+        // Store ticket for printing
+        createdTicket = ticket
+        
+        // Show print dialog
+        showingPrintDialog = true
     }
     
     private func populateCustomerDetails(from customer: Customer) {

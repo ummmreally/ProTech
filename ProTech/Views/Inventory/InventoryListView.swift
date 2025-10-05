@@ -19,6 +19,8 @@ struct InventoryListView: View {
     @State private var showLowStockOnly = false
     @State private var showingAddItem = false
     @State private var selectedItem: InventoryItem?
+    @State private var showingBatchPrintDialog = false
+    @State private var labelCopies = 1
     
     var filteredItems: [InventoryItem] {
         var filtered = Array(items)
@@ -133,6 +135,12 @@ struct InventoryListView: View {
                                     Label("Adjust Stock", systemImage: "plus.forwardslash.minus")
                                 }
                                 
+                                Button {
+                                    DymoPrintService.shared.printProductLabel(product: item)
+                                } label: {
+                                    Label("Print Label", systemImage: "printer.fill")
+                                }
+                                
                                 Divider()
                                 
                                 Button(role: .destructive) {
@@ -149,6 +157,24 @@ struct InventoryListView: View {
         .navigationTitle("Inventory")
         .toolbar {
             ToolbarItemGroup {
+                Menu {
+                    Button {
+                        printAllVisibleLabels()
+                    } label: {
+                        Label("Print All Visible (\(filteredItems.count))", systemImage: "printer.fill")
+                    }
+                    .disabled(filteredItems.isEmpty)
+                    
+                    Button {
+                        showingBatchPrintDialog = true
+                    } label: {
+                        Label("Print with Options...", systemImage: "printer.dotmatrix.fill")
+                    }
+                    .disabled(filteredItems.isEmpty)
+                } label: {
+                    Label("Print Labels", systemImage: "printer")
+                }
+                
                 Button {
                     exportInventory()
                 } label: {
@@ -167,6 +193,14 @@ struct InventoryListView: View {
         }
         .sheet(item: $selectedItem) { item in
             InventoryItemDetailView(item: item)
+        }
+        .sheet(isPresented: $showingBatchPrintDialog) {
+            BatchPrintOptionsView(
+                itemCount: filteredItems.count,
+                onPrint: { copies in
+                    printLabelsWithCopies(copies)
+                }
+            )
         }
     }
     
@@ -196,6 +230,14 @@ struct InventoryListView: View {
     
     private func deleteItem(_ item: InventoryItem) {
         InventoryService.shared.deleteItem(item)
+    }
+    
+    private func printAllVisibleLabels() {
+        DymoPrintService.shared.printProductLabels(products: filteredItems, copies: 1)
+    }
+    
+    private func printLabelsWithCopies(_ copies: Int) {
+        DymoPrintService.shared.printProductLabels(products: filteredItems, copies: copies)
     }
     
     private func exportInventory() {

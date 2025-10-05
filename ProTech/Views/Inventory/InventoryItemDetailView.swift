@@ -180,6 +180,15 @@ struct InventoryItemDetailView: View {
                 
                 ToolbarItem(placement: .automatic) {
                     Button {
+                        DymoPrintService.shared.printProductLabel(product: item)
+                    } label: {
+                        Label("Print Label", systemImage: "printer.fill")
+                    }
+                    .help("Print product label to Dymo printer")
+                }
+                
+                ToolbarItem(placement: .automatic) {
+                    Button {
                         showingEditView = true
                     } label: {
                         Label("Edit", systemImage: "pencil")

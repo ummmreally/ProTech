@@ -11,12 +11,16 @@ struct LoginView: View {
     @StateObject private var authService = AuthenticationService.shared
     @StateObject private var employeeService = EmployeeService()
     
+    @AppStorage("brandName") private var brandName = "ProTech"
+    @AppStorage("customLogoPath") private var customLogoPath = ""
+    
     @State private var loginMode: LoginMode = .pin
     @State private var pinCode = ""
     @State private var email = ""
     @State private var password = ""
     @State private var errorMessage = ""
     @State private var showError = false
+    @State private var currentTime = Date()
     
     enum LoginMode {
         case pin
@@ -36,15 +40,32 @@ struct LoginView: View {
             VStack(spacing: 30) {
                 // Logo and title
                 VStack(spacing: 10) {
-                    Image(systemName: "lock.shield.fill")
-                        .font(.system(size: 80))
-                        .foregroundColor(.white)
+                    // Custom logo or default icon
+                    if !customLogoPath.isEmpty, let nsImage = NSImage(contentsOfFile: customLogoPath) {
+                        Image(nsImage: nsImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 100, height: 100)
+                            .cornerRadius(12)
+                            .shadow(radius: 10)
+                    } else {
+                        Image(systemName: "lock.shield.fill")
+                            .font(.system(size: 80))
+                            .foregroundColor(.white)
+                    }
                     
-                    Text("ProTech")
+                    Text(brandName)
                         .font(.system(size: 48, weight: .bold))
                         .foregroundColor(.white)
                     
-                    Text("Repair Shop Management")
+                    // Live date and time
+                    Text(currentTime, style: .date)
+                        .font(.title3)
+                        .foregroundColor(.white.opacity(0.9))
+                    + Text(" • ")
+                        .font(.title3)
+                        .foregroundColor(.white.opacity(0.9))
+                    + Text(currentTime, style: .time)
                         .font(.title3)
                         .foregroundColor(.white.opacity(0.9))
                 }
@@ -109,6 +130,15 @@ struct LoginView: View {
         }
         .onAppear {
             employeeService.createDefaultAdminIfNeeded()
+            startTimeUpdater()
+        }
+    }
+    
+    // MARK: - Time Updater
+    
+    private func startTimeUpdater() {
+        Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            currentTime = Date()
         }
     }
     

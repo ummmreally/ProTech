@@ -107,6 +107,11 @@ struct ReportsView: View {
             
             Spacer()
             
+            Button(action: { printReport() }) {
+                Label("Print", systemImage: "printer")
+            }
+            .buttonStyle(.bordered)
+            
             Button(action: { showingExport = true }) {
                 Label("Export", systemImage: "square.and.arrow.up")
             }
@@ -349,11 +354,10 @@ struct ReportsView: View {
     
     // MARK: - Helpers
     
-    private func formatCurrency(_ value: Decimal) -> String {
+    private func formatCurrency(_ amount: Decimal) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .currency
-        formatter.locale = Locale.current
-        return formatter.string(from: value as NSDecimalNumber) ?? "$0.00"
+        return formatter.string(from: NSDecimalNumber(decimal: amount)) ?? "$0.00"
     }
     
     private func statusColor(for status: String) -> Color {
@@ -362,11 +366,50 @@ struct ReportsView: View {
             return .green
         case "in_progress":
             return .blue
-        case "checked_in", "pending":
+        case "checked_in", "waiting", "pending":
             return .orange
+        case "cancelled":
+            return .red
         default:
             return .gray
         }
+    }
+    
+    private func printReport() {
+        // Gather report data
+        let revenue = reportingService.getRevenue(from: dateRange.start, to: dateRange.end)
+        let invoiceStats = reportingService.getInvoiceStats(from: dateRange.start, to: dateRange.end)
+        let ticketStats = reportingService.getTicketStats(from: dateRange.start, to: dateRange.end)
+        let paymentMethods = reportingService.getRevenueByPaymentMethod(from: dateRange.start, to: dateRange.end)
+        
+        // Format date range
+        let dateRangeString = "\(dateRange.start.formatted(date: .abbreviated, time: .omitted)) - \(dateRange.end.formatted(date: .abbreviated, time: .omitted))"
+        
+        // Prepare metrics
+        let metrics: [String: String] = [
+            "Total Revenue": formatCurrency(revenue),
+            "Total Invoices": "\(invoiceStats.totalInvoices)",
+            "Paid Invoices": "\(invoiceStats.paidInvoices)",
+            "Unpaid Invoices": "\(invoiceStats.totalInvoices - invoiceStats.paidInvoices)",
+            "Total Tickets": "\(ticketStats.totalTickets)",
+            "Completed Tickets": "\(ticketStats.completedTickets)",
+            "Average Turnaround": String(format: "%.1f hours", ticketStats.averageTurnaroundHours)
+        ]
+        
+        // Prepare detailed breakdown
+        var details = "PAYMENT METHOD BREAKDOWN:\n\n"
+        for (method, amount) in paymentMethods {
+            let percentage = revenue > 0 ? (amount / revenue) * 100 : 0
+            details += String(format: "%@: %@ (%.1f%%)\n", method, formatCurrency(amount), NSDecimalNumber(decimal: percentage).doubleValue)
+        }
+        
+        // Print the report
+        DymoPrintService.shared.printReport(
+            title: selectedReportType.rawValue,
+            dateRange: dateRangeString,
+            metrics: metrics,
+            details: details
+        )
     }
 }
 

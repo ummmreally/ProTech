@@ -248,6 +248,12 @@ struct TicketDetailView: View {
                     
                     if ticket.status == "completed" {
                         Button {
+                            printPickupForm()
+                        } label: {
+                            Label("Print Pickup Form", systemImage: "printer.fill")
+                        }
+                        
+                        Button {
                             updateStatus("picked_up")
                         } label: {
                             Label("Customer Picked Up", systemImage: "hand.thumbsup.fill")
@@ -286,10 +292,20 @@ struct TicketDetailView: View {
             .navigationTitle("Ticket Details")
             .toolbar {
                 ToolbarItem(placement: .automatic) {
-                    Button {
-                        showingBarcodePrint = true
+                    Menu {
+                        Button {
+                            printDymoLabel()
+                        } label: {
+                            Label("Print Dymo Label", systemImage: "printer.fill")
+                        }
+                        
+                        Button {
+                            showingBarcodePrint = true
+                        } label: {
+                            Label("Show Barcode", systemImage: "barcode")
+                        }
                     } label: {
-                        Label("Print Label", systemImage: "barcode")
+                        Label("Print", systemImage: "printer")
                     }
                 }
                 
@@ -390,6 +406,19 @@ struct TicketDetailView: View {
     private func getCurrentTechnicianName() -> String {
         // Get current logged-in user/technician name
         return UserDefaults.standard.string(forKey: "currentTechnicianName") ?? "Technician"
+    }
+    
+    private func printDymoLabel() {
+        // Print the device label using ticket information
+        DymoPrintService.shared.printDeviceLabel(
+            ticket: ticket,
+            customer: customer.first
+        )
+    }
+    
+    private func printPickupForm() {
+        guard let customer = customer.first else { return }
+        DymoPrintService.shared.printPickupForm(ticket: ticket, customer: customer)
     }
     
     private func deleteTicket() {

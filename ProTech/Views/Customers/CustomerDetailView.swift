@@ -67,6 +67,10 @@ struct CustomerDetailView: View {
                 }
                 .padding()
                 
+                // Loyalty Program
+                LoyaltyWidget(customer: customer)
+                    .padding(.horizontal)
+                
                 // Contact Information
                 GroupBox {
                     VStack(alignment: .leading, spacing: 12) {

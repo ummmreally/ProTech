@@ -67,12 +67,52 @@ enum SettingsTab {
 
 struct GeneralSettingsView: View {
     @AppStorage("companyName") private var companyName = ""
+    @AppStorage("brandName") private var brandName = "ProTech"
     @AppStorage("companyEmail") private var companyEmail = ""
     @AppStorage("companyPhone") private var companyPhone = ""
     @AppStorage("companyAddress") private var companyAddress = ""
+    @AppStorage("customLogoPath") private var customLogoPath = ""
+    
+    @State private var showingImagePicker = false
     
     var body: some View {
         Form {
+            Section("Branding") {
+                TextField("Brand Name (shown on login)", text: $brandName)
+                    .help("This name will appear on the login screen")
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Login Screen Logo")
+                        .font(.headline)
+                    
+                    if !customLogoPath.isEmpty, let nsImage = NSImage(contentsOfFile: customLogoPath) {
+                        Image(nsImage: nsImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 80, height: 80)
+                            .cornerRadius(8)
+                    } else {
+                        Image(systemName: "lock.shield.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(.blue)
+                    }
+                    
+                    HStack {
+                        Button("Choose Logo...") {
+                            showingImagePicker = true
+                        }
+                        
+                        if !customLogoPath.isEmpty {
+                            Button("Remove Logo") {
+                                customLogoPath = ""
+                            }
+                            .foregroundColor(.red)
+                        }
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+            
             Section("Company Information") {
                 TextField("Company Name", text: $companyName)
                 TextField("Email", text: $companyEmail)
@@ -96,6 +136,48 @@ struct GeneralSettingsView: View {
             }
         }
         .formStyle(.grouped)
+        .fileImporter(
+            isPresented: $showingImagePicker,
+            allowedContentTypes: [.image],
+            allowsMultipleSelection: false
+        ) { result in
+            handleImageSelection(result)
+        }
+    }
+    
+    private func handleImageSelection(_ result: Result<[URL], Error>) {
+        do {
+            guard let selectedFile = try result.get().first else { return }
+            
+            // Get access to security-scoped resource
+            guard selectedFile.startAccessingSecurityScopedResource() else {
+                print("Failed to access file")
+                return
+            }
+            defer { selectedFile.stopAccessingSecurityScopedResource() }
+            
+            // Create app support directory for logos
+            let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
+            let logoDir = appSupport.appendingPathComponent("ProTech/Logos", isDirectory: true)
+            
+            try FileManager.default.createDirectory(at: logoDir, withIntermediateDirectories: true)
+            
+            // Copy file to app support
+            let destinationURL = logoDir.appendingPathComponent("login_logo\(selectedFile.pathExtension.isEmpty ? "" : "." + selectedFile.pathExtension)")
+            
+            // Remove existing logo if it exists
+            if FileManager.default.fileExists(atPath: destinationURL.path) {
+                try FileManager.default.removeItem(at: destinationURL)
+            }
+            
+            try FileManager.default.copyItem(at: selectedFile, to: destinationURL)
+            
+            // Save path
+            customLogoPath = destinationURL.path
+            
+        } catch {
+            print("Error selecting logo: \(error.localizedDescription)")
+        }
     }
 }
 

@@ -66,13 +66,22 @@ struct FormSubmissionView: View {
                     }
                     .disabled(pdfDocument == nil)
                     
-                    Button {
-                        printPDF()
+                    Menu {
+                        Button {
+                            printPDF()
+                        } label: {
+                            Label("Print PDF", systemImage: "doc.fill")
+                        }
+                        
+                        Button {
+                            printTextVersion()
+                        } label: {
+                            Label("Print Text Version", systemImage: "text.alignleft")
+                        }
                     } label: {
                         Label("Print", systemImage: "printer")
                     }
                     .disabled(pdfDocument == nil)
-                    .keyboardShortcut("p", modifiers: .command)
                 }
             }
         }
@@ -129,6 +138,10 @@ struct FormSubmissionView: View {
             didRun: nil,
             contextInfo: nil
         )
+    }
+    
+    private func printTextVersion() {
+        DymoPrintService.shared.printForm(submission: submission, template: template)
     }
     
     private func exportPDF() {

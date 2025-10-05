@@ -25,6 +25,13 @@ struct PointOfSaleView: View {
     @State private var showSquareError = false
     @State private var squareErrorMessage = ""
     
+    // Loyalty rewards
+    @State private var availableRewards: [LoyaltyReward] = []
+    @State private var appliedReward: LoyaltyReward?
+    @State private var rewardDiscount: Double = 0
+    @State private var showingRewardPicker = false
+    @State private var pointsEarned: Int32 = 0
+    
     // Customer selection and history
     @State private var selectedCustomer: Customer?
     @State private var showCustomerPicker = false
@@ -92,9 +99,32 @@ struct PointOfSaleView: View {
         }
         .onChange(of: selectedCustomer) { _, newCustomer in
             loadCustomerHistory()
+            loadAvailableRewards()
+            appliedReward = nil
+            rewardDiscount = 0
+        }
+        .sheet(isPresented: $showingRewardPicker) {
+            if let customer = selectedCustomer {
+                RewardPickerView(
+                    customer: customer,
+                    availableRewards: availableRewards,
+                    onSelect: { reward in
+                        applyReward(reward)
+                    }
+                )
+            }
         }
         .task {
             await loadSquareDevices()
+        }
+        .overlay {
+            if showingCheckout {
+                CheckoutSuccessOverlay(
+                    totalAmount: cart.total - discountAmount - rewardDiscount,
+                    pointsEarned: pointsEarned,
+                    customer: selectedCustomer
+                )
+            }
         }
     }
     
@@ -121,6 +151,11 @@ struct PointOfSaleView: View {
                 VStack(alignment: .leading, spacing: 20) {
                     // Customer Selection
                     customerSelectionCard
+                    
+                    // Loyalty Widget
+                    if let customer = selectedCustomer {
+                        LoyaltyWidget(customer: customer)
+                    }
                     
                     // Customer History
                     if selectedCustomer != nil {
@@ -455,6 +490,12 @@ struct PointOfSaleView: View {
             orderDetailsCard
                 .padding(.horizontal, 24)
             
+            // Loyalty Rewards Section
+            if selectedCustomer != nil && !availableRewards.isEmpty {
+                loyaltyRewardsCard
+                    .padding(.horizontal, 24)
+            }
+            
             // Discount Section
             discountCard
                 .padding(.horizontal, 24)
@@ -654,8 +695,9 @@ struct PointOfSaleView: View {
         
         Task {
             do {
-                // Convert cart total to cents
-                let amountInCents = Int((cart.total - discountAmount) * 100)
+                // Convert cart total to cents (apply both discount and reward)
+                let finalAmount = cart.total - discountAmount - rewardDiscount
+                let amountInCents = Int(finalAmount * 100)
                 
                 isProcessingSquare = true
                 squarePaymentStatus = "Creating checkout..."
@@ -684,17 +726,64 @@ struct PointOfSaleView: View {
                         discount: discountAmount
                     )
                     
+                    // Award loyalty points if customer is selected
+                    var earnedPoints: Int32 = 0
+                    if let customerId = selectedCustomer?.id {
+                        let finalAmount = cart.total - discountAmount - rewardDiscount
+                        
+                        // Calculate points before awarding
+                        if let program = LoyaltyService.shared.getActiveProgram(),
+                           let member = LoyaltyService.shared.getMember(for: customerId) {
+                            var points = Int32(finalAmount * program.pointsPerDollar)
+                            
+                            // Apply tier multiplier
+                            if let tierId = member.currentTierId,
+                               let tier = LoyaltyService.shared.getTier(tierId) {
+                                points = Int32(Double(points) * tier.pointsMultiplier)
+                            }
+                            
+                            // Add visit bonus
+                            points += program.pointsPerVisit
+                            earnedPoints = points
+                        }
+                        
+                        LoyaltyService.shared.awardPointsForPurchase(
+                            customerId: customerId,
+                            amount: finalAmount,
+                            invoiceId: nil
+                        )
+                    }
+                    
+                    // Redeem loyalty reward if applied
+                    if let reward = appliedReward,
+                       let customerId = selectedCustomer?.id,
+                       let member = LoyaltyService.shared.getMember(for: customerId),
+                       let memberId = member.id,
+                       let rewardId = reward.id {
+                        _ = LoyaltyService.shared.redeemReward(memberId: memberId, rewardId: rewardId)
+                    }
+                    
                     // Payment successful!
                     await MainActor.run {
                         isProcessingSquare = false
-                        cart.clear()
-                        selectedPaymentMode = nil
-                        discountAmount = 0
-                        discountCode = ""
-                        terminalCheckoutId = nil
+                        pointsEarned = earnedPoints
+                        showingCheckout = true
                         
-                        // Reload customer history if customer selected
-                        loadCustomerHistory()
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                            cart.clear()
+                            selectedPaymentMode = nil
+                            discountAmount = 0
+                            discountCode = ""
+                            rewardDiscount = 0
+                            appliedReward = nil
+                            terminalCheckoutId = nil
+                            showingCheckout = false
+                            pointsEarned = 0
+                            
+                            // Reload customer history and rewards
+                            loadCustomerHistory()
+                            loadAvailableRewards()
+                        }
                     }
                 } else {
                     throw SquareAPIError.apiError(message: "Payment was not completed")
@@ -768,18 +857,60 @@ struct PointOfSaleView: View {
             discount: discountAmount
         )
         
+        // Award loyalty points if customer is selected
+        var earnedPoints: Int32 = 0
+        if let customerId = selectedCustomer?.id {
+            let finalAmount = cart.total - discountAmount - rewardDiscount
+            
+            // Calculate points before awarding
+            if let program = LoyaltyService.shared.getActiveProgram(),
+               let member = LoyaltyService.shared.getMember(for: customerId) {
+                var points = Int32(finalAmount * program.pointsPerDollar)
+                
+                // Apply tier multiplier
+                if let tierId = member.currentTierId,
+                   let tier = LoyaltyService.shared.getTier(tierId) {
+                    points = Int32(Double(points) * tier.pointsMultiplier)
+                }
+                
+                // Add visit bonus
+                points += program.pointsPerVisit
+                earnedPoints = points
+            }
+            
+            LoyaltyService.shared.awardPointsForPurchase(
+                customerId: customerId,
+                amount: finalAmount,
+                invoiceId: nil
+            )
+        }
+        
+        // Redeem loyalty reward if applied
+        if let reward = appliedReward,
+           let customerId = selectedCustomer?.id,
+           let member = LoyaltyService.shared.getMember(for: customerId),
+           let memberId = member.id,
+           let rewardId = reward.id {
+            _ = LoyaltyService.shared.redeemReward(memberId: memberId, rewardId: rewardId)
+        }
+        
+        pointsEarned = earnedPoints
         showingCheckout = true
         
         // Clear cart after successful payment
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
             cart.clear()
             selectedPaymentMode = nil
             discountAmount = 0
             discountCode = ""
+            rewardDiscount = 0
+            appliedReward = nil
             showingCheckout = false
+            pointsEarned = 0
             
-            // Reload customer history
+            // Reload customer history and rewards
             loadCustomerHistory()
+            loadAvailableRewards()
         }
     }
     
@@ -794,6 +925,120 @@ struct PointOfSaleView: View {
         
         customerPurchases = historyService.fetchPurchaseHistory(for: customer, limit: 10)
         customerRepairs = historyService.fetchRepairHistory(for: customer, limit: 10)
+    }
+    
+    // MARK: - Loyalty Rewards
+    
+    private var loyaltyRewardsCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "star.fill")
+                    .foregroundColor(.yellow)
+                Text("Loyalty Rewards")
+                    .font(.headline)
+                    .foregroundColor(Color(hex: "212121"))
+                
+                Spacer()
+                
+                if appliedReward != nil {
+                    Button {
+                        removeReward()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.red)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            
+            if let appliedReward = appliedReward {
+                // Applied reward display
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(appliedReward.name ?? "Reward")
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        Text("Discount: \(formatRewardDiscount(appliedReward))")
+                            .font(.caption)
+                            .foregroundColor(.green)
+                    }
+                    
+                    Spacer()
+                    
+                    Text("-$\(rewardDiscount, specifier: "%.2f")")
+                        .font(.headline)
+                        .foregroundColor(.green)
+                }
+                .padding(12)
+                .background(Color.green.opacity(0.1))
+                .cornerRadius(8)
+            } else {
+                // Browse rewards button
+                Button {
+                    showingRewardPicker = true
+                } label: {
+                    HStack {
+                        Image(systemName: "gift.fill")
+                        Text("\(availableRewards.count) reward\(availableRewards.count == 1 ? "" : "s") available")
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                    }
+                    .padding(12)
+                    .background(Color(hex: "F5F5F5"))
+                    .cornerRadius(8)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding()
+        .background(Color.white)
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+    }
+    
+    private func loadAvailableRewards() {
+        guard let customer = selectedCustomer,
+              let customerId = customer.id,
+              let member = LoyaltyService.shared.getMember(for: customerId) else {
+            availableRewards = []
+            return
+        }
+        
+        availableRewards = LoyaltyService.shared.getAvailableRewards(for: member)
+    }
+    
+    private func applyReward(_ reward: LoyaltyReward) {
+        appliedReward = reward
+        
+        // Calculate discount based on reward type
+        switch reward.rewardType {
+        case "discount_percent":
+            rewardDiscount = cart.total * (reward.rewardValue / 100.0)
+        case "discount_amount":
+            rewardDiscount = min(reward.rewardValue, cart.total)
+        default:
+            rewardDiscount = 0
+        }
+        
+        showingRewardPicker = false
+    }
+    
+    private func removeReward() {
+        appliedReward = nil
+        rewardDiscount = 0
+    }
+    
+    private func formatRewardDiscount(_ reward: LoyaltyReward) -> String {
+        switch reward.rewardType {
+        case "discount_percent":
+            return "\(Int(reward.rewardValue))% off"
+        case "discount_amount":
+            return "$\(Int(reward.rewardValue)) off"
+        case "free_item":
+            return "Free item"
+        default:
+            return "Special offer"
+        }
     }
 }
 
@@ -1115,6 +1360,14 @@ extension Color {
             blue:  Double(b) / 255,
             opacity: Double(a) / 255
         )
+    }
+    
+    func toHex() -> String {
+        let components = NSColor(self).cgColor.components ?? [0, 0, 0, 1]
+        let r = Int(components[0] * 255.0)
+        let g = Int(components[1] * 255.0)
+        let b = Int(components[2] * 255.0)
+        return String(format: "%02X%02X%02X", r, g, b)
     }
 }
 
