@@ -187,7 +187,7 @@ class DymoPrintService {
         return """
         \(Configuration.appName) | \(price)
         \(displayName)
-        SKU: \(sku) | Stock: \(product.quantity)
+        SKU: \(sku)
         """
     }
     
