@@ -101,11 +101,13 @@ class RotatedLabelView: NSView {
         // Draw barcode if provided
         if let barcodeData = barcodeData,
            let barcodeImage = DymoPrintService.shared.generateBarcode(from: barcodeData) {
+            let horizontalMargin: CGFloat = 12
+            let barcodeWidth = max(rotatedWidth - (horizontalMargin * 2), 1)
             let barcodeRect = NSRect(
-                x: (rotatedWidth - (rotatedWidth * 0.9)) / 2,
+                x: (rotatedWidth - barcodeWidth) / 2,
                 y: 2,
-                width: rotatedWidth * 0.9,
-                height: barcodeHeight - 2
+                width: barcodeWidth,
+                height: max(barcodeHeight - 4, 1)
             )
             barcodeImage.draw(in: barcodeRect)
         }
@@ -625,7 +627,8 @@ class DymoPrintService {
         }
         
         filter.setValue(data, forKey: "inputMessage")
-        filter.setValue(0.0, forKey: "inputQuietSpace") // Minimal quiet space for small labels
+        // Provide left/right quiet zone so outer bars do not ride the edge
+        filter.setValue(4.0, forKey: "inputQuietSpace")
         
         guard let outputImage = filter.outputImage else {
             print("Failed to generate barcode image")
