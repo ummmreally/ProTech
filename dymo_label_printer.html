@@ -1,0 +1,334 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>DYMO Label Printer - ProTech</title>
+  <script src="https://labelwriter.com/software/dls/sdk/js/dymo.label.framework.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: #333;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    button {
+      background: #007aff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #0051d5;
+    }
+    .preview-section {
+      margin-top: 30px;
+      padding-top: 30px;
+      border-top: 2px solid #eee;
+    }
+    canvas {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      max-width: 100%;
+      background: white;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .status.warning {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+    .info-box {
+      background: #e3f2fd;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      color: #0d47a1;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🏷️ DYMO Label Printer</h1>
+    <p class="subtitle">Print product labels for ProTech inventory</p>
+
+    <div id="status"></div>
+
+    <div class="info-box">
+      <strong>Label Specifications:</strong><br>
+      • Size: 1.125" × 3.5" (Address-style)<br>
+      • Rotation: 90° (long edge vertical)<br>
+      • Margins: 0 on all sides<br>
+      • Format: DYMO 30252 Address Label
+    </div>
+
+    <div class="form-group">
+      <label for="printers">Select Printer:</label>
+      <select id="printers">
+        <option>Loading printers...</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="productName">Product Name:</label>
+      <input type="text" id="productName" placeholder="e.g., ProTech" value="ProTech">
+    </div>
+
+    <div class="form-group">
+      <label for="price">Price:</label>
+      <input type="text" id="price" placeholder="e.g., $19.99" value="$19.99">
+    </div>
+
+    <div class="form-group">
+      <label for="subtitle">Description/Subtitle:</label>
+      <input type="text" id="subtitle" placeholder="e.g., 3 in 1 Magnetic Charger" value="3 in 1 Magnetic Charger">
+    </div>
+
+    <div class="form-group">
+      <label for="sku">SKU:</label>
+      <input type="text" id="sku" placeholder="e.g., S889384" value="S889384">
+    </div>
+
+    <button id="print" onclick="printSampleLabel()">🖨️ Print Label</button>
+
+    <div class="preview-section">
+      <h3>Preview:</h3>
+      <canvas id="preview"></canvas>
+    </div>
+  </div>
+
+<script>
+// ---- Label XML: 1.125" x 3.5" (Address) rotated 90°, zero margins ----
+const labelXml = `
+<DieCutLabel Version="8.0" Units="twips">
+  <PaperOrientation>Landscape</PaperOrientation>
+  <Id>Address</Id>
+  <PaperName>30252 Address</PaperName>
+  <DrawCommands/>
+  <ObjectInfo>
+    <TextObject>
+      <Name>Line1</Name>
+      <ForeColor Alpha="255" Red="0" Green="0" Blue="0"/>
+      <BackColor Alpha="0" Red="255" Green="255" Blue="255"/>
+      <LinkedObjectName></LinkedObjectName>
+      <Rotation>Rotation90</Rotation>
+      <IsMirrored>False</IsMirrored>
+      <IsVariable>True</IsVariable>
+      <HorizontalAlignment>Center</HorizontalAlignment>
+      <VerticalAlignment>Middle</VerticalAlignment>
+      <TextFitMode>AutoFit</TextFitMode>
+      <UseFullFontHeight>True</UseFullFontHeight>
+      <StyledText><Element><String>Sample</String>
+      <Attributes>
+        <Font Family="Arial" Size="12" Bold="True" Italic="False" Underline="False"/>
+        <ForeColor Alpha="255" Red="0" Green="0" Blue="0"/>
+      </Attributes></Element></StyledText>
+    </TextObject>
+    <Bounds X="60" Y="120" Width="1450" Height="400"/>
+  </ObjectInfo>
+
+  <ObjectInfo>
+    <TextObject>
+      <Name>Line2</Name>
+      <ForeColor Alpha="255" Red="0" Green="0" Blue="0"/>
+      <BackColor Alpha="0" Red="255" Green="255" Blue="255"/>
+      <Rotation>Rotation90</Rotation>
+      <IsVariable>True</IsVariable>
+      <HorizontalAlignment>Center</HorizontalAlignment>
+      <VerticalAlignment>Middle</VerticalAlignment>
+      <TextFitMode>AlwaysFit</TextFitMode>
+      <StyledText><Element><String>Subtitle</String>
+      <Attributes>
+        <Font Family="Arial" Size="9" Bold="False"/>
+      </Attributes></Element></StyledText>
+    </TextObject>
+    <Bounds X="60" Y="560" Width="1450" Height="550"/>
+  </ObjectInfo>
+
+  <ObjectInfo>
+    <TextObject>
+      <Name>Line3</Name>
+      <ForeColor Alpha="255" Red="0" Green="0" Blue="0"/>
+      <BackColor Alpha="0" Red="255" Green="255" Blue="255"/>
+      <Rotation>Rotation90</Rotation>
+      <IsVariable>True</IsVariable>
+      <HorizontalAlignment>Center</HorizontalAlignment>
+      <VerticalAlignment>Middle</VerticalAlignment>
+      <TextFitMode>AlwaysFit</TextFitMode>
+      <StyledText><Element><String>SKU</String>
+      <Attributes>
+        <Font Family="Arial" Size="9"/>
+      </Attributes></Element></StyledText>
+    </TextObject>
+    <Bounds X="60" Y="1120" Width="1450" Height="420"/>
+  </ObjectInfo>
+</DieCutLabel>`;
+
+// Helpers
+function getLabel() {
+  const label = dymo.label.framework.openLabelXml(labelXml);
+  return label;
+}
+
+async function loadPrinters() {
+  try {
+    const list = document.getElementById('printers');
+    list.innerHTML = ''; // Clear loading message
+    
+    const printers = dymo.label.framework.getPrinters();
+    const labelWriters = printers.filter(p => p.printerType === 'LabelWriterPrinter');
+    
+    if (labelWriters.length === 0) {
+      list.innerHTML = '<option>No LabelWriter printers found</option>';
+      showStatus('No DYMO LabelWriter printers detected. Please check connection.', 'warning');
+      return;
+    }
+    
+    labelWriters.forEach(p => {
+      const opt = document.createElement('option');
+      opt.value = p.name;
+      opt.textContent = p.name + (p.isConnected ? ' (Connected)' : ' (Offline)');
+      list.appendChild(opt);
+    });
+    
+    showStatus(`Found ${labelWriters.length} DYMO printer(s)`, 'success');
+  } catch (error) {
+    console.error('Error loading printers:', error);
+    showStatus('Error: DYMO Connect software may not be installed or running.', 'warning');
+  }
+}
+
+function renderPreview(label) {
+  try {
+    const png = label.render();
+    const img = new Image();
+    img.onload = () => {
+      const c = document.getElementById('preview');
+      c.width = img.width;
+      c.height = img.height;
+      const cx = c.getContext('2d');
+      cx.clearRect(0, 0, c.width, c.height);
+      cx.drawImage(img, 0, 0);
+    };
+    img.src = "data:image/png;base64," + png;
+  } catch (error) {
+    console.error('Preview error:', error);
+  }
+}
+
+function showStatus(message, type) {
+  const statusDiv = document.getElementById('status');
+  statusDiv.className = 'status ' + type;
+  statusDiv.textContent = message;
+  statusDiv.style.display = 'block';
+}
+
+// Public API
+window.printLabel = ({ name, price, subtitle, sku }) => {
+  try {
+    const label = getLabel();
+    label.setObjectText('Line1', `${name} | ${price}`);
+    label.setObjectText('Line2', subtitle || '');
+    label.setObjectText('Line3', `SKU: ${sku}`);
+    
+    // Show preview
+    renderPreview(label);
+    
+    const printerName = document.getElementById('printers').value;
+    
+    if (!printerName || printerName === 'No LabelWriter printers found' || printerName === 'Loading printers...') {
+      showStatus('Please select a valid printer first.', 'warning');
+      return;
+    }
+    
+    // Ensure no OS scaling; rely on printer params
+    const params = dymo.label.framework.createLabelWriterPrintParamsXml({
+      flowDirection: 'LeftToRight',
+      printQuality: 'Auto',
+      copies: 1,
+      jobTitle: 'ProTech Label'
+    });
+    
+    label.print(printerName, params);
+    showStatus('Label sent to printer successfully!', 'success');
+  } catch (error) {
+    console.error('Print error:', error);
+    showStatus('Error printing: ' + error.message, 'warning');
+  }
+};
+
+// Sample print function
+function printSampleLabel() {
+  const name = document.getElementById('productName').value || 'ProTech';
+  const price = document.getElementById('price').value || '$19.99';
+  const subtitle = document.getElementById('subtitle').value || '3 in 1 Magnetic Charger';
+  const sku = document.getElementById('sku').value || 'S889384';
+  
+  window.printLabel({
+    name: name,
+    price: price,
+    subtitle: subtitle,
+    sku: sku
+  });
+}
+
+// Initialize on load
+window.addEventListener('DOMContentLoaded', () => {
+  // Check if DYMO framework is loaded
+  if (typeof dymo === 'undefined') {
+    showStatus('Error: DYMO Label Framework not loaded. Please install DYMO Connect.', 'warning');
+    return;
+  }
+  
+  loadPrinters();
+});
+</script>
+</body>
+</html>

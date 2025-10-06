@@ -10,6 +10,108 @@ import AppKit
 import CoreData
 import CoreImage
 
+/// Custom view that renders label content with 90-degree rotation
+/// This matches DYMO's Rotation90 behavior from the label XML specification
+class RotatedLabelView: NSView {
+    private let content: String
+    private let barcodeData: String?
+    private let labelWidth: CGFloat
+    private let labelHeight: CGFloat
+    
+    init(frame: NSRect, content: String, barcodeData: String?, labelWidth: CGFloat, labelHeight: CGFloat) {
+        self.content = content
+        self.barcodeData = barcodeData
+        self.labelWidth = labelWidth
+        self.labelHeight = labelHeight
+        super.init(frame: frame)
+        self.wantsLayer = true
+        self.layer?.backgroundColor = NSColor.white.cgColor
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        
+        guard let context = NSGraphicsContext.current?.cgContext else { return }
+        
+        // Save the graphics state
+        context.saveGState()
+        
+        // Apply 90-degree rotation transformation
+        // This rotates content clockwise so the long edge becomes vertical
+        // Similar to DYMO's <Rotation>Rotation90</Rotation> in label XML
+        context.translateBy(x: labelWidth, y: 0)
+        context.rotate(by: .pi / 2) // 90 degrees clockwise
+        
+        // Now we're drawing in a rotated space where:
+        // - Height becomes width (252pt becomes horizontal)
+        // - Width becomes height (81pt becomes vertical)
+        let rotatedWidth = labelHeight  // 252pt
+        let rotatedHeight = labelWidth  // 81pt
+        
+        // Parse content lines
+        let lines = content.split(separator: "\n").map(String.init)
+        
+        // Calculate layout sections
+        let hasBarcode = barcodeData != nil
+        let barcodeHeight: CGFloat = hasBarcode ? 25 : 0
+        let textAreaHeight = rotatedHeight - barcodeHeight - 10
+        
+        // Draw text content
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = .center
+        paragraphStyle.lineBreakMode = .byWordWrapping
+        
+        // Line spacing for better readability
+        let lineHeight: CGFloat = textAreaHeight / CGFloat(max(lines.count, 1))
+        var yOffset: CGFloat = textAreaHeight
+        
+        for (index, line) in lines.enumerated() {
+            let fontSize: CGFloat
+            let isBold: Bool
+            
+            // First line is typically product name + price (bold, larger)
+            if index == 0 {
+                fontSize = min(10, lineHeight * 0.7)
+                isBold = true
+            } else {
+                fontSize = min(8, lineHeight * 0.6)
+                isBold = false
+            }
+            
+            let font = isBold ? NSFont.boldSystemFont(ofSize: fontSize) : NSFont.systemFont(ofSize: fontSize)
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: font,
+                .foregroundColor: NSColor.black,
+                .paragraphStyle: paragraphStyle
+            ]
+            
+            let attributedString = NSAttributedString(string: line, attributes: attributes)
+            let textRect = NSRect(x: 5, y: yOffset - lineHeight, width: rotatedWidth - 10, height: lineHeight)
+            attributedString.draw(in: textRect)
+            yOffset -= lineHeight
+        }
+        
+        // Draw barcode if provided
+        if let barcodeData = barcodeData,
+           let barcodeImage = DymoPrintService.shared.generateBarcode(from: barcodeData) {
+            let barcodeRect = NSRect(
+                x: (rotatedWidth - (rotatedWidth * 0.9)) / 2,
+                y: 2,
+                width: rotatedWidth * 0.9,
+                height: barcodeHeight - 2
+            )
+            barcodeImage.draw(in: barcodeRect)
+        }
+        
+        // Restore the graphics state
+        context.restoreGState()
+    }
+}
+
 class DymoPrintService {
     static let shared = DymoPrintService()
     
@@ -399,18 +501,21 @@ class DymoPrintService {
     // MARK: - Printing Methods
     
     private enum LabelType {
-        case product  // 2.25" x 1.25" address label
-        case device   // 2.25" x 1.25" address label
+        case product  // 1.125" x 3.5" address label (DYMO 30252)
+        case device   // 1.125" x 3.5" address label (DYMO 30252)
     }
     
     private func printLabel(content: String, labelType: LabelType, barcodeData: String? = nil) {
         // Ensure we're on the main thread
         DispatchQueue.main.async {
             // Dymo 30252 Address Label: 1.125" x 3.5" (81pt x 252pt at 72 DPI)
-            // We'll use landscape orientation so it's 252pt wide x 81pt tall
-            let labelWidth: CGFloat = 252
-            let labelHeight: CGFloat = 81
-            let margin: CGFloat = 5
+            // IMPORTANT: For correct DYMO printing, we need:
+            // - Paper size: 1.125" x 3.5" (81pt x 252pt) in PORTRAIT orientation
+            // - Content rotated 90° so long edge (3.5") appears vertical
+            // - Zero margins for maximum printable area
+            let labelWidth: CGFloat = 81   // 1.125" physical width
+            let labelHeight: CGFloat = 252 // 3.5" physical height
+            let margin: CGFloat = 0        // Zero margins as per DYMO spec
             
             // Create a copy of print info for label size
             let printInfo = NSPrintInfo()
@@ -419,59 +524,32 @@ class DymoPrintService {
             printInfo.leftMargin = margin
             printInfo.rightMargin = margin
             
-            // Set paper size for Dymo labels in landscape
+            // Set paper size for Dymo labels - use actual dimensions with portrait orientation
+            // The rotation will be handled by transforming the content, not the paper
             printInfo.paperSize = NSSize(width: labelWidth, height: labelHeight)
-            printInfo.orientation = .landscape
+            printInfo.orientation = .portrait  // Changed from .landscape
             printInfo.horizontalPagination = .fit
             printInfo.verticalPagination = .fit
-            printInfo.isHorizontallyCentered = false
+            printInfo.isHorizontallyCentered = true
             printInfo.isVerticallyCentered = true
+            printInfo.scalingFactor = 1.0  // No scaling - native DPI
             
-            // Create container view
+            // Create container view with full label dimensions
             let contentWidth = labelWidth - (margin * 2)
             let contentHeight = labelHeight - (margin * 2)
-            let containerView = NSView(frame: NSRect(x: 0, y: 0, width: contentWidth, height: contentHeight))
-            containerView.wantsLayer = true
-            containerView.layer?.backgroundColor = NSColor.white.cgColor
             
-            // Create attributed string for text
-            let paragraphStyle = NSMutableParagraphStyle()
-            paragraphStyle.lineBreakMode = .byWordWrapping
-            paragraphStyle.alignment = .left
-            
-            let attributes: [NSAttributedString.Key: Any] = [
-                .font: NSFont.systemFont(ofSize: 8, weight: .regular),
-                .foregroundColor: NSColor.black,
-                .paragraphStyle: paragraphStyle
-            ]
-            
-            let attributedString = NSAttributedString(string: content, attributes: attributes)
-            
-            // Calculate text height
-            let textHeight: CGFloat = barcodeData != nil ? 40 : contentHeight
-            
-            // Create text view for label text
-            let textView = NSTextView(frame: NSRect(x: 0, y: contentHeight - textHeight, width: contentWidth, height: textHeight))
-            textView.textStorage?.setAttributedString(attributedString)
-            textView.isEditable = false
-            textView.isSelectable = false
-            textView.backgroundColor = .clear
-            textView.textContainerInset = NSSize(width: 0, height: 0)
-            textView.drawsBackground = false
-            containerView.addSubview(textView)
-            
-            // Add barcode if provided
-            if let barcodeData = barcodeData, let barcodeImage = self.generateBarcode(from: barcodeData) {
-                let barcodeHeight: CGFloat = 30
-                let barcodeWidth: CGFloat = contentWidth - 10
-                let barcodeView = NSImageView(frame: NSRect(x: 5, y: 2, width: barcodeWidth, height: barcodeHeight))
-                barcodeView.image = barcodeImage
-                barcodeView.imageScaling = .scaleProportionallyUpOrDown
-                containerView.addSubview(barcodeView)
-            }
+            // Create a rotated container - this is the key fix
+            // We create the content in landscape (wide) but rotate it 90° to fit portrait label
+            let rotatedContainerView = RotatedLabelView(
+                frame: NSRect(x: 0, y: 0, width: contentWidth, height: contentHeight),
+                content: content,
+                barcodeData: barcodeData,
+                labelWidth: contentWidth,
+                labelHeight: contentHeight
+            )
             
             // Print operation
-            let printOperation = NSPrintOperation(view: containerView, printInfo: printInfo)
+            let printOperation = NSPrintOperation(view: rotatedContainerView, printInfo: printInfo)
             
             // Try to find and set Dymo printer as default
             if let dymoPrinter = self.findDymoPrinter() {
@@ -533,7 +611,8 @@ class DymoPrintService {
     // MARK: - Barcode Generation
     
     /// Generate a scannable barcode image from a string
-    private func generateBarcode(from string: String) -> NSImage? {
+    /// Made internal so RotatedLabelView can access it
+    func generateBarcode(from string: String) -> NSImage? {
         // Use Code128 barcode format (widely supported and can encode alphanumeric)
         let data = string.data(using: .ascii)
         
