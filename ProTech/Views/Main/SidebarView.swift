@@ -43,6 +43,10 @@ struct SidebarView: View {
                     NavigationLink(value: Tab.loyalty) {
                         Label(Tab.loyalty.rawValue, systemImage: Tab.loyalty.icon)
                     }
+
+                    NavigationLink(value: Tab.customerPortal) {
+                        Label(Tab.customerPortal.rawValue, systemImage: Tab.customerPortal.icon)
+                    }
                 }
                 
                 Section("Pro Features") {

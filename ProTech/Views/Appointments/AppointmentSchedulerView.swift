@@ -49,7 +49,7 @@ struct AppointmentSchedulerView: View {
                     }
             }
             .navigationDestination(item: $selectedAppointment) { appointment in
-                AppointmentDetailView(appointment: appointment)
+                SchedulerAppointmentDetailView(appointment: appointment)
             }
         }
     }
@@ -675,8 +675,8 @@ struct NewAppointmentView: View {
     }
 }
 
-/// Lightweight detail view for displaying an appointment record.
-struct AppointmentDetailView: View {
+/// Lightweight detail view for displaying an appointment record in the scheduler.
+struct SchedulerAppointmentDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var showingDeleteConfirmation = false
 

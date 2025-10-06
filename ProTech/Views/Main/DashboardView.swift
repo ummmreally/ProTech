@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct DashboardView: View {
     @Environment(\.managedObjectContext) private var viewContext
@@ -14,6 +15,13 @@ struct DashboardView: View {
     @State private var totalCustomers: Int = 0
     @State private var customersThisMonth: Int = 0
     @State private var showingUpgrade = false
+    @State private var portalAlert: PortalAlert?
+    
+    struct PortalAlert: Identifiable {
+        let id = UUID()
+        let title: String
+        let message: String
+    }
     
     var body: some View {
         ScrollView {
@@ -118,6 +126,19 @@ struct DashboardView: View {
                 Spacer()
             }
         }
+        .alert(item: $portalAlert) { alert in
+            Alert(
+                title: Text(alert.title),
+                message: Text(alert.message),
+                dismissButton: .default(Text("OK"))
+            )
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .estimateApproved)) { notification in
+            handleEstimateApproval(notification)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .estimateDeclined)) { notification in
+            handleEstimateDecline(notification)
+        }
         .onAppear {
             loadStatistics()
         }
@@ -161,6 +182,61 @@ struct DashboardView: View {
     private func loadStatistics() {
         totalCustomers = CoreDataManager.shared.getCustomerCount()
         customersThisMonth = CoreDataManager.shared.getCustomersAddedThisMonth()
+    }
+    
+    // MARK: - Portal Notification Handlers
+    
+    private func handleEstimateApproval(_ notification: Notification) {
+        guard let estimateId = notification.userInfo?["estimateId"] as? UUID,
+              let estimate = fetchEstimate(by: estimateId) else {
+            return
+        }
+        
+        let customerName = fetchCustomerName(for: estimate.customerId)
+        portalAlert = PortalAlert(
+            title: "✅ Estimate Approved",
+            message: "\(estimate.formattedEstimateNumber) was approved by \(customerName) via the Customer Portal."
+        )
+    }
+    
+    private func handleEstimateDecline(_ notification: Notification) {
+        guard let estimateId = notification.userInfo?["estimateId"] as? UUID,
+              let estimate = fetchEstimate(by: estimateId) else {
+            return
+        }
+        
+        let customerName = fetchCustomerName(for: estimate.customerId)
+        let reason = notification.userInfo?["reason"] as? String
+        
+        var message = "\(estimate.formattedEstimateNumber) was declined by \(customerName) via the Customer Portal."
+        if let reason = reason, !reason.isEmpty {
+            message += "\n\nReason: \(reason)"
+        }
+        
+        portalAlert = PortalAlert(
+            title: "❌ Estimate Declined",
+            message: message
+        )
+    }
+    
+    private func fetchEstimate(by id: UUID) -> Estimate? {
+        let request: NSFetchRequest<Estimate> = Estimate.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.fetchLimit = 1
+        return try? viewContext.fetch(request).first
+    }
+    
+    private func fetchCustomerName(for customerId: UUID?) -> String {
+        guard let customerId = customerId else { return "Customer" }
+        
+        let request: NSFetchRequest<Customer> = Customer.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", customerId as CVarArg)
+        request.fetchLimit = 1
+        
+        if let customer = try? viewContext.fetch(request).first {
+            return customer.displayName
+        }
+        return "Customer"
     }
 }
 
