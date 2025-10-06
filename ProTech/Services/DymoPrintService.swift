@@ -58,7 +58,10 @@ class RotatedLabelView: NSView {
         // Calculate layout sections
         let hasBarcode = barcodeData != nil
         let barcodeHeight: CGFloat = hasBarcode ? 25 : 0
-        let textAreaHeight = rotatedHeight - barcodeHeight - 10
+        let topPadding: CGFloat = 4
+        let barcodePadding: CGFloat = hasBarcode ? 6 : 4
+        let bottomPadding: CGFloat = hasBarcode ? barcodeHeight + barcodePadding : barcodePadding
+        let availableTextHeight = max(rotatedHeight - topPadding - bottomPadding, 1)
         
         // Draw text content
         let paragraphStyle = NSMutableParagraphStyle()
@@ -66,8 +69,8 @@ class RotatedLabelView: NSView {
         paragraphStyle.lineBreakMode = .byWordWrapping
         
         // Line spacing for better readability
-        let lineHeight: CGFloat = textAreaHeight / CGFloat(max(lines.count, 1))
-        var yOffset: CGFloat = textAreaHeight
+        let lineHeight: CGFloat = availableTextHeight / CGFloat(max(lines.count, 1))
+        var yOffset: CGFloat = rotatedHeight - topPadding
         
         for (index, line) in lines.enumerated() {
             let fontSize: CGFloat
@@ -94,7 +97,7 @@ class RotatedLabelView: NSView {
             attributedString.draw(in: textRect)
             yOffset -= lineHeight
         }
-        
+
         // Draw barcode if provided
         if let barcodeData = barcodeData,
            let barcodeImage = DymoPrintService.shared.generateBarcode(from: barcodeData) {
