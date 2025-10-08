@@ -92,9 +92,8 @@ enum Tab: String, CaseIterable {
     case forms = "Forms"
     case sms = "SMS"
     case marketing = "Marketing"
-    case timeTracking = "Time"
     case employees = "Employees"
-    case timeClock = "Time Clock"
+    case attendance = "Attendance"
     case reports = "Reports"
     case settings = "Settings"
     
@@ -115,9 +114,8 @@ enum Tab: String, CaseIterable {
         case .forms: return "doc.fill"
         case .sms: return "message.fill"
         case .marketing: return "megaphone.fill"
-        case .timeTracking: return "clock.fill"
         case .employees: return "person.3.sequence.fill"
-        case .timeClock: return "clock.badge.checkmark.fill"
+        case .attendance: return "clock.badge.checkmark.fill"
         case .reports: return "chart.line.uptrend.xyaxis"
         case .settings: return "gearshape.fill"
         }
@@ -127,7 +125,7 @@ enum Tab: String, CaseIterable {
         switch self {
         case .dashboard, .queue, .repairs, .customers, .calendar, .invoices, .estimates, .payments, .inventory, .pointOfSale, .loyalty, .customerPortal, .settings:
             return false
-        case .forms, .sms, .marketing, .timeTracking, .employees, .timeClock, .reports:
+        case .forms, .sms, .marketing, .employees, .attendance, .reports:
             return true
         }
     }
@@ -178,12 +176,10 @@ struct DetailView: View {
                     MarketingCampaignsView()
                 case .reports:
                     ReportsView()
-                case .timeTracking:
-                    TimeEntriesView()
                 case .employees:
                     EmployeeManagementView()
-                case .timeClock:
-                    TimeClockView()
+                case .attendance:
+                    AttendanceView()
                 case .settings:
                     SettingsView()
                 }

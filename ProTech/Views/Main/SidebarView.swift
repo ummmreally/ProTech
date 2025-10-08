@@ -50,7 +50,7 @@ struct SidebarView: View {
                 }
                 
                 Section("Pro Features") {
-                    ForEach([Tab.forms, Tab.sms, Tab.marketing, Tab.timeTracking, Tab.employees, Tab.timeClock, Tab.reports], id: \.self) { tab in
+                    ForEach([Tab.forms, Tab.sms, Tab.marketing, Tab.employees, Tab.attendance, Tab.reports], id: \.self) { tab in
                         NavigationLink(value: tab) {
                             HStack {
                                 Label(tab.rawValue, systemImage: tab.icon)

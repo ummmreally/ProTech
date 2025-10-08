@@ -22,9 +22,6 @@ struct RepairDetailView: View {
     @State private var smsMessage = ""
     @State private var pendingStatusChange: String?
     
-    // Barcode integration
-    @State private var showingBarcodePrint = false
-    
     init(ticket: Ticket) {
         self.ticket = ticket
         if let customerId = ticket.customerId {
@@ -89,7 +86,7 @@ struct RepairDetailView: View {
                 ))
                 
                 Button {
-                    showingBarcodePrint = true
+                    printDymoLabel()
                 } label: {
                     Label("Print Label", systemImage: "barcode")
                 }
@@ -114,9 +111,6 @@ struct RepairDetailView: View {
                     }
                 }
             }
-        }
-        .sheet(isPresented: $showingBarcodePrint) {
-            BarcodePrintView(ticket: ticket)
         }
         .sheet(isPresented: $showingSMSModal) {
             if let customer = customer.first {
@@ -584,6 +578,14 @@ struct RepairDetailView: View {
     
     private func getCurrentTechnicianName() -> String {
         return authService.currentEmployeeName
+    }
+    
+    private func printDymoLabel() {
+        // Print the device label using ticket information
+        DymoPrintService.shared.printDeviceLabel(
+            ticket: ticket,
+            customer: customer.first
+        )
     }
     
     // MARK: - SMS Functions

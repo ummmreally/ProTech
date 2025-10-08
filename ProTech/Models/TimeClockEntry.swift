@@ -24,6 +24,10 @@ extension TimeClockEntry {
     @NSManaged public var totalHours: TimeInterval // in seconds
     @NSManaged public var notes: String?
     @NSManaged public var isActive: Bool // true if currently clocked in
+    @NSManaged public var wasEdited: Bool // true if admin edited this entry
+    @NSManaged public var editedBy: String? // name of admin who edited
+    @NSManaged public var editedAt: Date? // when it was edited
+    @NSManaged public var editNotes: String? // reason for edit
     @NSManaged public var createdAt: Date?
     @NSManaged public var updatedAt: Date?
     
@@ -36,6 +40,7 @@ extension TimeClockEntry {
         self.isActive = true
         self.totalBreakDuration = 0
         self.totalHours = 0
+        self.wasEdited = false
         self.createdAt = Date()
         self.updatedAt = Date()
     }
@@ -70,6 +75,10 @@ extension TimeClockEntry {
             makeAttribute("totalHours", type: .doubleAttributeType, optional: false, defaultValue: 0.0),
             makeAttribute("notes", type: .stringAttributeType),
             makeAttribute("isActive", type: .booleanAttributeType, optional: false, defaultValue: true),
+            makeAttribute("wasEdited", type: .booleanAttributeType, optional: false, defaultValue: false),
+            makeAttribute("editedBy", type: .stringAttributeType),
+            makeAttribute("editedAt", type: .dateAttributeType),
+            makeAttribute("editNotes", type: .stringAttributeType),
             makeAttribute("createdAt", type: .dateAttributeType, optional: false),
             makeAttribute("updatedAt", type: .dateAttributeType, optional: false)
         ]
@@ -184,5 +193,15 @@ extension TimeClockEntry {
     
     var onBreak: Bool {
         return breakStartTime != nil && breakEndTime == nil
+    }
+    
+    var employeeName: String? {
+        guard let employeeId = employeeId else { return nil }
+        let context = CoreDataManager.shared.viewContext
+        let request = Employee.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", employeeId as CVarArg)
+        request.fetchLimit = 1
+        let employee = try? context.fetch(request).first
+        return employee?.fullName
     }
 }

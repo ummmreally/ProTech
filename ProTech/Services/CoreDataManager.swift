@@ -7,11 +7,12 @@
 
 import CoreData
 import Foundation
+import CloudKit
 
 class CoreDataManager {
     static let shared = CoreDataManager()
     
-    let container: NSPersistentContainer
+    let container: NSPersistentCloudKitContainer
     
     var viewContext: NSManagedObjectContext {
         container.viewContext
@@ -49,6 +50,8 @@ class CoreDataManager {
             TimeEntry.entityDescription(),
             Employee.entityDescription(),
             TimeClockEntry.entityDescription(),
+            TimeOffRequest.entityDescription(),
+            EmployeeSchedule.entityDescription(),
             // Square Integration entities
             SquareSyncMapping.entityDescription(),
             SyncLog.entityDescription(),
@@ -85,12 +88,22 @@ class CoreDataManager {
     }()
     
     private init() {
-        container = NSPersistentContainer(name: "ProTech", managedObjectModel: CoreDataManager.managedObjectModel)
+        container = NSPersistentCloudKitContainer(name: "ProTech", managedObjectModel: CoreDataManager.managedObjectModel)
         
-        // Configure container
-        let description = container.persistentStoreDescriptions.first
-        description?.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-        description?.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+        // Configure container for CloudKit sync
+        guard let description = container.persistentStoreDescriptions.first else {
+            fatalError("Failed to retrieve persistent store description")
+        }
+        
+        // Enable persistent history tracking (required for CloudKit)
+        description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+        
+        // Enable remote change notifications
+        description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+        
+        // Configure CloudKit container options
+        let cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(containerIdentifier: "iCloud.com.protech.app")
+        description.cloudKitContainerOptions = cloudKitContainerOptions
         
         container.loadPersistentStores { description, error in
             if let error = error {
@@ -98,8 +111,31 @@ class CoreDataManager {
             }
         }
         
+        // Automatically merge changes from CloudKit
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+        
+        // Optional: Watch for remote changes
+        setupCloudKitNotifications()
+    }
+    
+    // MARK: - CloudKit Notifications
+    
+    private func setupCloudKitNotifications() {
+        NotificationCenter.default.addObserver(
+            forName: NSPersistentCloudKitContainer.eventChangedNotification,
+            object: container,
+            queue: .main
+        ) { notification in
+            if let event = notification.userInfo?[NSPersistentCloudKitContainer.eventNotificationUserInfoKey] as? NSPersistentCloudKitContainer.Event {
+                print("CloudKit sync event: \(event.type) - \(event.endDate?.description ?? "in progress")")
+                
+                // Handle sync errors
+                if event.error != nil {
+                    print("CloudKit sync error: \(event.error!.localizedDescription)")
+                }
+            }
+        }
     }
     
     // MARK: - Save Context

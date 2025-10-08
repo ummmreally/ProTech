@@ -191,6 +191,38 @@ class TimeClockService: ObservableObject {
         
         return results
     }
+    
+    // MARK: - Edit Time Entry
+    
+    func editTimeEntry(_ entry: TimeClockEntry, clockInTime: Date, clockOutTime: Date?, notes: String) {
+        entry.clockInTime = clockInTime
+        entry.clockOutTime = clockOutTime
+        
+        // Recalculate total hours if clocked out
+        if let clockOut = clockOutTime {
+            let totalSeconds = clockOut.timeIntervalSince(clockInTime)
+            entry.totalHours = totalSeconds - entry.totalBreakDuration
+        }
+        
+        // Mark as edited with audit trail
+        entry.wasEdited = true
+        entry.editedAt = Date()
+        entry.editedBy = AuthenticationService.shared.currentEmployeeName
+        entry.editNotes = notes
+        entry.updatedAt = Date()
+        
+        try? context.save()
+    }
+    
+    // MARK: - Fetch All Entries
+    
+    func fetchEntries(for employeeId: UUID, from startDate: Date, to endDate: Date) -> [TimeClockEntry] {
+        return fetchEntriesForEmployeeInDateRange(employeeId: employeeId, from: startDate, to: endDate)
+    }
+    
+    func fetchAllEntries(from startDate: Date, to endDate: Date) -> [TimeClockEntry] {
+        return fetchEntriesInDateRange(from: startDate, to: endDate)
+    }
 }
 
 // MARK: - Time Clock Errors
