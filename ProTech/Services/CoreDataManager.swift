@@ -13,7 +13,7 @@ class CoreDataManager {
     static let shared = CoreDataManager()
     
     // Toggle this to enable/disable CloudKit sync
-    private let useCloudKit = false // Set to true AFTER configuring iCloud capability in Xcode
+    private let useCloudKit = true // ✅ ENABLED - CloudKit sync is now active!
     
     let container: NSPersistentContainer
     
