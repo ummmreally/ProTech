@@ -13,7 +13,7 @@ class CoreDataManager {
     static let shared = CoreDataManager()
     
     // Toggle this to enable/disable CloudKit sync
-    private let useCloudKit = true // ✅ ENABLED - CloudKit sync is now active!
+    private let useCloudKit = false // ⚠️ DISABLED - Enable after configuring CloudKit in Apple Developer
     
     let container: NSPersistentContainer
     
@@ -121,13 +121,23 @@ class CoreDataManager {
         container.loadPersistentStores { storeDescription, error in
             if let error = error {
                 print("❌ Core Data Error: \(error)")
-                print("Store URL: \(storeDescription.url?.path ?? "unknown")")
+                print("📋 Error Details: \(error)")
+                print("📁 Store URL: \(storeDescription.url?.path ?? "unknown")")
+                
+                // Check for specific error types
+                let nsError = error as NSError
+                print("⚠️ Error Domain: \(nsError.domain)")
+                print("⚠️ Error Code: \(nsError.code)")
+                print("⚠️ Error UserInfo: \(nsError.userInfo)")
                 
                 if self.useCloudKit {
-                    print("⚠️ If you see CloudKit errors, make sure you've:")
-                    print("   1. Added iCloud capability in Xcode")
-                    print("   2. Enabled CloudKit in the capability")
-                    print("   3. Signed into iCloud on this Mac")
+                    print("\n🔧 CloudKit Troubleshooting:")
+                    print("   1. Sign into iCloud on this Mac (System Settings > Apple ID)")
+                    print("   2. Verify bundle ID matches CloudKit container")
+                    print("   3. Create CloudKit container at developer.apple.com")
+                    print("   4. Container ID: iCloud.com.protech.app")
+                    print("   5. Enable iCloud + CloudKit capabilities in Xcode")
+                    print("   6. Try running on a physical device if using simulator")
                 }
                 
                 fatalError("Core Data failed to load: \(error.localizedDescription)")
