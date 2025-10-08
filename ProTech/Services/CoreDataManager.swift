@@ -114,7 +114,7 @@ class CoreDataManager {
             description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
             
             // Configure CloudKit container options
-            let cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(containerIdentifier: "iCloud.com.protech.app")
+            let cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(containerIdentifier: "iCloud.Nugentic.ProTech")
             description.cloudKitContainerOptions = cloudKitContainerOptions
         }
         
@@ -135,7 +135,7 @@ class CoreDataManager {
                     print("   1. Sign into iCloud on this Mac (System Settings > Apple ID)")
                     print("   2. Verify bundle ID matches CloudKit container")
                     print("   3. Create CloudKit container at developer.apple.com")
-                    print("   4. Container ID: iCloud.com.protech.app")
+                    print("   4. Container ID: iCloud.Nugentic.ProTech")
                     print("   5. Enable iCloud + CloudKit capabilities in Xcode")
                     print("   6. Try running on a physical device if using simulator")
                 }

@@ -32,28 +32,29 @@ The error occurred because CloudKit requires several configuration steps that ma
 4. Click **+ Capability** and add **iCloud**
 5. Enable:
    - ✅ CloudKit
-   - ✅ CloudKit Container: `iCloud.com.protech.app`
+   - ✅ CloudKit Container: `iCloud.Nugentic.ProTech`
 
 ### Step 3: Verify Bundle Identifier
 1. In Xcode, go to **General** tab
-2. Check **Bundle Identifier** (e.g., `com.protech.app`)
-3. Ensure it matches the pattern for your CloudKit container
+2. Your **Bundle Identifier** is: `Nugentic.ProTech`
+3. CloudKit container must match this pattern
 4. CloudKit container format: `iCloud.[your-bundle-id]`
+5. Therefore, your container is: `iCloud.Nugentic.ProTech` ✅
 
 ### Step 4: Create CloudKit Container (Apple Developer)
 1. Go to [developer.apple.com](https://developer.apple.com)
 2. Navigate to **Certificates, Identifiers & Profiles**
 3. Click **Identifiers** > **CloudKit Containers**
 4. Click **+** to create a new container
-5. Enter identifier: `iCloud.com.protech.app`
+5. Enter identifier: `iCloud.Nugentic.ProTech` (must match bundle ID!)
 6. Save and enable for your App ID
 
 ### Step 5: Verify Entitlements File
-The file `ProTech.entitlements` should contain (already configured):
+The file `ProTech.entitlements` should contain (✅ already updated):
 ```xml
 <key>com.apple.developer.icloud-container-identifiers</key>
 <array>
-    <string>iCloud.com.protech.app</string>
+    <string>iCloud.Nugentic.ProTech</string>
 </array>
 <key>com.apple.developer.icloud-services</key>
 <array>
@@ -88,7 +89,7 @@ Once all the above steps are complete:
 
 ### Error: "CloudKit container not found"
 - Verify the container exists in Apple Developer portal
-- Check that the container ID matches exactly: `iCloud.com.protech.app`
+- Check that the container ID matches exactly: `iCloud.Nugentic.ProTech`
 
 ### Error: "not authenticated"
 - Sign out and back into iCloud on your Mac
