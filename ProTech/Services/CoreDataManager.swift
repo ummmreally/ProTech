@@ -12,7 +12,10 @@ import CloudKit
 class CoreDataManager {
     static let shared = CoreDataManager()
     
-    let container: NSPersistentCloudKitContainer
+    // Toggle this to enable/disable CloudKit sync
+    private let useCloudKit = false // Set to true AFTER configuring iCloud capability in Xcode
+    
+    let container: NSPersistentContainer
     
     var viewContext: NSManagedObjectContext {
         container.viewContext
@@ -88,49 +91,64 @@ class CoreDataManager {
     }()
     
     private init() {
-        container = NSPersistentCloudKitContainer(name: "ProTech", managedObjectModel: CoreDataManager.managedObjectModel)
-        // Configure container for CloudKit sync
+        // Create appropriate container type based on CloudKit setting
+        if useCloudKit {
+            print("🔄 Initializing with CloudKit sync enabled")
+            container = NSPersistentCloudKitContainer(name: "ProTech", managedObjectModel: CoreDataManager.managedObjectModel)
+        } else {
+            print("💾 Initializing with local storage only (CloudKit disabled)")
+            container = NSPersistentContainer(name: "ProTech", managedObjectModel: CoreDataManager.managedObjectModel)
+        }
+        
+        // Configure container
         guard let description = container.persistentStoreDescriptions.first else {
             fatalError("Failed to retrieve persistent store description")
         }
         
-        // TEMPORARY: Delete existing store for CloudKit migration
-        // Remove this after first successful launch
-        if let storeURL = description.url {
-            let fileManager = FileManager.default
-            if fileManager.fileExists(atPath: storeURL.path) {
-                print("Deleting existing store for CloudKit migration...")
-                try? fileManager.removeItem(at: storeURL)
-                try? fileManager.removeItem(at: storeURL.deletingPathExtension().appendingPathExtension("sqlite-shm"))
-                try? fileManager.removeItem(at: storeURL.deletingPathExtension().appendingPathExtension("sqlite-wal"))
-            }
+        // Configure for CloudKit if enabled
+        if useCloudKit {
+            // Enable persistent history tracking (required for CloudKit)
+            description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
+            
+            // Enable remote change notifications
+            description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
+            
+            // Configure CloudKit container options
+            let cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(containerIdentifier: "iCloud.com.protech.app")
+            description.cloudKitContainerOptions = cloudKitContainerOptions
         }
-        
-        // Enable persistent history tracking (required for CloudKit)
-        description.setOption(true as NSNumber, forKey: NSPersistentHistoryTrackingKey)
-        
-        // Enable remote change notifications
-        description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
-        
-        // Configure CloudKit container options
-        let cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(containerIdentifier: "iCloud.com.protech.app")
-        description.cloudKitContainerOptions = cloudKitContainerOptions
         
         container.loadPersistentStores { storeDescription, error in
             if let error = error {
-                print("Core Data Error: \(error)")
+                print("❌ Core Data Error: \(error)")
                 print("Store URL: \(storeDescription.url?.path ?? "unknown")")
+                
+                if self.useCloudKit {
+                    print("⚠️ If you see CloudKit errors, make sure you've:")
+                    print("   1. Added iCloud capability in Xcode")
+                    print("   2. Enabled CloudKit in the capability")
+                    print("   3. Signed into iCloud on this Mac")
+                }
+                
                 fatalError("Core Data failed to load: \(error.localizedDescription)")
             }
-            print("Core Data store loaded successfully")
-            print("Store URL: \(storeDescription.url?.path ?? "unknown")")
+            
+            if self.useCloudKit {
+                print("✅ Core Data with CloudKit loaded successfully")
+            } else {
+                print("✅ Core Data (local only) loaded successfully")
+            }
+            print("📁 Store URL: \(storeDescription.url?.path ?? "unknown")")
         }
         
-        // Automatically merge changes from CloudKit
+        // Automatically merge changes from parent context
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        // Optional: Watch for remote changes
-        setupCloudKitNotifications()
+        
+        // Watch for remote changes if CloudKit is enabled
+        if useCloudKit {
+            setupCloudKitNotifications()
+        }
     }
     
     // MARK: - CloudKit Notifications
