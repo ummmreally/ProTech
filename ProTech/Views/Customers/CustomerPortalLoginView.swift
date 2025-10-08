@@ -9,6 +9,8 @@ import SwiftUI
 
 struct CustomerPortalLoginView: View {
     @StateObject private var portalService = CustomerPortalService.shared
+    @ObservedObject var kioskManager = KioskModeManager.shared
+    
     @State private var loginMethod: LoginMethod = .email
     @State private var emailInput = ""
     @State private var phoneInput = ""
@@ -18,6 +20,13 @@ struct CustomerPortalLoginView: View {
     @State private var errorMessage: String?
     @State private var authenticatedCustomer: Customer?
     @State private var showingPortal = false
+    @State private var showingSelfRegistration = false
+    @State private var customerNotFound = false
+    @State private var showingAdminUnlock = false
+    
+    // Auto-logout timer
+    @State private var inactivityTimer: Timer?
+    @State private var lastActivityTime = Date()
     
     enum LoginMethod {
         case email
@@ -28,12 +37,51 @@ struct CustomerPortalLoginView: View {
         ZStack {
             if let customer = authenticatedCustomer, showingPortal {
                 CustomerPortalView(customer: customer)
+                    .onTapGesture {
+                        resetInactivityTimer()
+                    }
             } else {
                 loginScreen
+            }
+            
+            // Hidden Admin Unlock Button (tap 5 times in corner)
+            if kioskManager.isKioskModeEnabled {
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button {
+                            showingAdminUnlock = true
+                        } label: {
+                            Color.clear
+                                .frame(width: 50, height: 50)
+                        }
+                        .buttonStyle(.plain)
+                        .keyboardShortcut("q", modifiers: [.command, .shift])
+                    }
+                    Spacer()
+                }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .customerPortalLogout)) { _ in
             logout()
+        }
+        .sheet(isPresented: $showingSelfRegistration) {
+            CustomerSelfRegistrationView(
+                prefilledEmail: loginMethod == .email ? emailInput : nil,
+                prefilledPhone: loginMethod == .phone ? phoneInput : nil
+            ) { newCustomer in
+                showingSelfRegistration = false
+                authenticatedCustomer = newCustomer
+                withAnimation {
+                    showingPortal = true
+                }
+                if kioskManager.isKioskModeEnabled {
+                    startInactivityTimer()
+                }
+            }
+        }
+        .sheet(isPresented: $showingAdminUnlock) {
+            AdminUnlockView()
         }
     }
     
@@ -45,11 +93,11 @@ struct CustomerPortalLoginView: View {
                     .font(.system(size: 80))
                     .foregroundColor(.blue)
                 
-                Text("Customer Portal")
+                Text(kioskManager.isKioskModeEnabled ? kioskManager.kioskTitle : "Customer Portal")
                     .font(.largeTitle)
                     .bold()
                 
-                Text("Access your repair status, invoices, and estimates")
+                Text(kioskManager.isKioskModeEnabled ? kioskManager.kioskWelcomeMessage : "Access your repair status, invoices, and estimates")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -89,8 +137,34 @@ struct CustomerPortalLoginView: View {
                 }
                 .padding(.horizontal, 40)
                 
-                // Error Message
-                if let error = errorMessage {
+                // Error Message or Self-Registration Option
+                if customerNotFound {
+                    VStack(spacing: 12) {
+                        Text("No account found")
+                            .font(.subheadline)
+                            .foregroundColor(.orange)
+                        
+                        Text("This is your first visit. Would you like to create a profile?")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                        
+                        Button {
+                            showingSelfRegistration = true
+                        } label: {
+                            Text("Create New Profile")
+                                .font(.subheadline)
+                                .bold()
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.green)
+                                .foregroundColor(.white)
+                                .cornerRadius(8)
+                        }
+                        .padding(.horizontal, 40)
+                    }
+                    .padding(.horizontal, 40)
+                } else if let error = errorMessage {
                     Text(error)
                         .font(.caption)
                         .foregroundColor(.red)
@@ -124,18 +198,20 @@ struct CustomerPortalLoginView: View {
                 .padding(.horizontal, 40)
                 
                 // Help Text
-                VStack(spacing: 8) {
-                    Text("First time here?")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Text("Use the email or phone number you provided when dropping off your device.")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .multilineTextAlignment(.center)
+                if !customerNotFound {
+                    VStack(spacing: 8) {
+                        Text("First time here?")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Text("Use the email or phone number you provided when dropping off your device.")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.horizontal, 40)
+                    .padding(.top, 8)
                 }
-                .padding(.horizontal, 40)
-                .padding(.top, 8)
             }
             
             Spacer()
@@ -168,6 +244,7 @@ struct CustomerPortalLoginView: View {
     private func login() async {
         isLoading = true
         errorMessage = nil
+        customerNotFound = false
         
         // Simulate a small delay for UX
         try? await Task.sleep(nanoseconds: 500_000_000)
@@ -185,20 +262,56 @@ struct CustomerPortalLoginView: View {
             withAnimation {
                 showingPortal = true
             }
+            
+            // Start auto-logout timer if in kiosk mode
+            if kioskManager.isKioskModeEnabled {
+                startInactivityTimer()
+            }
         } else {
-            errorMessage = "No account found with this \(loginMethod == .email ? "email" : "phone number"). Please check your information or contact us."
+            // Customer not found - offer self-registration
+            customerNotFound = true
         }
         
         isLoading = false
     }
     
     private func logout() {
+        stopInactivityTimer()
+        
         withAnimation {
             showingPortal = false
             authenticatedCustomer = nil
             emailInput = ""
             phoneInput = ""
             errorMessage = nil
+            customerNotFound = false
+        }
+    }
+    
+    // MARK: - Inactivity Timer (Kiosk Mode)
+    
+    private func startInactivityTimer() {
+        stopInactivityTimer()
+        
+        lastActivityTime = Date()
+        inactivityTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+            checkInactivity()
+        }
+    }
+    
+    private func stopInactivityTimer() {
+        inactivityTimer?.invalidate()
+        inactivityTimer = nil
+    }
+    
+    private func resetInactivityTimer() {
+        lastActivityTime = Date()
+    }
+    
+    private func checkInactivity() {
+        let elapsed = Date().timeIntervalSince(lastActivityTime)
+        if elapsed >= Double(kioskManager.autoLogoutAfterSeconds) {
+            logout()
         }
     }
 }

@@ -18,6 +18,7 @@ struct CustomerPortalView: View {
     
     enum PortalTab {
         case overview
+        case checkIn
         case repairs
         case invoices
         case estimates
@@ -31,6 +32,9 @@ struct CustomerPortalView: View {
                 Section("Portal") {
                     Label("Overview", systemImage: "house.fill")
                         .tag(PortalTab.overview)
+                    
+                    Label("Check In", systemImage: "hand.raised.fill")
+                        .tag(PortalTab.checkIn)
                     
                     Label("My Repairs", systemImage: "wrench.and.screwdriver.fill")
                         .tag(PortalTab.repairs)
@@ -65,6 +69,8 @@ struct CustomerPortalView: View {
                 switch selectedTab {
                 case .overview:
                     PortalOverviewView(customer: customer, stats: stats)
+                case .checkIn:
+                    PortalCheckInView(customer: customer)
                 case .repairs:
                     PortalRepairsView(customer: customer)
                 case .invoices:
@@ -112,6 +118,19 @@ struct PortalOverviewView: View {
         return formatter
     }()
     
+    private let numberFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        return formatter
+    }()
+    
+    private let relativeFormatter: RelativeDateTimeFormatter = {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .full
+        return formatter
+    }()
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
@@ -126,6 +145,25 @@ struct PortalOverviewView: View {
                         .foregroundColor(.secondary)
                 }
                 .padding()
+                
+                if let alerts = stats?.alerts, !alerts.isEmpty {
+                    GroupBox {
+                        VStack(spacing: 12) {
+                            ForEach(alerts) { alert in
+                                PortalAlertRow(alert: alert)
+                                if alert.id != alerts.last?.id {
+                                    Divider()
+                                }
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    } label: {
+                        Label("Attention Needed", systemImage: "exclamationmark.triangle.fill")
+                            .font(.headline)
+                            .foregroundColor(.orange)
+                    }
+                    .padding(.horizontal)
+                }
                 
                 // Stats Cards
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
@@ -159,6 +197,23 @@ struct PortalOverviewView: View {
                 }
                 .padding(.horizontal)
                 
+                if let trends = stats?.trends, !trends.isEmpty {
+                    GroupBox {
+                        VStack(spacing: 12) {
+                            ForEach(trends) { metric in
+                                PortalTrendRow(metric: metric, currencyFormatter: currencyFormatter, numberFormatter: numberFormatter)
+                                if metric.id != trends.last?.id {
+                                    Divider()
+                                }
+                            }
+                        }
+                    } label: {
+                        Label("30-Day Trends", systemImage: "chart.line.uptrend.xyaxis")
+                            .font(.headline)
+                    }
+                    .padding(.horizontal)
+                }
+                
                 // Financial Overview
                 GroupBox {
                     HStack {
@@ -166,7 +221,7 @@ struct PortalOverviewView: View {
                             Text("Total Spent")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
-                            Text(currencyFormatter.string(from: stats?.totalSpent as NSDecimalNumber? ?? 0) ?? "$0.00")
+                            Text(currencyString(for: stats?.totalSpent))
                                 .font(.title2)
                                 .bold()
                         }
@@ -181,7 +236,7 @@ struct PortalOverviewView: View {
                             Text("Outstanding Balance")
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
-                            Text(currencyFormatter.string(from: stats?.outstandingBalance as NSDecimalNumber? ?? 0) ?? "$0.00")
+                            Text(currencyString(for: stats?.outstandingBalance))
                                 .font(.title2)
                                 .bold()
                                 .foregroundColor((stats?.outstandingBalance ?? 0) > 0 ? .red : .green)
@@ -194,42 +249,342 @@ struct PortalOverviewView: View {
                 }
                 .padding(.horizontal)
                 
-                // Quick Actions
-                GroupBox {
-                    VStack(spacing: 12) {
-                        if (stats?.activeRepairs ?? 0) > 0 {
-                            NavigationLink(destination: PortalRepairsView(customer: customer)) {
-                                QuickActionRow(title: "View Active Repairs", icon: "wrench.and.screwdriver.fill", color: .blue)
+                if !quickActions.isEmpty {
+                    GroupBox {
+                        VStack(spacing: 12) {
+                            ForEach(quickActions) { action in
+                                quickActionLink(for: action)
                             }
                         }
-                        
-                        if (stats?.pendingEstimates ?? 0) > 0 {
-                            NavigationLink(destination: PortalEstimatesView(customer: customer)) {
-                                QuickActionRow(title: "Review Pending Estimates", icon: "doc.plaintext.fill", color: .orange)
-                            }
-                        }
-                        
-                        if (stats?.unpaidInvoices ?? 0) > 0 {
-                            NavigationLink(destination: PortalInvoicesView(customer: customer)) {
-                                QuickActionRow(title: "View Unpaid Invoices", icon: "doc.text.fill", color: .red)
-                            }
-                        }
-                        
-                        NavigationLink(destination: PortalPaymentsView(customer: customer)) {
-                            QuickActionRow(title: "Payment History", icon: "creditcard.fill", color: .green)
-                        }
+                    } label: {
+                        Label("Suggested Actions", systemImage: "bolt.fill")
+                            .font(.headline)
                     }
-                } label: {
-                    Label("Quick Actions", systemImage: "bolt.fill")
-                        .font(.headline)
+                    .padding(.horizontal)
                 }
-                .padding(.horizontal)
                 
-                Spacer()
+                if let engagement = stats?.engagement {
+                    GroupBox {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Label("Last portal activity", systemImage: "clock.arrow.circlepath")
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text(engagement.lastCustomerAction.map { relativeFormatter.localizedString(for: $0, relativeTo: Date()) } ?? "No activity yet")
+                                    .bold()
+                            }
+                            
+                            HStack {
+                                Label("Approvals (30d)", systemImage: "checkmark.circle")
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text("\(engagement.approvalsLast30Days)")
+                                    .bold()
+                            }
+                            
+                            HStack {
+                                Label("Payments (30d)", systemImage: "creditcard")
+                                    .foregroundColor(.secondary)
+                                Spacer()
+                                Text("\(engagement.paymentsLast30Days)")
+                                    .bold()
+                            }
+                            
+                            if let averageApprovalTime = engagement.averageApprovalTime {
+                                HStack {
+                                    Label("Avg. approval time", systemImage: "timer")
+                                        .foregroundColor(.secondary)
+                                    Spacer()
+                                    Text(formatted(duration: averageApprovalTime))
+                                        .bold()
+                                }
+                            }
+                        }
+                    } label: {
+                        Label("Engagement Insights", systemImage: "person.fill.checkmark")
+                            .font(.headline)
+                    }
+                    .padding(.horizontal)
+                }
+                
+                if let activity = stats?.recentActivity, !activity.isEmpty {
+                    GroupBox {
+                        VStack(spacing: 12) {
+                            ForEach(activity) { item in
+                                PortalActivityRow(activity: item, relativeFormatter: relativeFormatter)
+                                if item.id != activity.last?.id {
+                                    Divider()
+                                }
+                            }
+                        }
+                    } label: {
+                        Label("Recent Activity", systemImage: "list.bullet.rectangle")
+                            .font(.headline)
+                    }
+                    .padding(.horizontal)
+                }
             }
             .padding(.vertical)
         }
         .navigationTitle("Overview")
+    }
+    
+    private var quickActions: [PortalQuickAction] {
+        guard let stats else { return [] }
+        var actions: [PortalQuickAction] = []
+        
+        if stats.pendingEstimates > 0 {
+            actions.append(PortalQuickAction(title: "Review pending estimates", icon: "doc.plaintext.fill", tint: .orange, destination: .estimates))
+        }
+        
+        if !stats.expiringEstimates.isEmpty {
+            actions.append(PortalQuickAction(title: "Approve expiring estimates", icon: "hourglass", tint: .red, destination: .estimates))
+        }
+        
+        if stats.unpaidInvoices > 0 {
+            actions.append(PortalQuickAction(title: "Pay outstanding invoices", icon: "doc.text.fill", tint: .red, destination: .invoices))
+        }
+        
+        if !stats.overdueInvoices.isEmpty {
+            actions.append(PortalQuickAction(title: "View overdue invoices", icon: "exclamationmark.triangle", tint: .orange, destination: .invoices))
+        }
+        
+        if stats.activeRepairs > 0 {
+            actions.append(PortalQuickAction(title: "Check active repairs", icon: "wrench.and.screwdriver.fill", tint: .blue, destination: .repairs))
+        }
+        
+        if !stats.recentPayments.isEmpty {
+            actions.append(PortalQuickAction(title: "View latest payments", icon: "creditcard.fill", tint: .green, destination: .payments))
+        }
+        
+        return Array(actions.prefix(4))
+    }
+    
+    @ViewBuilder
+    private func quickActionLink(for action: PortalQuickAction) -> some View {
+        switch action.destination {
+        case .repairs:
+            NavigationLink(destination: PortalRepairsView(customer: customer)) {
+                QuickActionRow(action: action)
+            }
+        case .estimates:
+            NavigationLink(destination: PortalEstimatesView(customer: customer)) {
+                QuickActionRow(action: action)
+            }
+        case .invoices:
+            NavigationLink(destination: PortalInvoicesView(customer: customer)) {
+                QuickActionRow(action: action)
+            }
+        case .payments:
+            NavigationLink(destination: PortalPaymentsView(customer: customer)) {
+                QuickActionRow(action: action)
+            }
+        }
+    }
+    
+    private func formatted(duration: TimeInterval) -> String {
+        let hours = Int(duration) / 3600
+        let minutes = (Int(duration) % 3600) / 60
+        
+        if hours > 0 {
+            return "\(hours)h \(minutes)m"
+        }
+        return "\(minutes)m"
+    }
+    
+    private func currencyString(for value: Decimal?) -> String {
+        guard let value else {
+            return currencyFormatter.string(from: 0) ?? "$0.00"
+        }
+        return currencyFormatter.string(from: NSDecimalNumber(decimal: value)) ?? "$0.00"
+    }
+}
+
+struct PortalQuickAction: Identifiable {
+    enum Destination {
+        case repairs
+        case estimates
+        case invoices
+        case payments
+    }
+    
+    let id = UUID()
+    let title: String
+    let icon: String
+    let tint: Color
+    let destination: Destination
+}
+
+struct QuickActionRow: View {
+    let action: PortalQuickAction
+    
+    var body: some View {
+        HStack {
+            Image(systemName: action.icon)
+                .foregroundColor(action.tint)
+                .frame(width: 24)
+            
+            Text(action.title)
+                .foregroundColor(.primary)
+            
+            Spacer()
+            
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .background(Color.gray.opacity(0.05))
+        .cornerRadius(8)
+    }
+}
+
+struct PortalAlertRow: View {
+    let alert: PortalDashboardAlert
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: iconName)
+                .foregroundColor(iconColor)
+                .font(.title3)
+                .frame(width: 24)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(alert.title)
+                    .font(.headline)
+                Text(alert.message)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+        }
+    }
+    
+    private var iconName: String {
+        switch alert.kind {
+        case .estimateExpiring:
+            return "hourglass"
+        case .invoiceOverdue:
+            return "exclamationmark.triangle.fill"
+        case .newPayment:
+            return "creditcard"
+        }
+    }
+    
+    private var iconColor: Color {
+        switch alert.kind {
+        case .estimateExpiring:
+            return .orange
+        case .invoiceOverdue:
+            return .red
+        case .newPayment:
+            return .green
+        }
+    }
+}
+
+struct PortalTrendRow: View {
+    let metric: PortalTrendMetric
+    let currencyFormatter: NumberFormatter
+    let numberFormatter: NumberFormatter
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(metric.title)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                Spacer()
+                Text(formatted(value: metric.currentValue))
+                    .font(.headline)
+            }
+            
+            let delta = metric.delta
+            let isPositive = delta >= 0
+            HStack(spacing: 6) {
+                Image(systemName: isPositive ? "arrow.up" : "arrow.down")
+                    .font(.caption)
+                    .foregroundColor(isPositive ? .green : .red)
+                Text(formatted(value: delta, includeSign: true))
+                    .font(.caption)
+                    .foregroundColor(isPositive ? .green : .red)
+                Text("vs previous 30 days")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+    
+    private func formatted(value: Decimal, includeSign: Bool = false) -> String {
+        switch metric.unit {
+        case "currency":
+            let string = currencyFormatter.string(from: NSDecimalNumber(decimal: value)) ?? "$0.00"
+            if includeSign {
+                return value >= 0 ? "+\(string)" : string
+            }
+            return string
+        default:
+            let string = numberFormatter.string(from: NSDecimalNumber(decimal: value)) ?? "0"
+            if includeSign {
+                return value >= 0 ? "+\(string)" : string
+            }
+            return string
+        }
+    }
+}
+
+struct PortalActivityRow: View {
+    let activity: PortalActivity
+    let relativeFormatter: RelativeDateTimeFormatter
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Image(systemName: iconName)
+                .foregroundColor(iconColor)
+                .font(.title3)
+                .frame(width: 24)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(activity.title)
+                        .font(.headline)
+                    Spacer()
+                    Text(relativeFormatter.localizedString(for: activity.date, relativeTo: Date()))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                Text(activity.detail)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+    }
+    
+    private var iconName: String {
+        switch activity.type {
+        case .repair:
+            return "wrench.and.screwdriver"
+        case .estimate:
+            return "doc.plaintext"
+        case .invoice:
+            return "doc.text"
+        case .payment:
+            return "creditcard"
+        }
+    }
+    
+    private var iconColor: Color {
+        switch activity.type {
+        case .repair:
+            return .blue
+        case .estimate:
+            return .orange
+        case .invoice:
+            return .purple
+        case .payment:
+            return .green
+        }
     }
 }
 
@@ -447,33 +802,6 @@ private struct PortalStatCard: View {
         .cornerRadius(12)
     }
 }
-
-struct QuickActionRow: View {
-    let title: String
-    let icon: String
-    let color: Color
-    
-    var body: some View {
-        HStack {
-            Image(systemName: icon)
-                .foregroundColor(color)
-                .frame(width: 24)
-            
-            Text(title)
-                .foregroundColor(.primary)
-            
-            Spacer()
-            
-            Image(systemName: "chevron.right")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .padding()
-        .background(Color.gray.opacity(0.05))
-        .cornerRadius(8)
-    }
-}
-
 // MARK: - Notification Extension
 
 extension Notification.Name {

@@ -10,6 +10,7 @@ import CoreData
 
 struct RepairDetailView: View {
     @Environment(\.managedObjectContext) private var viewContext
+    @EnvironmentObject var authService: AuthenticationService
     @ObservedObject var ticket: Ticket
     @FetchRequest var customer: FetchedResults<Customer>
     
@@ -582,9 +583,7 @@ struct RepairDetailView: View {
     }
     
     private func getCurrentTechnicianName() -> String {
-        // Get current logged-in user/technician name
-        // For now, return a default. This can be enhanced with proper user authentication
-        return UserDefaults.standard.string(forKey: "currentTechnicianName") ?? "Technician"
+        return authService.currentEmployeeName
     }
     
     // MARK: - SMS Functions

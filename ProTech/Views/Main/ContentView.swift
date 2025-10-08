@@ -9,38 +9,67 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var subscriptionManager: SubscriptionManager
+    @StateObject var kioskManager = KioskModeManager.shared
     @State private var selectedTab: Tab = .customers
     @State private var showingUpgrade = false
     @State private var showingTwilioTutorial = false
     
     var body: some View {
-        NavigationSplitView {
-            SidebarView(selectedTab: $selectedTab)
-                .frame(minWidth: 200)
-                .toolbar {
-                    ToolbarItem(placement: .automatic) {
-                        if !subscriptionManager.isProSubscriber {
-                            Button {
-                                showingUpgrade = true
-                            } label: {
-                                Label("Upgrade to Pro", systemImage: "star.fill")
-                                    .foregroundColor(.orange)
+        ZStack {
+            if kioskManager.isKioskModeEnabled {
+                // Kiosk Mode - Full Screen Customer Portal Only
+                CustomerPortalLoginView()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(.windowBackgroundColor))
+            } else {
+                // Normal Mode - Full App Access
+                NavigationSplitView {
+                    SidebarView(selectedTab: $selectedTab)
+                        .frame(minWidth: 200)
+                        .toolbar {
+                            ToolbarItem(placement: .automatic) {
+                                if !subscriptionManager.isProSubscriber {
+                                    Button {
+                                        showingUpgrade = true
+                                    } label: {
+                                        Label("Upgrade to Pro", systemImage: "star.fill")
+                                            .foregroundColor(.orange)
+                                    }
+                                }
                             }
                         }
-                    }
+                } detail: {
+                    DetailView(selectedTab: selectedTab)
                 }
-        } detail: {
-            DetailView(selectedTab: selectedTab)
-        }
-        .sheet(isPresented: $showingUpgrade) {
-            SubscriptionView()
-                .frame(width: 600, height: 700)
-        }
-        .sheet(isPresented: $showingTwilioTutorial) {
-            TwilioTutorialView()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .openTwilioTutorial)) { _ in
-            showingTwilioTutorial = true
+                .sheet(isPresented: $showingUpgrade) {
+                    SubscriptionView()
+                        .frame(width: 600, height: 700)
+                }
+                .sheet(isPresented: $showingTwilioTutorial) {
+                    TwilioTutorialView()
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .openTwilioTutorial)) { _ in
+                    showingTwilioTutorial = true
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .navigateToQueue)) { _ in
+                    selectedTab = .queue
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .navigateToEstimates)) { _ in
+                    selectedTab = .estimates
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .navigateToPayments)) { _ in
+                    selectedTab = .payments
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .navigateToForms)) { _ in
+                    selectedTab = .forms
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .navigateToSMS)) { _ in
+                    selectedTab = .sms
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .navigateToInventory)) { _ in
+                    selectedTab = .inventory
+                }
+            }
         }
     }
 }
@@ -50,6 +79,7 @@ struct ContentView: View {
 enum Tab: String, CaseIterable {
     case dashboard = "Dashboard"
     case queue = "Queue"
+    case repairs = "Repairs"
     case customers = "Customers"
     case calendar = "Calendar"
     case invoices = "Invoices"
@@ -71,7 +101,8 @@ enum Tab: String, CaseIterable {
     var icon: String {
         switch self {
         case .dashboard: return "chart.bar.fill"
-        case .queue: return "line.3.horizontal.decrease.circle.fill"
+        case .queue: return "person.2.wave.2.fill"
+        case .repairs: return "wrench.and.screwdriver.fill"
         case .customers: return "person.3.fill"
         case .calendar: return "calendar"
         case .invoices: return "doc.text.fill"
@@ -94,7 +125,7 @@ enum Tab: String, CaseIterable {
     
     var isPremium: Bool {
         switch self {
-        case .dashboard, .queue, .customers, .calendar, .invoices, .estimates, .payments, .inventory, .pointOfSale, .loyalty, .customerPortal, .settings:
+        case .dashboard, .queue, .repairs, .customers, .calendar, .invoices, .estimates, .payments, .inventory, .pointOfSale, .loyalty, .customerPortal, .settings:
             return false
         case .forms, .sms, .marketing, .timeTracking, .employees, .timeClock, .reports:
             return true
@@ -118,7 +149,9 @@ struct DetailView: View {
                 case .dashboard:
                     DashboardView()
                 case .queue:
-                    QueueView()
+                    CheckInQueueView()
+                case .repairs:
+                    RepairsView()
                 case .customers:
                     CustomerListView()
                 case .calendar:

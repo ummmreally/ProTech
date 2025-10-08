@@ -10,6 +10,7 @@ import CoreData
 
 struct TicketDetailView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var authService: AuthenticationService
     @ObservedObject var ticket: Ticket
     
     @FetchRequest var customer: FetchedResults<Customer>
@@ -404,8 +405,7 @@ struct TicketDetailView: View {
     }
     
     private func getCurrentTechnicianName() -> String {
-        // Get current logged-in user/technician name
-        return UserDefaults.standard.string(forKey: "currentTechnicianName") ?? "Technician"
+        return authService.currentEmployeeName
     }
     
     private func printDymoLabel() {

@@ -21,6 +21,7 @@ class CoreDataManager {
         let model = NSManagedObjectModel()
         model.entities = [
             Customer.entityDescription(),
+            CheckIn.entityDescription(),
             FormTemplate.entityDescription(),
             FormSubmission.entityDescription(),
             SMSMessage.entityDescription(),

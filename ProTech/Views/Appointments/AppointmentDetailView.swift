@@ -213,12 +213,9 @@ struct AppointmentDetailView: View {
             return .gray
         }
     }
-}
-
-// MARK: - Portal Notification Handling
-
-extension AppointmentDetailView {
-    @MainActor
+    
+    // MARK: - Portal Notification Handling
+    
     private func handleEstimateNotification(_ notification: Notification, event: PortalEstimateEvent) {
         guard let estimateIdValue = notification.userInfo?["estimateId"] else { return }
         let estimateId: UUID?

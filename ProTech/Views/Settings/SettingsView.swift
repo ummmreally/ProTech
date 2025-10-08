@@ -43,6 +43,12 @@ struct SettingsView: View {
                 }
                 .tag(SettingsTab.forms)
             
+            KioskModeSettingsView()
+                .tabItem {
+                    Label("Kiosk Mode", systemImage: "desktopcomputer")
+                }
+                .tag(SettingsTab.kiosk)
+            
             SubscriptionSettingsView()
                 .tabItem {
                     Label("Subscription", systemImage: "star")
@@ -60,7 +66,7 @@ struct SettingsView: View {
 }
 
 enum SettingsTab {
-    case general, sms, square, socialMedia, forms, subscription, developer
+    case general, sms, square, socialMedia, forms, kiosk, subscription, developer
 }
 
 // MARK: - General Settings

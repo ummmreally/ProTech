@@ -16,6 +16,8 @@ struct DashboardView: View {
     @State private var customersThisMonth: Int = 0
     @State private var showingUpgrade = false
     @State private var portalAlert: PortalAlert?
+    @State private var refreshToggle = false
+    @State private var lastRefresh = Date()
     
     struct PortalAlert: Identifiable {
         let id = UUID()
@@ -23,17 +25,38 @@ struct DashboardView: View {
         let message: String
     }
     
+    private let refreshTimer = Timer.publish(every: 30, on: .main, in: .common).autoconnect()
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                // Header
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Dashboard")
-                        .font(.largeTitle)
-                        .bold()
-                    Text("Welcome to \(Configuration.appName)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                // Header with Refresh
+                HStack {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Dashboard")
+                            .font(.largeTitle)
+                            .bold()
+                        Text("Welcome to \(Configuration.appName)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    VStack(alignment: .trailing, spacing: 2) {
+                        Button(action: refreshDashboard) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.clockwise")
+                                Text("Refresh")
+                                    .font(.caption)
+                            }
+                        }
+                        .buttonStyle(.borderless)
+                        
+                        Text("Updated \(lastRefresh, style: .relative) ago")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 .padding(.horizontal)
                 .padding(.top)
@@ -43,53 +66,113 @@ struct DashboardView: View {
                     upgradePromoBanner
                 }
                 
-                // Stats Grid
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 20) {
-                    DashboardStatCard(
-                        title: "Total Customers",
-                        value: "\(totalCustomers)",
-                        icon: "person.3.fill",
-                        color: .blue
-                    )
-                    
-                    DashboardStatCard(
-                        title: "Added This Month",
-                        value: "\(customersThisMonth)",
-                        icon: "person.badge.plus",
-                        color: .green
-                    )
-                    
-                    if subscriptionManager.isProSubscriber {
-                        DashboardStatCard(
-                            title: "Forms Created",
-                            value: "0",
-                            icon: "doc.text.fill",
-                            color: .purple
-                        )
+                // ENHANCED WIDGETS
+                
+                // Financial Overview Widget
+                FinancialOverviewWidget()
+                    .id(refreshToggle)
+                    .padding(.horizontal)
+                
+                // Two Column Layout for Main Widgets
+                HStack(alignment: .top, spacing: 16) {
+                    // Left Column
+                    VStack(spacing: 16) {
+                        OperationalStatusWidget()
+                            .id(refreshToggle)
                         
-                        DashboardStatCard(
-                            title: "SMS Sent",
-                            value: "0",
-                            icon: "message.fill",
-                            color: .orange
-                        )
+                        TodayScheduleWidget()
+                            .id(refreshToggle)
+                    }
+                    
+                    // Right Column
+                    VStack(spacing: 16) {
+                        AlertsWidget()
+                            .id(refreshToggle)
+                        
+                        RecentActivityWidget()
+                            .id(refreshToggle)
                     }
                 }
                 .padding(.horizontal)
                 
-                // Quick Actions
+                // Quick Stats Grid
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Quick Stats")
+                        .font(.title2)
+                        .bold()
+                        .padding(.horizontal)
+                    
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                        DashboardStatCard(
+                            title: "Total Customers",
+                            value: "\(totalCustomers)",
+                            icon: "person.3.fill",
+                            color: .blue
+                        )
+                        
+                        DashboardStatCard(
+                            title: "Added This Month",
+                            value: "\(customersThisMonth)",
+                            icon: "person.badge.plus",
+                            color: .green
+                        )
+                        
+                        if subscriptionManager.isProSubscriber {
+                            DashboardStatCard(
+                                title: "Forms Created",
+                                value: "0",
+                                icon: "doc.text.fill",
+                                color: .purple
+                            )
+                            
+                            DashboardStatCard(
+                                title: "SMS Sent",
+                                value: "0",
+                                icon: "message.fill",
+                                color: .orange
+                            )
+                        }
+                    }
+                    .padding(.horizontal)
+                }
+                
+                // Enhanced Quick Actions
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Quick Actions")
                         .font(.title2)
                         .bold()
                     
-                    VStack(spacing: 8) {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                        QuickActionButton(
+                            title: "Check In Repair",
+                            icon: "wrench.and.screwdriver.fill",
+                            color: .blue
+                        ) {
+                            NotificationCenter.default.post(name: .navigateToQueue, object: nil)
+                        }
+                        
                         QuickActionButton(
                             title: "Add New Customer",
                             icon: "person.badge.plus",
-                            color: .blue
+                            color: .green
                         ) {
                             NotificationCenter.default.post(name: .newCustomer, object: nil)
+                        }
+                        
+                        QuickActionButton(
+                            title: "Create Estimate",
+                            icon: "doc.plaintext.fill",
+                            color: .orange
+                        ) {
+                            NotificationCenter.default.post(name: .navigateToEstimates, object: nil)
+                        }
+                        
+                        QuickActionButton(
+                            title: "Record Payment",
+                            icon: "dollarsign.circle.fill",
+                            color: .green
+                        ) {
+                            NotificationCenter.default.post(name: .navigateToPayments, object: nil)
                         }
                         
                         if subscriptionManager.isProSubscriber {
@@ -98,7 +181,7 @@ struct DashboardView: View {
                                 icon: "doc.text.fill",
                                 color: .purple
                             ) {
-                                // Navigate to forms
+                                NotificationCenter.default.post(name: .navigateToForms, object: nil)
                             }
                             
                             if TwilioService.shared.isConfigured {
@@ -107,7 +190,7 @@ struct DashboardView: View {
                                     icon: "message.fill",
                                     color: .orange
                                 ) {
-                                    // Navigate to SMS
+                                    NotificationCenter.default.post(name: .navigateToSMS, object: nil)
                                 }
                             } else {
                                 QuickActionButton(
@@ -130,7 +213,9 @@ struct DashboardView: View {
             Alert(
                 title: Text(alert.title),
                 message: Text(alert.message),
-                dismissButton: .default(Text("OK"))
+                dismissButton: .default(Text("OK")) {
+                    refreshDashboard()
+                }
             )
         }
         .onReceive(NotificationCenter.default.publisher(for: .estimateApproved)) { notification in
@@ -139,8 +224,12 @@ struct DashboardView: View {
         .onReceive(NotificationCenter.default.publisher(for: .estimateDeclined)) { notification in
             handleEstimateDecline(notification)
         }
+        .onReceive(refreshTimer) { _ in
+            refreshDashboard()
+        }
         .onAppear {
             loadStatistics()
+            refreshDashboard()
         }
     }
     
@@ -182,6 +271,12 @@ struct DashboardView: View {
     private func loadStatistics() {
         totalCustomers = CoreDataManager.shared.getCustomerCount()
         customersThisMonth = CoreDataManager.shared.getCustomersAddedThisMonth()
+    }
+    
+    private func refreshDashboard() {
+        lastRefresh = Date()
+        refreshToggle.toggle()
+        loadStatistics()
     }
     
     // MARK: - Portal Notification Handlers

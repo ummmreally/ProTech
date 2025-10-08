@@ -16,7 +16,7 @@ struct SidebarView: View {
         VStack(spacing: 0) {
             List(selection: $selectedTab) {
                 Section("Core") {
-                    ForEach([Tab.dashboard, Tab.queue, Tab.customers, Tab.calendar], id: \.self) { tab in
+                    ForEach([Tab.dashboard, Tab.queue, Tab.repairs, Tab.customers, Tab.calendar], id: \.self) { tab in
                         NavigationLink(value: tab) {
                             Label(tab.rawValue, systemImage: tab.icon)
                         }
