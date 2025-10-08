@@ -89,10 +89,21 @@ class CoreDataManager {
     
     private init() {
         container = NSPersistentCloudKitContainer(name: "ProTech", managedObjectModel: CoreDataManager.managedObjectModel)
-        
         // Configure container for CloudKit sync
         guard let description = container.persistentStoreDescriptions.first else {
             fatalError("Failed to retrieve persistent store description")
+        }
+        
+        // TEMPORARY: Delete existing store for CloudKit migration
+        // Remove this after first successful launch
+        if let storeURL = description.url {
+            let fileManager = FileManager.default
+            if fileManager.fileExists(atPath: storeURL.path) {
+                print("Deleting existing store for CloudKit migration...")
+                try? fileManager.removeItem(at: storeURL)
+                try? fileManager.removeItem(at: storeURL.deletingPathExtension().appendingPathExtension("sqlite-shm"))
+                try? fileManager.removeItem(at: storeURL.deletingPathExtension().appendingPathExtension("sqlite-wal"))
+            }
         }
         
         // Enable persistent history tracking (required for CloudKit)
@@ -105,16 +116,19 @@ class CoreDataManager {
         let cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(containerIdentifier: "iCloud.com.protech.app")
         description.cloudKitContainerOptions = cloudKitContainerOptions
         
-        container.loadPersistentStores { description, error in
+        container.loadPersistentStores { storeDescription, error in
             if let error = error {
+                print("Core Data Error: \(error)")
+                print("Store URL: \(storeDescription.url?.path ?? "unknown")")
                 fatalError("Core Data failed to load: \(error.localizedDescription)")
             }
+            print("Core Data store loaded successfully")
+            print("Store URL: \(storeDescription.url?.path ?? "unknown")")
         }
         
         // Automatically merge changes from CloudKit
         container.viewContext.automaticallyMergesChangesFromParent = true
         container.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
-        
         // Optional: Watch for remote changes
         setupCloudKitNotifications()
     }
