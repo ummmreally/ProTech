@@ -13,7 +13,7 @@ class CoreDataManager {
     static let shared = CoreDataManager()
     
     // Toggle this to enable/disable CloudKit sync
-    private let useCloudKit = false // ⚠️ DISABLED - Enable after configuring CloudKit in Apple Developer
+    private let useCloudKit = true // ⚠️ DISABLED - Enable after configuring CloudKit in Apple Developer
     
     let container: NSPersistentContainer
     
@@ -114,7 +114,7 @@ class CoreDataManager {
             description.setOption(true as NSNumber, forKey: NSPersistentStoreRemoteChangeNotificationPostOptionKey)
             
             // Configure CloudKit container options
-            let cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(containerIdentifier: "iCloud.Nugentic.ProTech")
+            let cloudKitContainerOptions = NSPersistentCloudKitContainerOptions(containerIdentifier: "iCloud.com.nugentic.protech")
             description.cloudKitContainerOptions = cloudKitContainerOptions
         }
         
@@ -135,7 +135,7 @@ class CoreDataManager {
                     print("   1. Sign into iCloud on this Mac (System Settings > Apple ID)")
                     print("   2. Verify bundle ID matches CloudKit container")
                     print("   3. Create CloudKit container at developer.apple.com")
-                    print("   4. Container ID: iCloud.Nugentic.ProTech")
+                    print("   4. Container ID: iCloud.com.nugentic.protech")
                     print("   5. Enable iCloud + CloudKit capabilities in Xcode")
                     print("   6. Try running on a physical device if using simulator")
                 }
