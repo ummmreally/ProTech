@@ -1,9 +1,69 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="1" systemVersion="11A491" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="false" userDefinedModelVersionIdentifier="">
-    <entity name="Item" representedClassName="Item" syncable="YES" codeGenerationType="class">
-        <attribute name="timestamp" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+<model type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="22225" systemVersion="23A344" minimumToolsVersion="Automatic" sourceLanguage="Swift" usedWithCloudKit="false" userDefinedModelVersionIdentifier="">
+    <entity name="Customer" representedClassName="Customer" syncable="YES">
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="email" optional="YES" attributeType="String"/>
+        <attribute name="firstName" optional="YES" attributeType="String"/>
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="lastName" optional="YES" attributeType="String"/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="phone" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="Employee" representedClassName="Employee" syncable="YES">
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="email" optional="YES" attributeType="String"/>
+        <attribute name="employeeNumber" optional="YES" attributeType="String"/>
+        <attribute name="firstName" optional="YES" attributeType="String"/>
+        <attribute name="hireDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="hourlyRate" optional="NO" attributeType="Decimal" defaultValueString="25.0"/>
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isActive" optional="NO" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
+        <attribute name="isAdmin" optional="NO" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="lastLoginAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastName" optional="YES" attributeType="String"/>
+        <attribute name="passwordHash" optional="YES" attributeType="String"/>
+        <attribute name="phone" optional="YES" attributeType="String"/>
+        <attribute name="pinCode" optional="YES" attributeType="String"/>
+        <attribute name="profileImageData" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
+        <attribute name="role" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+    </entity>
+    <entity name="Ticket" representedClassName="Ticket" syncable="YES">
+        <attribute name="actualCost" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="additionalRepairDetails" optional="YES" attributeType="String"/>
+        <attribute name="alternateContactName" optional="YES" attributeType="String"/>
+        <attribute name="alternateContactNumber" optional="YES" attributeType="String"/>
+        <attribute name="checkInAgreedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="checkInSignature" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
+        <attribute name="checkedInAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="completedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="customerId" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="deviceModel" optional="YES" attributeType="String"/>
+        <attribute name="devicePasscode" optional="YES" attributeType="String"/>
+        <attribute name="deviceSerialNumber" optional="YES" attributeType="String"/>
+        <attribute name="deviceType" optional="YES" attributeType="String"/>
+        <attribute name="estimatedCompletion" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="estimatedCost" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="findMyDisabled" optional="NO" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="hasDataBackup" optional="NO" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="issueDescription" optional="YES" attributeType="String"/>
+        <attribute name="marketingOptInEmail" optional="NO" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="marketingOptInMail" optional="NO" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="marketingOptInSMS" optional="NO" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="pickedUpAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="priority" optional="YES" attributeType="String"/>
+        <attribute name="startedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="status" optional="YES" attributeType="String"/>
+        <attribute name="ticketNumber" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <elements>
-        <element name="Item" positionX="-63" positionY="-18" width="128" height="44"/>
+        <element name="Customer" positionX="-63" positionY="-18" width="128" height="149"/>
+        <element name="Employee" positionX="-54" positionY="36" width="128" height="299"/>
+        <element name="Ticket" positionX="-36" positionY="54" width="128" height="479"/>
     </elements>
 </model>

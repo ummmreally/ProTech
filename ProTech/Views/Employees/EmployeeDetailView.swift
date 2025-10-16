@@ -83,12 +83,12 @@ struct EmployeeDetailView: View {
                 // Employment info
                 employmentSection
                 
-                Divider()
+                // Divider()
                 
-                // Time clock summary
-                timeClockSection
+                // Time clock summary - TODO: Add TimeClockEntry entity to Core Data model
+                // timeClockSection
                 
-                Divider()
+                // Divider()
                 
                 // Actions
                 actionsSection

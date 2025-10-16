@@ -16,7 +16,8 @@ struct ProTechApp: App {
     
     init() {
         // Load default form templates on first launch
-        FormService.shared.loadDefaultTemplates()
+        // TODO: Add FormTemplate entity to Core Data model before enabling
+        // FormService.shared.loadDefaultTemplates()
     }
     
     var body: some Scene {

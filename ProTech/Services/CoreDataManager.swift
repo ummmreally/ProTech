@@ -13,7 +13,7 @@ class CoreDataManager {
     static let shared = CoreDataManager()
     
     // Toggle this to enable/disable CloudKit sync
-    private let useCloudKit = true // ⚠️ DISABLED - Enable after configuring CloudKit in Apple Developer
+    private let useCloudKit = false // ⚠️ DISABLED - Enable after configuring CloudKit in Apple Developer
     
     let container: NSPersistentContainer
     
@@ -21,89 +21,40 @@ class CoreDataManager {
         container.viewContext
     }
     
+    // Note: Using .xcdatamodeld file instead of programmatic model
+    // The programmatic model code below is kept for reference but not used
+    /*
     private static let managedObjectModel: NSManagedObjectModel = {
         let model = NSManagedObjectModel()
         model.entities = [
             Customer.entityDescription(),
-            CheckIn.entityDescription(),
-            FormTemplate.entityDescription(),
-            FormSubmission.entityDescription(),
-            SMSMessage.entityDescription(),
             Ticket.entityDescription(),
-            TicketNote.entityDescription(),
-            RepairProgress.entityDescription(),
-            RepairStageRecord.entityDescription(),
-            RepairPartUsage.entityDescription(),
-            Invoice.entityDescription(),
-            InvoiceLineItem.entityDescription(),
-            Estimate.entityDescription(),
-            EstimateLineItem.entityDescription(),
-            Payment.entityDescription(),
-            NotificationRule.entityDescription(),
-            NotificationLog.entityDescription(),
-            Appointment.entityDescription(),
-            InventoryItem.entityDescription(),
-            Supplier.entityDescription(),
-            StockAdjustment.entityDescription(),
-            PurchaseOrder.entityDescription(),
-            PaymentMethod.entityDescription(),
-            Campaign.entityDescription(),
-            RecurringInvoice.entityDescription(),
-            Transaction.entityDescription(),
-            TimeEntry.entityDescription(),
             Employee.entityDescription(),
-            TimeClockEntry.entityDescription(),
-            TimeOffRequest.entityDescription(),
-            EmployeeSchedule.entityDescription(),
-            // Square Integration entities
-            SquareSyncMapping.entityDescription(),
-            SyncLog.entityDescription(),
-            SquareConfiguration.entityDescription(),
-            // Loyalty Program entities
-            LoyaltyProgram.entityDescription(),
-            LoyaltyTier.entityDescription(),
-            LoyaltyMember.entityDescription(),
-            LoyaltyTransaction.entityDescription(),
-            LoyaltyReward.entityDescription()
+            // ... other entities
         ]
-
-        if let invoiceEntity = model.entities.first(where: { $0.name == "Invoice" }),
-           let lineItemEntity = model.entities.first(where: { $0.name == "InvoiceLineItem" }),
-           let lineItemsRelationship = invoiceEntity.relationshipsByName["lineItems"],
-           let invoiceRelationship = lineItemEntity.relationshipsByName["invoice"] {
-            lineItemsRelationship.destinationEntity = lineItemEntity
-            invoiceRelationship.destinationEntity = invoiceEntity
-            lineItemsRelationship.inverseRelationship = invoiceRelationship
-            invoiceRelationship.inverseRelationship = lineItemsRelationship
-        }
-
-        if let estimateEntity = model.entities.first(where: { $0.name == "Estimate" }),
-           let estimateLineItemEntity = model.entities.first(where: { $0.name == "EstimateLineItem" }),
-           let lineItemsRelationship = estimateEntity.relationshipsByName["lineItems"],
-           let estimateRelationship = estimateLineItemEntity.relationshipsByName["estimate"] {
-            lineItemsRelationship.destinationEntity = estimateLineItemEntity
-            estimateRelationship.destinationEntity = estimateEntity
-            lineItemsRelationship.inverseRelationship = estimateRelationship
-            estimateRelationship.inverseRelationship = lineItemsRelationship
-        }
-
         return model
     }()
+    */
     
     private init() {
         // Create appropriate container type based on CloudKit setting
+        // Use the .xcdatamodeld file instead of programmatic model
         if useCloudKit {
             print("🔄 Initializing with CloudKit sync enabled")
-            container = NSPersistentCloudKitContainer(name: "ProTech", managedObjectModel: CoreDataManager.managedObjectModel)
+            container = NSPersistentCloudKitContainer(name: "ProTech")
         } else {
             print("💾 Initializing with local storage only (CloudKit disabled)")
-            container = NSPersistentContainer(name: "ProTech", managedObjectModel: CoreDataManager.managedObjectModel)
+            container = NSPersistentContainer(name: "ProTech")
         }
         
         // Configure container
         guard let description = container.persistentStoreDescriptions.first else {
             fatalError("Failed to retrieve persistent store description")
         }
+        
+        // Enable automatic migrations
+        description.shouldMigrateStoreAutomatically = true
+        description.shouldInferMappingModelAutomatically = true
         
         // Configure for CloudKit if enabled
         if useCloudKit {
@@ -129,6 +80,17 @@ class CoreDataManager {
                 print("⚠️ Error Domain: \(nsError.domain)")
                 print("⚠️ Error Code: \(nsError.code)")
                 print("⚠️ Error UserInfo: \(nsError.userInfo)")
+                
+                // Always try to reset the store on any error during development
+                print("\n🔄 Attempting to reset Core Data store...")
+                
+                if let storeURL = storeDescription.url {
+                    self.resetCoreDataStore(at: storeURL)
+                    print("✅ Store reset complete")
+                    print("⚠️  PLEASE RESTART THE APP - The database has been reset")
+                    print("   Press Stop and Run again in Xcode")
+                    fatalError("Core Data store was reset - Please restart the app")
+                }
                 
                 if self.useCloudKit {
                     print("\n🔧 CloudKit Troubleshooting:")
@@ -159,6 +121,30 @@ class CoreDataManager {
         if useCloudKit {
             setupCloudKitNotifications()
         }
+    }
+    
+    // MARK: - Reset Store
+    
+    private func resetCoreDataStore(at storeURL: URL) {
+        print("🗑️ Resetting Core Data store at: \(storeURL.path)")
+        
+        let fileManager = FileManager.default
+        
+        // Delete main store file
+        try? fileManager.removeItem(at: storeURL)
+        print("   ✓ Deleted main store file")
+        
+        // Delete write-ahead log
+        let walURL = storeURL.deletingPathExtension().appendingPathExtension("sqlite-wal")
+        try? fileManager.removeItem(at: walURL)
+        print("   ✓ Deleted WAL file")
+        
+        // Delete shared memory file
+        let shmURL = storeURL.deletingPathExtension().appendingPathExtension("sqlite-shm")
+        try? fileManager.removeItem(at: shmURL)
+        print("   ✓ Deleted SHM file")
+        
+        print("✅ Core Data store reset complete")
     }
     
     // MARK: - CloudKit Notifications

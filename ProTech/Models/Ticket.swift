@@ -17,6 +17,8 @@ extension Ticket {
     @NSManaged public var status: String?
     @NSManaged public var priority: String?
     @NSManaged public var notes: String?
+    @NSManaged public var estimatedCost: NSDecimalNumber?
+    @NSManaged public var actualCost: NSDecimalNumber?
     @NSManaged public var checkedInAt: Date?
     @NSManaged public var startedAt: Date?
     @NSManaged public var completedAt: Date?
@@ -66,6 +68,8 @@ extension Ticket {
         let statusAttribute = makeAttribute("status", type: .stringAttributeType)
         let priorityAttribute = makeAttribute("priority", type: .stringAttributeType)
         let notesAttribute = makeAttribute("notes", type: .stringAttributeType)
+        let estimatedCostAttribute = makeAttribute("estimatedCost", type: .decimalAttributeType)
+        let actualCostAttribute = makeAttribute("actualCost", type: .decimalAttributeType)
         let checkedInAtAttribute = makeAttribute("checkedInAt", type: .dateAttributeType)
         let startedAtAttribute = makeAttribute("startedAt", type: .dateAttributeType)
         let completedAtAttribute = makeAttribute("completedAt", type: .dateAttributeType)
@@ -102,6 +106,8 @@ extension Ticket {
             statusAttribute,
             priorityAttribute,
             notesAttribute,
+            estimatedCostAttribute,
+            actualCostAttribute,
             checkedInAtAttribute,
             startedAtAttribute,
             completedAtAttribute,
