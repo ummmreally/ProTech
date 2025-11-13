@@ -67,6 +67,56 @@ class EstimateService {
         return estimate
     }
     
+    /// Duplicate an existing estimate
+    func duplicateEstimate(_ estimate: Estimate) -> Estimate {
+        // Create new estimate with same customer
+        guard let customerId = estimate.customerId else {
+            fatalError("Estimate must have a customerId")
+        }
+        
+        let newEstimate = Estimate(context: context)
+        newEstimate.id = UUID()
+        newEstimate.estimateNumber = generateEstimateNumber()
+        newEstimate.customerId = customerId
+        newEstimate.ticketId = estimate.ticketId
+        newEstimate.issueDate = Date()
+        newEstimate.validUntil = Calendar.current.date(byAdding: .day, value: 30, to: Date())
+        newEstimate.status = "pending"  // Reset to pending
+        newEstimate.notes = estimate.notes
+        newEstimate.terms = estimate.terms
+        newEstimate.subtotal = estimate.subtotal
+        newEstimate.taxRate = estimate.taxRate
+        newEstimate.taxAmount = estimate.taxAmount
+        newEstimate.total = estimate.total
+        newEstimate.createdAt = Date()
+        newEstimate.updatedAt = Date()
+        
+        // Clear approval/rejection data
+        newEstimate.approvedAt = nil
+        newEstimate.declinedAt = nil
+        newEstimate.convertedToInvoiceId = nil
+        
+        // Copy line items
+        for oldLineItem in estimate.lineItemsArray {
+            let newLineItem = EstimateLineItem(context: context)
+            newLineItem.id = UUID()
+            newLineItem.estimateId = newEstimate.id
+            newLineItem.itemType = oldLineItem.itemType
+            newLineItem.itemDescription = oldLineItem.itemDescription
+            newLineItem.quantity = oldLineItem.quantity
+            newLineItem.unitPrice = oldLineItem.unitPrice
+            newLineItem.total = oldLineItem.total
+            newLineItem.order = oldLineItem.order
+            newLineItem.createdAt = Date()
+            newLineItem.estimate = newEstimate
+            
+            newEstimate.addToLineItems(newLineItem)
+        }
+        
+        coreDataManager.save()
+        return newEstimate
+    }
+    
     // MARK: - Line Items
     
     /// Add a line item to an estimate

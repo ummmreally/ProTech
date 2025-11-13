@@ -161,6 +161,7 @@ struct CustomerPortalLoginView: View {
                                 .foregroundColor(.white)
                                 .cornerRadius(8)
                         }
+                        .buttonStyle(.plain)
                         .padding(.horizontal, 40)
                     }
                     .padding(.horizontal, 40)
@@ -194,6 +195,7 @@ struct CustomerPortalLoginView: View {
                     .foregroundColor(.white)
                     .cornerRadius(12)
                 }
+                .buttonStyle(.plain)
                 .disabled(!canLogin || isLoading)
                 .padding(.horizontal, 40)
                 
@@ -370,6 +372,7 @@ struct CustomerPortalAccessView: View {
                     .foregroundColor(.white)
                     .cornerRadius(12)
             }
+            .buttonStyle(.plain)
             .padding(.top, 20)
             
             Spacer()

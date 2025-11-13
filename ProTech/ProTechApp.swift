@@ -9,8 +9,9 @@ import SwiftUI
 
 @main
 struct ProTechApp: App {
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
-    @StateObject private var authService = AuthenticationService.shared
+    // Use @ObservedObject for singletons (not @StateObject which manages lifecycle)
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var authService = AuthenticationService.shared
     @StateObject private var employeeService = EmployeeService()
     let persistenceController = CoreDataManager.shared
     

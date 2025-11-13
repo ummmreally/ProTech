@@ -14,6 +14,7 @@ struct InventoryItemDetailView: View {
     
     @State private var showingStockAdjustment = false
     @State private var showingEditView = false
+    @State private var showingFullHistory = false
     @State private var stockHistory: [StockAdjustment] = []
     
     var body: some View {
@@ -161,7 +162,7 @@ struct InventoryItemDetailView: View {
                             
                             if stockHistory.count > 5 {
                                 Button("View All History") {
-                                    // TODO: Show full history
+                                    showingFullHistory = true
                                 }
                                 .buttonStyle(.borderless)
                             }
@@ -202,6 +203,9 @@ struct InventoryItemDetailView: View {
             }
             .sheet(isPresented: $showingEditView) {
                 EditInventoryItemView(item: item)
+            }
+            .sheet(isPresented: $showingFullHistory) {
+                InventoryHistorySheet(item: item, history: stockHistory)
             }
             .onAppear {
                 loadStockHistory()
@@ -326,6 +330,313 @@ struct StockAdjustmentRow: View {
                     Text(date.formatted(date: .abbreviated, time: .shortened))
                         .font(.caption)
                         .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding()
+        .background(Color(NSColor.controlBackgroundColor))
+        .cornerRadius(8)
+    }
+    
+    private var adjustmentIcon: String {
+        guard let type = adjustment.type,
+              let adjustmentType = StockAdjustmentType(rawValue: type) else {
+            return "arrow.up.arrow.down"
+        }
+        return adjustmentType.icon
+    }
+    
+    private var adjustmentColor: Color {
+        guard let type = adjustment.type else { return .gray }
+        switch type {
+        case "add": return .green
+        case "remove": return .red
+        case "damaged": return .orange
+        default: return .blue
+        }
+    }
+}
+
+// MARK: - Inventory History Sheet
+
+struct InventoryHistorySheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let item: InventoryItem
+    let history: [StockAdjustment]
+    
+    @State private var searchText = ""
+    @State private var filterType: String = "all"
+    @State private var sortOrder: SortOrder = .dateDescending
+    
+    enum SortOrder: String, CaseIterable {
+        case dateDescending = "Newest First"
+        case dateAscending = "Oldest First"
+        case quantityDescending = "Largest Change"
+        case quantityAscending = "Smallest Change"
+    }
+    
+    var filteredAndSortedHistory: [StockAdjustment] {
+        var filtered = history
+        
+        // Filter by type
+        if filterType != "all" {
+            filtered = filtered.filter { $0.type == filterType }
+        }
+        
+        // Search filter
+        if !searchText.isEmpty {
+            filtered = filtered.filter {
+                ($0.reason?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                ($0.reference?.localizedCaseInsensitiveContains(searchText) ?? false) ||
+                ($0.performedBy?.localizedCaseInsensitiveContains(searchText) ?? false)
+            }
+        }
+        
+        // Sort
+        switch sortOrder {
+        case .dateDescending:
+            filtered.sort { ($0.createdAt ?? Date()) > ($1.createdAt ?? Date()) }
+        case .dateAscending:
+            filtered.sort { ($0.createdAt ?? Date()) < ($1.createdAt ?? Date()) }
+        case .quantityDescending:
+            filtered.sort { abs($0.quantityChange) > abs($1.quantityChange) }
+        case .quantityAscending:
+            filtered.sort { abs($0.quantityChange) < abs($1.quantityChange) }
+        }
+        
+        return filtered
+    }
+    
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Filters and search
+                VStack(spacing: 12) {
+                    // Search bar
+                    HStack {
+                        Image(systemName: "magnifyingglass")
+                            .foregroundColor(.secondary)
+                        TextField("Search history...", text: $searchText)
+                            .textFieldStyle(.plain)
+                    }
+                    .padding(10)
+                    .background(Color.gray.opacity(0.1))
+                    .cornerRadius(8)
+                    
+                    // Filters
+                    HStack {
+                        // Type filter
+                        Picker("Type", selection: $filterType) {
+                            Text("All Types").tag("all")
+                            Text("Added").tag("add")
+                            Text("Removed").tag("remove")
+                            Text("Damaged").tag("damaged")
+                            Text("Set").tag("set")
+                        }
+                        .pickerStyle(.segmented)
+                        
+                        Spacer()
+                        
+                        // Sort order
+                        Menu {
+                            ForEach(SortOrder.allCases, id: \.self) { order in
+                                Button(order.rawValue) {
+                                    sortOrder = order
+                                }
+                            }
+                        } label: {
+                            Label(sortOrder.rawValue, systemImage: "arrow.up.arrow.down")
+                        }
+                    }
+                }
+                .padding()
+                
+                Divider()
+                
+                // History list
+                if filteredAndSortedHistory.isEmpty {
+                    VStack(spacing: 12) {
+                        Image(systemName: "clock.arrow.circlepath")
+                            .font(.system(size: 60))
+                            .foregroundColor(.secondary)
+                        Text("No History Found")
+                            .font(.headline)
+                        Text(searchText.isEmpty ? "No stock adjustments have been made" : "No adjustments match your search")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxHeight: .infinity)
+                } else {
+                    ScrollView {
+                        LazyVStack(spacing: 12) {
+                            ForEach(filteredAndSortedHistory) { adjustment in
+                                DetailedStockAdjustmentRow(adjustment: adjustment)
+                            }
+                        }
+                        .padding()
+                    }
+                    
+                    // Summary footer
+                    VStack(spacing: 8) {
+                        Divider()
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("Total Adjustments")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                Text("\(filteredAndSortedHistory.count)")
+                                    .font(.headline)
+                            }
+                            
+                            Spacer()
+                            
+                            VStack(alignment: .trailing, spacing: 4) {
+                                Text("Net Change")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                let netChange = filteredAndSortedHistory.reduce(0) { $0 + $1.quantityChange }
+                                Text("\(netChange > 0 ? "+" : "")\(netChange)")
+                                    .font(.headline)
+                                    .foregroundColor(netChange > 0 ? .green : netChange < 0 ? .red : .primary)
+                            }
+                        }
+                        .padding()
+                    }
+                }
+            }
+            .navigationTitle("\(item.name ?? "Item") History")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .automatic) {
+                    Button {
+                        exportToCSV()
+                    } label: {
+                        Label("Export", systemImage: "square.and.arrow.up")
+                    }
+                    .disabled(filteredAndSortedHistory.isEmpty)
+                }
+            }
+        }
+        .frame(width: 700, height: 600)
+    }
+    
+    private func exportToCSV() {
+        let csvContent = generateCSV()
+        let savePanel = NSSavePanel()
+        savePanel.allowedContentTypes = [.commaSeparatedText]
+        savePanel.nameFieldStringValue = "\(item.name ?? "item")-history.csv"
+        
+        savePanel.begin { response in
+            if response == .OK, let url = savePanel.url {
+                try? csvContent.write(to: url, atomically: true, encoding: .utf8)
+            }
+        }
+    }
+    
+    private func generateCSV() -> String {
+        var csv = "Date,Type,Reason,Reference,Quantity Before,Change,Quantity After,Performed By\n"
+        
+        for adjustment in filteredAndSortedHistory {
+            let date = (adjustment.createdAt ?? Date()).formatted(date: .abbreviated, time: .shortened)
+            let type = adjustment.type ?? ""
+            let reason = (adjustment.reason ?? "").replacingOccurrences(of: ",", with: ";")
+            let reference = (adjustment.reference ?? "").replacingOccurrences(of: ",", with: ";")
+            let qtyBefore = adjustment.quantityBefore
+            let change = adjustment.quantityChange
+            let qtyAfter = adjustment.quantityAfter
+            let performedBy = (adjustment.performedBy ?? "").replacingOccurrences(of: ",", with: ";")
+            
+            csv += "\(date),\(type),\(reason),\(reference),\(qtyBefore),\(change),\(qtyAfter),\(performedBy)\n"
+        }
+        
+        return csv
+    }
+}
+
+// MARK: - Detailed Stock Adjustment Row
+
+struct DetailedStockAdjustmentRow: View {
+    let adjustment: StockAdjustment
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack {
+                Image(systemName: adjustmentIcon)
+                    .foregroundColor(adjustmentColor)
+                    .font(.title3)
+                    .frame(width: 30)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(adjustment.reason ?? "Stock adjustment")
+                        .font(.headline)
+                    
+                    if let reference = adjustment.reference, !reference.isEmpty {
+                        HStack(spacing: 4) {
+                            Image(systemName: "link")
+                                .font(.caption2)
+                            Text(reference)
+                                .font(.subheadline)
+                        }
+                        .foregroundColor(.secondary)
+                    }
+                    
+                    if let performedBy = adjustment.performedBy, !performedBy.isEmpty {
+                        HStack(spacing: 4) {
+                            Image(systemName: "person")
+                                .font(.caption2)
+                            Text(performedBy)
+                                .font(.caption)
+                        }
+                        .foregroundColor(.secondary)
+                    }
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    // Change amount
+                    Text("\(adjustment.quantityChange > 0 ? "+" : "")\(adjustment.quantityChange)")
+                        .font(.title3)
+                        .bold()
+                        .foregroundColor(adjustment.quantityChange > 0 ? .green : .red)
+                    
+                    // Before → After
+                    HStack(spacing: 4) {
+                        Text("\(adjustment.quantityBefore)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Image(systemName: "arrow.right")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                        Text("\(adjustment.quantityAfter)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    // Date
+                    if let date = adjustment.createdAt {
+                        Text(date.formatted(date: .abbreviated, time: .shortened))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            
+            // Notes if present
+            if let notes = adjustment.notes, !notes.isEmpty {
+                HStack {
+                    Text("Note:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(notes)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
                 }
             }
         }

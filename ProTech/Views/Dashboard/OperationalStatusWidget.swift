@@ -151,7 +151,7 @@ struct ActionItemCard: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.5))
+        .background(Color.gray.opacity(0.05))
         .cornerRadius(8)
     }
 }

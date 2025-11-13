@@ -17,6 +17,7 @@ struct InvoiceGeneratorView: View {
     @State private var showingTicketPicker = false
     @State private var showingSaveAlert = false
     @State private var savedInvoice: Invoice?
+    @State private var showingInvoiceDetail = false
     
     private let invoiceService = InvoiceService.shared
     private let coreDataManager = CoreDataManager.shared
@@ -94,8 +95,8 @@ struct InvoiceGeneratorView: View {
         }
         .alert("Invoice Saved", isPresented: $showingSaveAlert) {
             Button("View Invoice") {
-                // TODO: Navigate to invoice detail
-                dismiss()
+                showingInvoiceDetail = true
+                showingSaveAlert = false
             }
             Button("Create Another") {
                 resetForm()
@@ -111,6 +112,15 @@ struct InvoiceGeneratorView: View {
         }
         .sheet(isPresented: $showingTicketPicker) {
             TicketPickerView(customerId: selectedCustomer?.id, selectedTicket: $selectedTicket)
+        }
+        .sheet(isPresented: $showingInvoiceDetail) {
+            if let invoice = savedInvoice {
+                InvoiceDetailView(invoice: invoice)
+                    .onDisappear {
+                        // Close the generator after viewing invoice
+                        dismiss()
+                    }
+            }
         }
     }
     

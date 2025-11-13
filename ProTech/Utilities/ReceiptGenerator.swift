@@ -409,4 +409,44 @@ class ReceiptGenerator {
         let fileName = "Receipt_\(paymentNumber)_\(Date().timeIntervalSince1970).pdf"
         return tempDir.appendingPathComponent(fileName)
     }
+    
+    // MARK: - Print Receipt
+    
+    /// Print receipt PDF
+    func printReceipt(_ pdfDocument: PDFDocument) {
+        let printInfo = NSPrintInfo.shared
+        printInfo.topMargin = 0
+        printInfo.bottomMargin = 0
+        printInfo.leftMargin = 0
+        printInfo.rightMargin = 0
+        printInfo.paperSize = NSSize(width: 288, height: 432) // 4x6 inches
+        printInfo.orientation = .portrait
+        
+        let printOperation = pdfDocument.printOperation(for: printInfo, scalingMode: .pageScaleToFit, autoRotate: true)
+        printOperation?.run()
+    }
+    
+    // MARK: - Email Receipt
+    
+    /// Email receipt using EmailService
+    func emailReceipt(
+        pdfDocument: PDFDocument,
+        payment: Payment,
+        customer: Customer,
+        customerEmail: String
+    ) -> Bool {
+        // Save PDF to temporary location
+        let tempURL = getTemporaryReceiptURL(for: payment.formattedPaymentNumber)
+        guard pdfDocument.write(to: tempURL) else {
+            return false
+        }
+        
+        // Use EmailService to send
+        return EmailService.shared.sendReceipt(
+            payment: payment,
+            customer: customer,
+            pdfURL: tempURL,
+            recipientEmail: customerEmail
+        )
+    }
 }

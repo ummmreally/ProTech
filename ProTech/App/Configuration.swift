@@ -8,23 +8,44 @@
 import Foundation
 
 struct Configuration {
-    // App Information
+    // MARK: - App Information
     static let appName = "ProTech"
     static let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
     static let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
     
+    // MARK: - 🔴 PRODUCTION CONFIG - Update before App Store submission
+    
     // Subscription Product IDs
-    static let monthlySubscriptionID = "com.yourcompany.techstorepro.monthly"
-    static let annualSubscriptionID = "com.yourcompany.techstorepro.annual"
+    // ⚠️ TODO: Update after creating subscription products in App Store Connect
+    // Instructions: https://appstoreconnect.apple.com → Your App → Subscriptions
+    static let monthlySubscriptionID = "com.nugentic.protech.monthly"
+    static let annualSubscriptionID = "com.nugentic.protech.annual"
     
     // Support URLs
-    static let supportURL = URL(string: "https://yourcompany.com/support")!
-    static let privacyPolicyURL = URL(string: "https://yourcompany.com/privacy")!
-    static let termsOfServiceURL = URL(string: "https://yourcompany.com/terms")!
+    // ⚠️ TODO: Create these web pages before submitting to App Store
+    // Apple REQUIRES working privacy policy and terms of service
+    
+    // Option 1: Use your domain (recommended)
+    static let supportURL = URL(string: "https://nugentic.com/protech/support")!
+    static let privacyPolicyURL = URL(string: "https://nugentic.com/protech/privacy")!
+    static let termsOfServiceURL = URL(string: "https://nugentic.com/protech/terms")!
+    
+    // Option 2: Alternative URLs (uncomment and use if preferred)
+    // static let supportURL = URL(string: "https://protech.nugentic.com/support")!
+    // static let privacyPolicyURL = URL(string: "https://protech.nugentic.com/privacy")!
+    // static let termsOfServiceURL = URL(string: "https://protech.nugentic.com/terms")!
+    
     static let twilioSignupURL = URL(string: "https://www.twilio.com/try-twilio")!
     
-    // Feature Flags
-    static let enableStoreKit = false
+    // MARK: - Feature Flags
+    
+    // StoreKit Subscriptions
+    // ⚠️ TODO: Set to true ONLY after:
+    //   1. Creating subscription products in App Store Connect
+    //   2. Testing subscriptions in Sandbox environment
+    //   3. Verifying receipt validation works
+    static let enableStoreKit = false  // 🔴 SET TO TRUE FOR PRODUCTION
+    
     static let enableCloudSync = true
     static let enableAnalytics = true
     static let enableBetaFeatures = false
@@ -41,8 +62,10 @@ struct Configuration {
     static let maxCustomersInFreeVersion = -1 // Unlimited
     static let maxSMSPerMonth = -1 // Unlimited (user pays Twilio)
     
-    // Colors (Brand)
+    // MARK: - Branding
+    
     static let primaryColor = "AccentColor"
+    static let companyName = "Nugentic"  // Used in receipts, invoices, PDFs
     
     // Debug
     static let isDebug: Bool = {

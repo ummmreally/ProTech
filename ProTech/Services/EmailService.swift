@@ -236,6 +236,50 @@ class EmailService {
         
         return true
     }
+    
+    /// Send payment receipt via email
+    func sendReceipt(
+        payment: Payment,
+        customer: Customer,
+        pdfURL: URL,
+        recipientEmail: String
+    ) -> Bool {
+        guard let pdfDocument = PDFDocument(url: pdfURL) else {
+            return false
+        }
+        
+        let receiptNumber = payment.formattedPaymentNumber
+        let subject = "Payment Receipt #\(receiptNumber) from \(Configuration.appName)"
+        
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        let amountString = formatter.string(from: payment.amount as NSDecimalNumber) ?? "$0.00"
+        
+        let body = """
+        Dear \(customer.displayName),
+        
+        Thank you for your payment!
+        
+        Receipt #: \(receiptNumber)
+        Amount Paid: \(amountString)
+        Payment Method: \(payment.paymentMethodDisplayName)
+        
+        Please find your payment receipt attached.
+        
+        Thank you for your business!
+        
+        Best regards,
+        \(Configuration.appName)
+        """
+        
+        return sendEmail(
+            to: recipientEmail,
+            subject: subject,
+            body: body,
+            pdfAttachment: pdfDocument,
+            attachmentFileName: "Receipt_\(receiptNumber).pdf"
+        )
+    }
 }
 
 // MARK: - Error Types

@@ -535,16 +535,20 @@
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <entity name="TimeOffRequest" representedClassName="TimeOffRequest" syncable="YES">
-        <attribute name="approvedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="approvedBy" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="employeeId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="endDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
-        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="employeeId" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="endDate" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="reason" optional="YES" attributeType="String"/>
-        <attribute name="startDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="status" optional="YES" attributeType="String"/>
+        <attribute name="requestType" optional="NO" attributeType="String"/>
+        <attribute name="requestedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="reviewNotes" optional="YES" attributeType="String"/>
+        <attribute name="reviewedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="reviewedBy" optional="YES" attributeType="String"/>
+        <attribute name="startDate" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="status" optional="NO" attributeType="String" defaultValueString="pending"/>
+        <attribute name="totalDays" optional="NO" attributeType="Double" defaultValueString="0.0" usesScalarValueType="YES"/>
+        <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <entity name="EmployeeSchedule" representedClassName="EmployeeSchedule" syncable="YES">
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>

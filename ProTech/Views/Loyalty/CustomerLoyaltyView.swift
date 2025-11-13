@@ -291,6 +291,9 @@ struct CustomerRewardCard: View {
     let reward: LoyaltyReward
     let member: LoyaltyMember?
     @State private var showingRedeemConfirmation = false
+    @State private var showingRedemptionResult = false
+    @State private var redemptionSuccess = false
+    @State private var redemptionMessage = ""
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -346,6 +349,11 @@ struct CustomerRewardCard: View {
         } message: {
             Text("Redeem \(reward.name ?? "this reward") for \(reward.pointsCost) points?")
         }
+        .alert(redemptionSuccess ? "Success!" : "Redemption Failed", isPresented: $showingRedemptionResult) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(redemptionMessage)
+        }
     }
     
     private var rewardIcon: String {
@@ -358,9 +366,22 @@ struct CustomerRewardCard: View {
     }
     
     private func redeemReward() {
-        guard let memberId = member?.id, let rewardId = reward.id else { return }
-        _ = LoyaltyService.shared.redeemReward(memberId: memberId, rewardId: rewardId)
-        // TODO: Show success/error message
+        guard let memberId = member?.id, let rewardId = reward.id else {
+            redemptionSuccess = false
+            redemptionMessage = "Unable to process redemption. Please try again."
+            showingRedemptionResult = true
+            return
+        }
+        
+        if LoyaltyService.shared.redeemReward(memberId: memberId, rewardId: rewardId) {
+            redemptionSuccess = true
+            redemptionMessage = "✨ You've redeemed \(reward.name ?? "this reward")!\n\n-\(reward.pointsCost) points deducted\nNew balance: \(member?.availablePoints ?? 0 - reward.pointsCost) points"
+            showingRedemptionResult = true
+        } else {
+            redemptionSuccess = false
+            redemptionMessage = "Insufficient points or redemption failed. Please check your balance."
+            showingRedemptionResult = true
+        }
     }
 }
 

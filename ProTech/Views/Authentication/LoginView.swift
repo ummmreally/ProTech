@@ -102,6 +102,7 @@ struct LoginView: View {
                         .foregroundColor(.white)
                         .cornerRadius(12)
                     }
+                    .buttonStyle(.plain)
                     .keyboardShortcut(.return)
                 }
                 .padding(30)
@@ -151,13 +152,16 @@ struct LoginView: View {
             
             SecureField("PIN Code", text: $pinCode)
                 .textFieldStyle(.roundedBorder)
-                .font(.system(size: 24, weight: .bold))
+                .font(.system(size: 18, weight: .bold))
                 .multilineTextAlignment(.center)
                 .onChange(of: pinCode) { _, newValue in
                     // Limit to 6 digits
                     if newValue.count > 6 {
                         pinCode = String(newValue.prefix(6))
                     }
+                }
+                .onSubmit {
+                    handleLogin()
                 }
             
             // PIN pad
@@ -178,6 +182,7 @@ struct LoginView: View {
                             .background(Color.red.opacity(0.2))
                             .cornerRadius(8)
                     }
+                    .buttonStyle(.plain)
                     
                     pinButton(number: 0)
                     
@@ -191,6 +196,7 @@ struct LoginView: View {
                             .background(Color.orange.opacity(0.2))
                             .cornerRadius(8)
                     }
+                    .buttonStyle(.plain)
                 }
             }
         }
@@ -219,10 +225,16 @@ struct LoginView: View {
             TextField("Email", text: $email)
                 .textFieldStyle(.roundedBorder)
                 .textContentType(.emailAddress)
+                .onSubmit {
+                    handleLogin()
+                }
             
             SecureField("Password", text: $password)
                 .textFieldStyle(.roundedBorder)
                 .textContentType(.password)
+                .onSubmit {
+                    handleLogin()
+                }
         }
     }
     

@@ -471,6 +471,8 @@ struct EditTimeCardsView: View {
     
     @State private var selectedEmployee: Employee?
     @State private var selectedDateRange: DateRange = .thisWeek
+    @State private var customStartDate = Calendar.current.startOfDay(for: Date())
+    @State private var customEndDate = Date()
     @State private var entries: [TimeClockEntry] = []
     @State private var editingEntry: TimeClockEntry?
     
@@ -501,24 +503,51 @@ struct EditTimeCardsView: View {
             Divider()
             
             // Filters
-            HStack {
-                Picker("Employee", selection: $selectedEmployee) {
-                    Text("All Employees").tag(nil as Employee?)
-                    ForEach(employees, id: \.id) { employee in
-                        Text(employee.fullName).tag(employee as Employee?)
+            VStack(spacing: 12) {
+                HStack {
+                    Picker("Employee", selection: $selectedEmployee) {
+                        Text("All Employees").tag(nil as Employee?)
+                        ForEach(employees, id: \.id) { employee in
+                            Text(employee.fullName).tag(employee as Employee?)
+                        }
                     }
+                    .frame(width: 200)
+                    
+                    Picker("Period", selection: $selectedDateRange) {
+                        ForEach(DateRange.allCases, id: \.self) { range in
+                            Text(range.rawValue).tag(range)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .frame(width: 400)
                 }
-                .frame(width: 200)
                 
-                Picker("Period", selection: $selectedDateRange) {
-                    ForEach(DateRange.allCases, id: \.self) { range in
-                        Text(range.rawValue).tag(range)
+                // Custom date range pickers
+                if selectedDateRange == .custom {
+                    HStack(spacing: 16) {
+                        DatePicker("From:", selection: $customStartDate, displayedComponents: [.date])
+                            .labelsHidden()
+                            .datePickerStyle(.compact)
+                        
+                        Image(systemName: "arrow.right")
+                            .foregroundColor(.secondary)
+                        
+                        DatePicker("To:", selection: $customEndDate, in: customStartDate..., displayedComponents: [.date])
+                            .labelsHidden()
+                            .datePickerStyle(.compact)
+                        
+                        Text("(\(daysBetween(customStartDate, customEndDate)) days)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
                     }
+                    .padding(.horizontal)
+                    .transition(.move(edge: .top).combined(with: .opacity))
                 }
-                .pickerStyle(.segmented)
-                .frame(width: 400)
             }
             .padding()
+            .animation(.easeInOut(duration: 0.2), value: selectedDateRange)
             
             Divider()
             
@@ -543,6 +572,16 @@ struct EditTimeCardsView: View {
         }
         .onChange(of: selectedEmployee) { loadEntries() }
         .onChange(of: selectedDateRange) { loadEntries() }
+        .onChange(of: customStartDate) { _ in
+            if selectedDateRange == .custom {
+                loadEntries()
+            }
+        }
+        .onChange(of: customEndDate) { _ in
+            if selectedDateRange == .custom {
+                loadEntries()
+            }
+        }
         .onAppear { loadEntries() }
     }
     
@@ -569,6 +608,12 @@ struct EditTimeCardsView: View {
         }
     }
     
+    private func daysBetween(_ start: Date, _ end: Date) -> Int {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.day], from: calendar.startOfDay(for: start), to: calendar.startOfDay(for: end))
+        return (components.day ?? 0) + 1
+    }
+    
     private func getDateRange() -> (Date, Date) {
         let calendar = Calendar.current
         let now = Date()
@@ -591,8 +636,9 @@ struct EditTimeCardsView: View {
             let end = calendar.date(byAdding: .month, value: 1, to: start)!
             return (start, end)
         case .custom:
-            // TODO: Implement custom date picker
-            return (now, now)
+            let start = calendar.startOfDay(for: customStartDate)
+            let end = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: customEndDate))!
+            return (start, end)
         }
     }
 }

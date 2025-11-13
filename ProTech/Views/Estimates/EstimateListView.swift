@@ -203,7 +203,8 @@ struct EstimateListView: View {
     }
     
     private func duplicateEstimate(_ estimate: Estimate) {
-        // TODO: Implement duplication logic
+        let _ = EstimateService.shared.duplicateEstimate(estimate)
+        // Estimate will automatically appear in list due to @FetchRequest
     }
     
     private func deleteEstimate(_ estimate: Estimate) {

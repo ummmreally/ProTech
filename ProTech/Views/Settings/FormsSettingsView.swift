@@ -14,6 +14,8 @@ struct FormsSettingsView: View {
     @AppStorage("formHeaderText") private var formHeaderText = "Device Repair Authorization"
     @AppStorage("formFooterText") private var formFooterText = "Thank you for your business!"
     
+    @State private var showingTemplateManager = false
+    
     var body: some View {
         Form {
             Section("Company Branding") {
@@ -31,11 +33,12 @@ struct FormsSettingsView: View {
             }
             
             Section("Form Templates") {
-                NavigationLink {
-                    Text("Form Templates (Coming Soon)")
+                Button {
+                    showingTemplateManager = true
                 } label: {
                     Label("Manage Form Templates", systemImage: "doc.text")
                 }
+                .buttonStyle(.plain)
             }
             
             Section {
@@ -49,5 +52,8 @@ struct FormsSettingsView: View {
             }
         }
         .formStyle(.grouped)
+        .sheet(isPresented: $showingTemplateManager) {
+            FormTemplateManagerView()
+        }
     }
 }

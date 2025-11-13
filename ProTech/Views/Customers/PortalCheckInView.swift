@@ -91,6 +91,7 @@ struct PortalCheckInView: View {
                     .foregroundColor(.white)
                     .cornerRadius(12)
                 }
+                .buttonStyle(.plain)
                 .disabled(!canSubmit || isSubmitting)
                 .padding(.horizontal)
                 
@@ -230,6 +231,7 @@ struct CheckInSuccessView: View {
                     .foregroundColor(.white)
                     .cornerRadius(12)
             }
+            .buttonStyle(.plain)
         }
         .padding()
         .frame(minWidth: 400, minHeight: 300)
