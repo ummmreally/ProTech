@@ -1,0 +1,192 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Customers/CustomerCommunicationView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Filter",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "Communication History",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld item%@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 48
+        }
+      },
+      {
+        "comment": "",
+        "key": "No communication history",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "Send SMS",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 95
+        }
+      },
+      {
+        "comment": "",
+        "key": "Send Email",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Note",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 110
+        }
+      },
+      {
+        "comment": "",
+        "key": "Send Email",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 342
+        }
+      },
+      {
+        "comment": "",
+        "key": "Recipient",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 317
+        }
+      },
+      {
+        "comment": "",
+        "key": "Template",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 323
+        }
+      },
+      {
+        "comment": "",
+        "key": "Message",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 334
+        }
+      },
+      {
+        "comment": "",
+        "key": "To",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 318
+        }
+      },
+      {
+        "comment": "",
+        "key": "Use Template",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 324
+        }
+      },
+      {
+        "comment": "",
+        "key": "Subject",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 335
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 345
+        }
+      },
+      {
+        "comment": "",
+        "key": "Send",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 350
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Communication",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 473
+        }
+      },
+      {
+        "comment": "",
+        "key": "Type",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 450
+        }
+      },
+      {
+        "comment": "",
+        "key": "Details",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 459
+        }
+      },
+      {
+        "comment": "",
+        "key": "Communication Type",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 451
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter details...",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 464
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 476
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 481
+        }
+      }
+    ]
+  },
+  "version": 1
+}

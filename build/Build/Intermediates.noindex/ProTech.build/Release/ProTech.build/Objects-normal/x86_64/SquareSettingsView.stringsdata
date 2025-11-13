@@ -1,0 +1,232 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/POS/SquareSettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Square Settings",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 109
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connection Error",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 113
+        }
+      },
+      {
+        "comment": "",
+        "key": "Square Configuration",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 22
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connection Status",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "Setup Instructions",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 84
+        }
+      },
+      {
+        "comment": "",
+        "key": "Environment",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 43
+        }
+      },
+      {
+        "comment": "",
+        "key": "Access Token",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 24
+        }
+      },
+      {
+        "comment": "",
+        "key": "Get this from Square Developer Dashboard → Credentials",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 28
+        }
+      },
+      {
+        "comment": "",
+        "key": "Paste your Square Access Token",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "Location ID",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 34
+        }
+      },
+      {
+        "comment": "",
+        "key": "Will be auto-fetched when you test connection",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 38
+        }
+      },
+      {
+        "comment": "",
+        "key": "Square Location ID",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sandbox (Testing)",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "Production (Live)",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 45
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ready to process payments",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 59
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connected to Square",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "Not Connected",
+        "location": {
+          "startingColumn": 68,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "Testing...",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 76
+        }
+      },
+      {
+        "comment": "",
+        "key": "Test Connection",
+        "location": {
+          "startingColumn": 65,
+          "startingLine": 76
+        }
+      },
+      {
+        "comment": "",
+        "key": "Visit developer.squareup.com/apps",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "Click 'Create App' and name it",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 92
+        }
+      },
+      {
+        "comment": "",
+        "key": "Go to Credentials tab and copy token",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 97
+        }
+      },
+      {
+        "comment": "",
+        "key": "Then click 'Test Connection'",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 102
+        }
+      },
+      {
+        "comment": "",
+        "key": "1. Create Square Developer Account",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "2. Create New Application",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 91
+        }
+      },
+      {
+        "comment": "",
+        "key": "3. Get Access Token",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "4. Paste Token Above",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 101
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 114
+        }
+      }
+    ]
+  },
+  "version": 1
+}

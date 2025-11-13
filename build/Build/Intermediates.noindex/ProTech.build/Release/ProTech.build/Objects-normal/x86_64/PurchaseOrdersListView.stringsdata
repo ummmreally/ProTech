@@ -1,0 +1,680 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Inventory/PurchaseOrdersListView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Purchase Orders",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 64
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld orders",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Status",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "All Orders",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 31
+        }
+      },
+      {
+        "comment": "",
+        "key": "Draft",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 32
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sent",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 33
+        }
+      },
+      {
+        "comment": "",
+        "key": "Partially Received",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 34
+        }
+      },
+      {
+        "comment": "",
+        "key": "Received",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 35
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancelled",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create PO",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Purchase Orders",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create First PO",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 90
+        }
+      },
+      {
+        "comment": "",
+        "key": "PO #%@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 104
+        }
+      },
+      {
+        "comment": "",
+        "key": "New Purchase Order",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 338
+        }
+      },
+      {
+        "comment": "",
+        "key": "Error",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 350
+        }
+      },
+      {
+        "comment": "",
+        "key": "Supplier",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 192
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delivery",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 209
+        }
+      },
+      {
+        "comment": "",
+        "key": "Costs",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 280
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notes",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 332
+        }
+      },
+      {
+        "comment": "",
+        "key": "No suppliers found. Add suppliers in Settings.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 203
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Supplier",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 193
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select a supplier",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 194
+        }
+      },
+      {
+        "comment": "",
+        "key": "Expected Delivery",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 210
+        }
+      },
+      {
+        "comment": "",
+        "key": "Item",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 217
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select item",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 218
+        }
+      },
+      {
+        "comment": "",
+        "key": "Qty: %lld",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 236
+        }
+      },
+      {
+        "comment": "",
+        "key": "$",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 242
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cost",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 243
+        }
+      },
+      {
+        "comment": "",
+        "key": "Line Total:",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 251
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Line Item",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 266
+        }
+      },
+      {
+        "comment": "",
+        "key": "Line Items",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 270
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld item(s)",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 273
+        }
+      },
+      {
+        "comment": "",
+        "key": "Subtotal",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 282
+        }
+      },
+      {
+        "comment": "",
+        "key": "Shipping",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 289
+        }
+      },
+      {
+        "comment": "",
+        "key": "$",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 292
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.00",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 293
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tax Rate",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 301
+        }
+      },
+      {
+        "comment": "",
+        "key": "%",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 308
+        }
+      },
+      {
+        "comment": "",
+        "key": "0.0",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 304
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tax",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 313
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 322
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 341
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 344
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 351
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel Order",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 691
+        }
+      },
+      {
+        "comment": "",
+        "key": "Error",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 699
+        }
+      },
+      {
+        "comment": "",
+        "key": "Purchase Order",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 652
+        }
+      },
+      {
+        "comment": "",
+        "key": "Supplier",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 499
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delivery",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 529
+        }
+      },
+      {
+        "comment": "",
+        "key": "Items",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 562
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 606
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notes",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 643
+        }
+      },
+      {
+        "comment": "",
+        "key": "PO #%@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 471
+        }
+      },
+      {
+        "comment": "",
+        "key": "Order Date: %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 488
+        }
+      },
+      {
+        "comment": "",
+        "key": "Expected:",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 532
+        }
+      },
+      {
+        "comment": "",
+        "key": "Actual:",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 540
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tracking:",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 550
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unknown Item",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 576
+        }
+      },
+      {
+        "comment": "",
+        "key": "Part #: %@",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 571
+        }
+      },
+      {
+        "comment": "",
+        "key": "Qty: %lld",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 584
+        }
+      },
+      {
+        "comment": "",
+        "key": "Subtotal",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 609
+        }
+      },
+      {
+        "comment": "",
+        "key": "Shipping",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 615
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tax",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 621
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 629
+        }
+      },
+      {
+        "comment": "",
+        "key": "Mark as Ordered",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 660
+        }
+      },
+      {
+        "comment": "",
+        "key": "Mark as Received",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 668
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel Order",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 678
+        }
+      },
+      {
+        "comment": "",
+        "key": "Actions",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 682
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel Order",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 692
+        }
+      },
+      {
+        "comment": "",
+        "key": "Keep Order",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 695
+        }
+      },
+      {
+        "comment": "",
+        "key": "Are you sure you want to cancel this purchase order? This action cannot be undone.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 697
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 700
+        }
+      },
+      {
+        "comment": "",
+        "key": "Receive Purchase Order",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 809
+        }
+      },
+      {
+        "comment": "",
+        "key": "Error",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 820
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delivery Information",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 773
+        }
+      },
+      {
+        "comment": "",
+        "key": "Items to Receive",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 778
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notes",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 797
+        }
+      },
+      {
+        "comment": "",
+        "key": "Received Date",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 774
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tracking Number (Optional)",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 775
+        }
+      },
+      {
+        "comment": "",
+        "key": "Qty: %lld",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 785
+        }
+      },
+      {
+        "comment": "",
+        "key": "This will mark the order as received and update inventory quantities.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 803
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 812
+        }
+      },
+      {
+        "comment": "",
+        "key": "Receive Items",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 815
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 821
+        }
+      }
+    ]
+  },
+  "version": 1
+}

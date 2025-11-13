@@ -1,0 +1,88 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Main/DashboardView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Dashboard",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "Welcome to %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 39
+        }
+      },
+      {
+        "comment": "",
+        "key": "Updated %@ ago",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "Refresh",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quick Stats",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quick Actions",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 141
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 216
+        }
+      },
+      {
+        "comment": "",
+        "key": "Get SMS messaging, custom forms, cloud sync, and more for just $19.99/month",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 247
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unlock Pro Features",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 242
+        }
+      },
+      {
+        "comment": "",
+        "key": "Try Free for 7 Days",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 254
+        }
+      }
+    ]
+  },
+  "version": 1
+}

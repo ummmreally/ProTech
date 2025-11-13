@@ -1,0 +1,72 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/POS/CheckoutSuccessOverlay.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Payment Successful!",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 35
+        }
+      },
+      {
+        "comment": "",
+        "key": "$%.2f",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 39
+        }
+      },
+      {
+        "comment": "",
+        "key": "for %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "Loyalty Points Earned",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "+%d",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 61
+        }
+      },
+      {
+        "comment": "",
+        "key": "points",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 64
+        }
+      },
+      {
+        "comment": "",
+        "key": "Thank you for your purchase!",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 82
+        }
+      },
+      {
+        "comment": "",
+        "key": "Check your loyalty rewards to redeem!",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 87
+        }
+      }
+    ]
+  },
+  "version": 1
+}

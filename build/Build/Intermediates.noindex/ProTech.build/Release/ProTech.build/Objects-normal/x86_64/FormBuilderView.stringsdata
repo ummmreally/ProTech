@@ -1,0 +1,360 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Forms/FormBuilderView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Edit Template",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "New Template",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "Template Information",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 33
+        }
+      },
+      {
+        "comment": "",
+        "key": "Form Name",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 34
+        }
+      },
+      {
+        "comment": "",
+        "key": "Form Type",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "Description (optional)",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "Instructions (optional)",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 47
+        }
+      },
+      {
+        "comment": "",
+        "key": "Custom",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 37
+        }
+      },
+      {
+        "comment": "",
+        "key": "Intake Form",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 38
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pickup Form",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 39
+        }
+      },
+      {
+        "comment": "",
+        "key": "Service Agreement",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 40
+        }
+      },
+      {
+        "comment": "",
+        "key": "Checklist",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 41
+        }
+      },
+      {
+        "comment": "",
+        "key": "No fields added yet",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "Form Fields",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 53
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Field",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 94
+        }
+      },
+      {
+        "comment": "",
+        "key": "Fields",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 104
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 111
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 117
+        }
+      },
+      {
+        "comment": "",
+        "key": "• Required",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 204
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit Field",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 312
+        }
+      },
+      {
+        "comment": "",
+        "key": "New Field",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 312
+        }
+      },
+      {
+        "comment": "",
+        "key": "Field Details",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 258
+        }
+      },
+      {
+        "comment": "",
+        "key": "Options",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 283
+        }
+      },
+      {
+        "comment": "",
+        "key": "Label",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 259
+        }
+      },
+      {
+        "comment": "",
+        "key": "Field Type",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 261
+        }
+      },
+      {
+        "comment": "",
+        "key": "Placeholder (optional)",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 276
+        }
+      },
+      {
+        "comment": "",
+        "key": "Required Field",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 279
+        }
+      },
+      {
+        "comment": "",
+        "key": "Text",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 262
+        }
+      },
+      {
+        "comment": "",
+        "key": "Multi-line Text",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 263
+        }
+      },
+      {
+        "comment": "",
+        "key": "Number",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 264
+        }
+      },
+      {
+        "comment": "",
+        "key": "Email",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 265
+        }
+      },
+      {
+        "comment": "",
+        "key": "Phone",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 266
+        }
+      },
+      {
+        "comment": "",
+        "key": "Date",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 267
+        }
+      },
+      {
+        "comment": "",
+        "key": "Dropdown",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 268
+        }
+      },
+      {
+        "comment": "",
+        "key": "Checkbox",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 269
+        }
+      },
+      {
+        "comment": "",
+        "key": "Radio Buttons",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 270
+        }
+      },
+      {
+        "comment": "",
+        "key": "Yes/No",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 271
+        }
+      },
+      {
+        "comment": "",
+        "key": "Signature",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 272
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add option",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 299
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 300
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 315
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 321
+        }
+      }
+    ]
+  },
+  "version": 1
+}

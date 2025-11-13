@@ -1,0 +1,128 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Inventory/BatchPrintOptionsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Batch Print Labels",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 130
+        }
+      },
+      {
+        "comment": "",
+        "key": "Labels will be sent to default printer",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 33
+        }
+      },
+      {
+        "comment": "",
+        "key": "Dymo Printer Found",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 29
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Dymo Printer Detected",
+        "location": {
+          "startingColumn": 72,
+          "startingLine": 29
+        }
+      },
+      {
+        "comment": "",
+        "key": "Print Summary",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 47
+        }
+      },
+      {
+        "comment": "",
+        "key": "Products to print:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 53
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "Copies per product:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 66
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 72
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total labels:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "Label Size: 2.25\" × 1.25\" (Dymo Address Label)",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 99
+        }
+      },
+      {
+        "comment": "",
+        "key": "Each label includes: Product name, SKU, Price, Stock, Barcode",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 112
+        }
+      },
+      {
+        "comment": "",
+        "key": "Print %lld Label%@",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 122
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,304 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Payments/PaymentProcessorView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Payment Error",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 129
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment Successful",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 134
+        }
+      },
+      {
+        "comment": "",
+        "key": "Process Payment",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 110
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment Method",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 51
+        }
+      },
+      {
+        "comment": "",
+        "key": "Invoice Details",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 79
+        }
+      },
+      {
+        "comment": "",
+        "key": "Amount Due",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 38
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Credit Card",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add New Card",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 73
+        }
+      },
+      {
+        "comment": "",
+        "key": "Invoice #",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 80
+        }
+      },
+      {
+        "comment": "",
+        "key": "Customer",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 81
+        }
+      },
+      {
+        "comment": "",
+        "key": "Due Date",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "Processing...",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "Process Payment",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 99
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 113
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 130
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "Payment of %@ has been processed successfully.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 139
+        }
+      },
+      {
+        "comment": "",
+        "key": "Expires %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "EXPIRED",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 218
+        }
+      },
+      {
+        "comment": "",
+        "key": "EXPIRING SOON",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 227
+        }
+      },
+      {
+        "comment": "",
+        "key": "DEFAULT",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 238
+        }
+      },
+      {
+        "comment": "",
+        "key": "Error",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 344
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Payment Method",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 327
+        }
+      },
+      {
+        "comment": "",
+        "key": "Card Information",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 285
+        }
+      },
+      {
+        "comment": "",
+        "key": "Billing Information",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 311
+        }
+      },
+      {
+        "comment": "",
+        "key": "Card Number",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 286
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cardholder Name",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 289
+        }
+      },
+      {
+        "comment": "",
+        "key": "/",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 297
+        }
+      },
+      {
+        "comment": "",
+        "key": "MM",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 293
+        }
+      },
+      {
+        "comment": "",
+        "key": "YY",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 299
+        }
+      },
+      {
+        "comment": "",
+        "key": "CVV",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 305
+        }
+      },
+      {
+        "comment": "",
+        "key": "ZIP Code",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 312
+        }
+      },
+      {
+        "comment": "",
+        "key": "Set as default payment method",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 317
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your card information is securely processed by Stripe. We do not store your complete card details.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 321
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 330
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 336
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 345
+        }
+      }
+    ]
+  },
+  "version": 1
+}

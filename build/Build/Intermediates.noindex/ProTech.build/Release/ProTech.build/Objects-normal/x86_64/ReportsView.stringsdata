@@ -1,0 +1,272 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Reports/ReportsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Reports & Analytics",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 99
+        }
+      },
+      {
+        "comment": "",
+        "key": "Business insights and performance metrics",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "Print",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 111
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 116
+        }
+      },
+      {
+        "comment": "",
+        "key": "Date Range",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 127
+        }
+      },
+      {
+        "comment": "",
+        "key": "Report Type",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 137
+        }
+      },
+      {
+        "comment": "",
+        "key": "Key Metrics",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 156
+        }
+      },
+      {
+        "comment": "",
+        "key": "Revenue Trend",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 199
+        }
+      },
+      {
+        "comment": "",
+        "key": "No data available for this period",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 205
+        }
+      },
+      {
+        "comment": "",
+        "key": "Date",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 214
+        }
+      },
+      {
+        "comment": "",
+        "key": "Revenue",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 215
+        }
+      },
+      {
+        "comment": "",
+        "key": "Date",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 220
+        }
+      },
+      {
+        "comment": "",
+        "key": "Revenue",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 221
+        }
+      },
+      {
+        "comment": "",
+        "key": "Revenue by Payment Method",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 256
+        }
+      },
+      {
+        "comment": "",
+        "key": "No payment data available",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 260
+        }
+      },
+      {
+        "comment": "",
+        "key": "Top Customers",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 287
+        }
+      },
+      {
+        "comment": "",
+        "key": "No customer data available",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 291
+        }
+      },
+      {
+        "comment": "",
+        "key": "#%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 296
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 301
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tickets by Status",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 324
+        }
+      },
+      {
+        "comment": "",
+        "key": "No ticket data available",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 328
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 342
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export Report",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 446
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export Options",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 431
+        }
+      },
+      {
+        "comment": "",
+        "key": "Report Details",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 439
+        }
+      },
+      {
+        "comment": "",
+        "key": "Format",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 432
+        }
+      },
+      {
+        "comment": "",
+        "key": "CSV",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 433
+        }
+      },
+      {
+        "comment": "",
+        "key": "PDF",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 434
+        }
+      },
+      {
+        "comment": "",
+        "key": "Report Type",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 440
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start Date",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 441
+        }
+      },
+      {
+        "comment": "",
+        "key": "End Date",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 442
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 449
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 455
+        }
+      }
+    ]
+  },
+  "version": 1
+}

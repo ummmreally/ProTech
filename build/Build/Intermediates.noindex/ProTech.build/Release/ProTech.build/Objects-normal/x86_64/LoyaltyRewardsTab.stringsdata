@@ -1,0 +1,200 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Loyalty/LoyaltyRewardsTab.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Rewards Catalog",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 35
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Reward",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "points",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 90
+        }
+      },
+      {
+        "comment": "",
+        "key": "%d",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 118
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Reward",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 222
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reward Details",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 177
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reward Type",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 186
+        }
+      },
+      {
+        "comment": "",
+        "key": "Preview",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 198
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reward Name",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 178
+        }
+      },
+      {
+        "comment": "",
+        "key": "Description",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 180
+        }
+      },
+      {
+        "comment": "",
+        "key": "Points Cost",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 183
+        }
+      },
+      {
+        "comment": "",
+        "key": "Type",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 187
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 225
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 231
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit Reward",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 331
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reward Details",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 316
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reward Name",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 317
+        }
+      },
+      {
+        "comment": "",
+        "key": "Description",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 319
+        }
+      },
+      {
+        "comment": "",
+        "key": "Points Cost",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 322
+        }
+      },
+      {
+        "comment": "",
+        "key": "Value",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 325
+        }
+      },
+      {
+        "comment": "",
+        "key": "Active",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 328
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 334
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 340
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,96 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Customers/SMSComposerView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Error Sending SMS",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 126
+        }
+      },
+      {
+        "comment": "",
+        "key": "SMS Sent!",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 131
+        }
+      },
+      {
+        "comment": "",
+        "key": "Send SMS to %@ %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 31
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld characters",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "• %lld SMS",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quick Templates",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "Send SMS",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 111
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 127
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 132
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your message was sent successfully to %@.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 136
+        }
+      }
+    ]
+  },
+  "version": 1
+}

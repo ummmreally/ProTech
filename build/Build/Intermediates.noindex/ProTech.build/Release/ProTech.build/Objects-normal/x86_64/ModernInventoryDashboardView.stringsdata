@@ -1,0 +1,56 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Inventory/ModernInventoryDashboardView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Inventory Dashboard",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Item",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 80
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search inventory...",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 94
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quick Actions",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 166
+        }
+      },
+      {
+        "comment": "",
+        "key": "Inventory by Category",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 220
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 241
+        }
+      }
+    ]
+  },
+  "version": 1
+}

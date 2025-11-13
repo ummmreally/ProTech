@@ -1,0 +1,408 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Invoices/InvoiceGeneratorView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Invoice Saved",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit Invoice",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 76
+        }
+      },
+      {
+        "comment": "",
+        "key": "New Invoice",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 76
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 79
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "View Invoice",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 97
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create Another",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 101
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 104
+        }
+      },
+      {
+        "comment": "",
+        "key": "Invoice has been saved successfully.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "Customer",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 131
+        }
+      },
+      {
+        "comment": "",
+        "key": "Change",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 156
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 137
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Customer",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 167
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ticket (Optional)",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 183
+        }
+      },
+      {
+        "comment": "",
+        "key": "Change",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 209
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remove",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ticket #%d",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 189
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ - %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 194
+        }
+      },
+      {
+        "comment": "",
+        "key": "Link to Ticket",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 224
+        }
+      },
+      {
+        "comment": "",
+        "key": "No items added yet",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 253
+        }
+      },
+      {
+        "comment": "",
+        "key": "Line Items",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 242
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Item",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 248
+        }
+      },
+      {
+        "comment": "",
+        "key": "Subtotal:",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 280
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tax Rate:",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 288
+        }
+      },
+      {
+        "comment": "",
+        "key": "%",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 293
+        }
+      },
+      {
+        "comment": "",
+        "key": "0",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 289
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total:",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 303
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notes",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 322
+        }
+      },
+      {
+        "comment": "",
+        "key": "Terms & Conditions",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 331
+        }
+      },
+      {
+        "comment": "",
+        "key": "Due Date",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 346
+        }
+      },
+      {
+        "comment": "",
+        "key": "Due Date",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 349
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 488
+        }
+      },
+      {
+        "comment": "",
+        "key": "Description",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 498
+        }
+      },
+      {
+        "comment": "",
+        "key": "Qty",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 505
+        }
+      },
+      {
+        "comment": "",
+        "key": "Price",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 514
+        }
+      },
+      {
+        "comment": "",
+        "key": "Service",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 489
+        }
+      },
+      {
+        "comment": "",
+        "key": "Labor",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 490
+        }
+      },
+      {
+        "comment": "",
+        "key": "Part",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 491
+        }
+      },
+      {
+        "comment": "",
+        "key": "Other",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 492
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Customer",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 675
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search customers...",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 600
+        }
+      },
+      {
+        "comment": "",
+        "key": "Walk-in Customer",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 625
+        }
+      },
+      {
+        "comment": "",
+        "key": "No customer selected",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 628
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ %@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 655
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 678
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Ticket",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 727
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ticket #%d",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 710
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ - %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 714
+        }
+      },
+      {
+        "comment": "",
+        "key": "Status: %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 720
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 730
+        }
+      }
+    ]
+  },
+  "version": 1
+}

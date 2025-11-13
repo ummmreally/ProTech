@@ -1,0 +1,120 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Appointments/AppointmentDetailView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Appointment Details",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 163
+        }
+      },
+      {
+        "comment": "",
+        "key": "Scheduled",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 61
+        }
+      },
+      {
+        "comment": "",
+        "key": "Duration",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 70
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ends",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 79
+        }
+      },
+      {
+        "comment": "",
+        "key": "Schedule",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 88
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notes",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 99
+        }
+      },
+      {
+        "comment": "",
+        "key": "Confirmation Sent",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 109
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reminder Sent",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 117
+        }
+      },
+      {
+        "comment": "",
+        "key": "Completed",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 126
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancelled",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 136
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancellation Reason",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 147
+        }
+      },
+      {
+        "comment": "",
+        "key": "Status Details",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 156
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 166
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 104,
+          "startingLine": 173
+        }
+      }
+    ]
+  },
+  "version": 1
+}

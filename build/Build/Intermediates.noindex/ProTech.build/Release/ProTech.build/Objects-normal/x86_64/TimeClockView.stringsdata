@@ -1,0 +1,136 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/TimeClock/TimeClockView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Time Clock",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "Started at %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 97
+        }
+      },
+      {
+        "comment": "",
+        "key": "Not Clocked In",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start your shift to begin tracking time",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 112
+        }
+      },
+      {
+        "comment": "",
+        "key": "End Break",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 139
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start Break",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 148
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clock Out",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 158
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clock In",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 169
+        }
+      },
+      {
+        "comment": "",
+        "key": "Today's Summary",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 185
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Hours",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 193
+        }
+      },
+      {
+        "comment": "",
+        "key": "Estimated Pay",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 205
+        }
+      },
+      {
+        "comment": "",
+        "key": "Recent Entries",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 224
+        }
+      },
+      {
+        "comment": "",
+        "key": "No time clock entries yet",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 230
+        }
+      },
+      {
+        "comment": "",
+        "key": "Please Log In",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 250
+        }
+      },
+      {
+        "comment": "",
+        "key": "You need to be logged in to use the time clock",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 254
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ - %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 342
+        }
+      }
+    ]
+  },
+  "version": 1
+}

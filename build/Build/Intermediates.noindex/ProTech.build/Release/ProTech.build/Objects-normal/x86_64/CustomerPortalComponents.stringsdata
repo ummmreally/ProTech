@@ -1,0 +1,392 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Customers/CustomerPortalComponents.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Ticket #%d",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "Checked In",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "Est. Completion",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "Repair Details",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 192
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ticket #%d",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "Device Information",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 132
+        }
+      },
+      {
+        "comment": "",
+        "key": "Issue Description",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 143
+        }
+      },
+      {
+        "comment": "",
+        "key": "Timeline",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 173
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notes",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 184
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 195
+        }
+      },
+      {
+        "comment": "",
+        "key": "Issued: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 228
+        }
+      },
+      {
+        "comment": "",
+        "key": "Due: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 234
+        }
+      },
+      {
+        "comment": "",
+        "key": "Balance: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 247
+        }
+      },
+      {
+        "comment": "",
+        "key": "Paid",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 251
+        }
+      },
+      {
+        "comment": "",
+        "key": "Invoice Details",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 427
+        }
+      },
+      {
+        "comment": "",
+        "key": "Invoice Information",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 315
+        }
+      },
+      {
+        "comment": "",
+        "key": "Line Items",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 347
+        }
+      },
+      {
+        "comment": "",
+        "key": "Subtotal",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 356
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tax (%@%%)",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 362
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 370
+        }
+      },
+      {
+        "comment": "",
+        "key": "Amount Paid",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 379
+        }
+      },
+      {
+        "comment": "",
+        "key": "Balance Due",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 386
+        }
+      },
+      {
+        "comment": "",
+        "key": "Summary",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 396
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notes",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 407
+        }
+      },
+      {
+        "comment": "",
+        "key": "Terms",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 419
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 430
+        }
+      },
+      {
+        "comment": "",
+        "key": "Issued: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 463
+        }
+      },
+      {
+        "comment": "",
+        "key": "Valid Until: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 469
+        }
+      },
+      {
+        "comment": "",
+        "key": "Estimate Details",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 675
+        }
+      },
+      {
+        "comment": "",
+        "key": "Approve Estimate",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 683
+        }
+      },
+      {
+        "comment": "",
+        "key": "This estimate has expired",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 531
+        }
+      },
+      {
+        "comment": "",
+        "key": "Approve",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 544
+        }
+      },
+      {
+        "comment": "",
+        "key": "Decline",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 554
+        }
+      },
+      {
+        "comment": "",
+        "key": "Estimate Information",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 592
+        }
+      },
+      {
+        "comment": "",
+        "key": "Line Items",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 624
+        }
+      },
+      {
+        "comment": "",
+        "key": "Subtotal",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 633
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tax (%@%%)",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 639
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 647
+        }
+      },
+      {
+        "comment": "",
+        "key": "Summary",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 656
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notes",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 667
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 678
+        }
+      },
+      {
+        "comment": "",
+        "key": "Approve",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 684
+        }
+      },
+      {
+        "comment": "",
+        "key": "Are you sure you want to approve this estimate?",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 690
+        }
+      },
+      {
+        "comment": "",
+        "key": "Decline Estimate",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 872
+        }
+      },
+      {
+        "comment": "",
+        "key": "Reason for Declining (Optional)",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 867
+        }
+      },
+      {
+        "comment": "",
+        "key": "Let us know why you're declining this estimate. This helps us improve our service.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 869
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 875
+        }
+      },
+      {
+        "comment": "",
+        "key": "Decline",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 881
+        }
+      }
+    ]
+  },
+  "version": 1
+}

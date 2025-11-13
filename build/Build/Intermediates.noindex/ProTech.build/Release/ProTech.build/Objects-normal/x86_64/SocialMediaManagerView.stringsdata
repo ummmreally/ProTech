@@ -1,0 +1,192 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Marketing/SocialMediaManagerView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Social Media Manager",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 51
+        }
+      },
+      {
+        "comment": "",
+        "key": "Post Successful! 🎉",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your post has been published to %lld platform(s)!",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 58
+        }
+      },
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 79
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create Post",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 90
+        }
+      },
+      {
+        "comment": "",
+        "key": "What's on your mind? Share with your customers...",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld characters",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 121
+        }
+      },
+      {
+        "comment": "",
+        "key": "Note: X/Twitter limit is 280 characters",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 128
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remove",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 150
+        }
+      },
+      {
+        "comment": "",
+        "key": "Change",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 160
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Photo",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 177
+        }
+      },
+      {
+        "comment": "",
+        "key": "Click to upload image",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 182
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Platforms",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 223
+        }
+      },
+      {
+        "comment": "",
+        "key": "Deselect All",
+        "location": {
+          "startingColumn": 85,
+          "startingLine": 237
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select All",
+        "location": {
+          "startingColumn": 102,
+          "startingLine": 237
+        }
+      },
+      {
+        "comment": "",
+        "key": "Posting...",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 273
+        }
+      },
+      {
+        "comment": "",
+        "key": "Post to %lld Platform(s)",
+        "location": {
+          "startingColumn": 53,
+          "startingLine": 273
+        }
+      },
+      {
+        "comment": "",
+        "key": "Schedule for Later",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 294
+        }
+      },
+      {
+        "comment": "",
+        "key": "Recent Posts",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 320
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connected",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 481
+        }
+      },
+      {
+        "comment": "",
+        "key": "Not connected",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 481
+        }
+      },
+      {
+        "comment": "",
+        "key": "Posted",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 554
+        }
+      }
+    ]
+  },
+  "version": 1
+}

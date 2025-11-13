@@ -1,0 +1,160 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Settings/TwilioSettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Twilio Credentials",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 45
+        }
+      },
+      {
+        "comment": "",
+        "key": "How It Works",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 94
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pricing",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "Configure your Twilio account to send SMS messages to customers.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 24
+        }
+      },
+      {
+        "comment": "",
+        "key": "Don't have a Twilio account?",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 29
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sign up here →",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 31
+        }
+      },
+      {
+        "comment": "",
+        "key": "View Setup Tutorial",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 38
+        }
+      },
+      {
+        "comment": "",
+        "key": "+15551234567",
+        "location": {
+          "startingColumn": 76,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "Account SID",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 46
+        }
+      },
+      {
+        "comment": "",
+        "key": "Starts with 'AC' - found in Twilio Console",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "Auth Token",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 51
+        }
+      },
+      {
+        "comment": "",
+        "key": "Click the eye icon in Twilio Console to reveal",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "Phone Number",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "Use E.164 format: +1XXXXXXXXXX",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 59
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save Credentials",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 64
+        }
+      },
+      {
+        "comment": "",
+        "key": "Test Connection",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 76
+        }
+      },
+      {
+        "comment": "",
+        "key": "• Phone number: ~$1-2/month",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 105
+        }
+      },
+      {
+        "comment": "",
+        "key": "• SMS in US: ~$0.0079 per message",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 106
+        }
+      },
+      {
+        "comment": "",
+        "key": "• You pay Twilio directly",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 107
+        }
+      }
+    ]
+  },
+  "version": 1
+}

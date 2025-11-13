@@ -1,0 +1,544 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Settings/SquareInventorySyncSettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Square Integration",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 278
+        }
+      },
+      {
+        "comment": "",
+        "key": "Error",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 279
+        }
+      },
+      {
+        "comment": "",
+        "key": "Disconnect",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connected to Square",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 43
+        }
+      },
+      {
+        "comment": "",
+        "key": "Merchant ID: %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 45
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter your Square credentials to enable inventory sync",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "Not Connected",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter Square Credentials",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 80
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connection Status",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 88
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld location(s) available",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 105
+        }
+      },
+      {
+        "comment": "",
+        "key": "Primary Location",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 94
+        }
+      },
+      {
+        "comment": "",
+        "key": "Location",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 110
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select the Square location to sync inventory with",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 112
+        }
+      },
+      {
+        "comment": "",
+        "key": "Environment",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 117
+        }
+      },
+      {
+        "comment": "",
+        "key": "Environment",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 127
+        }
+      },
+      {
+        "comment": "",
+        "key": "Use Sandbox for testing, Production for live data",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 129
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable Auto-Sync",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 134
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sync Interval",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 140
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sync Direction",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 157
+        }
+      },
+      {
+        "comment": "",
+        "key": "Conflict Resolution",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 169
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sync Settings",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 183
+        }
+      },
+      {
+        "comment": "",
+        "key": "Configure how and when inventory syncs with Square",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 185
+        }
+      },
+      {
+        "comment": "",
+        "key": "Never synced",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 193
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sync History",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 197
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open Sync Dashboard",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 204
+        }
+      },
+      {
+        "comment": "",
+        "key": "Customer Sync",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 209
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sync All Items Now",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 220
+        }
+      },
+      {
+        "comment": "",
+        "key": "Import from Square",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 235
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export to Square",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 245
+        }
+      },
+      {
+        "comment": "",
+        "key": "Test Connection",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 260
+        }
+      },
+      {
+        "comment": "",
+        "key": "Actions",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 265
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 280
+        }
+      },
+      {
+        "comment": "",
+        "key": "Square Setup",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 410
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connection Error",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 438
+        }
+      },
+      {
+        "comment": "",
+        "key": "Get your credentials from Square Developer Dashboard",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 301
+        }
+      },
+      {
+        "comment": "",
+        "key": "Open Square Developer Dashboard",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 305
+        }
+      },
+      {
+        "comment": "",
+        "key": "Setup Instructions",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 308
+        }
+      },
+      {
+        "comment": "",
+        "key": "Environment",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 312
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sandbox (Testing)",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 313
+        }
+      },
+      {
+        "comment": "",
+        "key": "Production (Live)",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 314
+        }
+      },
+      {
+        "comment": "",
+        "key": "Use sandbox access token for testing. No real transactions will be processed.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 323
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sandbox Mode",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 320
+        }
+      },
+      {
+        "comment": "",
+        "key": "Use production access token. Real transactions will be processed.",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 333
+        }
+      },
+      {
+        "comment": "",
+        "key": "Production Mode",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 330
+        }
+      },
+      {
+        "comment": "",
+        "key": "Environment",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 340
+        }
+      },
+      {
+        "comment": "",
+        "key": "Access Token",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 345
+        }
+      },
+      {
+        "comment": "",
+        "key": "Paste your Square Access Token",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 347
+        }
+      },
+      {
+        "comment": "",
+        "key": "Get Sandbox Token:",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 352
+        }
+      },
+      {
+        "comment": "",
+        "key": "1. Go to Square Developer Dashboard",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 355
+        }
+      },
+      {
+        "comment": "",
+        "key": "2. Select your app → Credentials",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 357
+        }
+      },
+      {
+        "comment": "",
+        "key": "3. Copy SANDBOX Access Token",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 359
+        }
+      },
+      {
+        "comment": "",
+        "key": "⚠️ Token typically starts with 'EAAA...'",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 361
+        }
+      },
+      {
+        "comment": "",
+        "key": "Get Production Token:",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 368
+        }
+      },
+      {
+        "comment": "",
+        "key": "1. Go to Square Dashboard (squareup.com)",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 371
+        }
+      },
+      {
+        "comment": "",
+        "key": "2. Apps → Manage → Your App",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 373
+        }
+      },
+      {
+        "comment": "",
+        "key": "3. Copy PRODUCTION Access Token",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 375
+        }
+      },
+      {
+        "comment": "",
+        "key": "⚠️ Token typically starts with 'EQ...' or other prefix",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 377
+        }
+      },
+      {
+        "comment": "",
+        "key": "Location ID (Optional)",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 386
+        }
+      },
+      {
+        "comment": "",
+        "key": "Will be auto-fetched if left empty",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 390
+        }
+      },
+      {
+        "comment": "",
+        "key": "Square Location ID",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 388
+        }
+      },
+      {
+        "comment": "",
+        "key": "Square Credentials",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 395
+        }
+      },
+      {
+        "comment": "",
+        "key": "Test with sandbox credentials first before using production",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 403
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start with Sandbox",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 400
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 413
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connect",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 432
+        }
+      },
+      {
+        "comment": "",
+        "key": "Connecting...",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 429
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 439
+        }
+      }
+    ]
+  },
+  "version": 1
+}

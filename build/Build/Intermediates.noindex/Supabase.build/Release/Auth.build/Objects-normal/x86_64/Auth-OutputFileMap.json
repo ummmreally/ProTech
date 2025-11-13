@@ -1,0 +1,150 @@
+{
+  "" : {
+    "const-values" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Auth-master.swiftconstvalues",
+    "dependencies" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Auth-master.d",
+    "diagnostics" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Auth-master.dia",
+    "emit-module-dependencies" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Auth-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Auth-master-emit-module.dia",
+    "swift-dependencies" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Auth-master.swiftdeps"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/AuthAdmin.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthAdmin.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthAdmin.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthAdmin.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/AuthAdminOAuth.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthAdminOAuth.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthAdminOAuth.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthAdminOAuth.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/AuthClient.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthClient.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthClient.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthClient.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/AuthClientConfiguration.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthClientConfiguration.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthClientConfiguration.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthClientConfiguration.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/AuthError.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthError.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthError.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthError.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/AuthMFA.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthMFA.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthMFA.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthMFA.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/AuthStateChangeListener.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthStateChangeListener.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthStateChangeListener.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthStateChangeListener.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Defaults.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Defaults.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Defaults.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Defaults.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Deprecated.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Deprecated.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Deprecated.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Deprecated.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Exports.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Exports.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Exports.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Exports.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/APIClient.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/APIClient.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/APIClient.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/APIClient.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/CodeVerifierStorage.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/CodeVerifierStorage.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/CodeVerifierStorage.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/CodeVerifierStorage.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/Constants.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Constants.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Constants.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Constants.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/Dependencies.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Dependencies.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Dependencies.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Dependencies.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/EventEmitter.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/EventEmitter.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/EventEmitter.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/EventEmitter.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/FixedWidthInteger+Random.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/FixedWidthInteger+Random.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/FixedWidthInteger+Random.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/FixedWidthInteger+Random.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/Helpers.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Helpers.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Helpers.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Helpers.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/JWK+RSA.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/JWK+RSA.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/JWK+RSA.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/JWK+RSA.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/JWTAlgorithm.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/JWTAlgorithm.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/JWTAlgorithm.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/JWTAlgorithm.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/Keychain.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Keychain.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Keychain.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Keychain.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/PKCE.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/PKCE.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/PKCE.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/PKCE.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/SessionManager.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/SessionManager.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/SessionManager.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/SessionManager.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/SessionStorage.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/SessionStorage.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/SessionStorage.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/SessionStorage.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Internal/URLOpener.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/URLOpener.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/URLOpener.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/URLOpener.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Storage/AuthLocalStorage.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthLocalStorage.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthLocalStorage.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/AuthLocalStorage.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Storage/KeychainLocalStorage.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/KeychainLocalStorage.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/KeychainLocalStorage.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/KeychainLocalStorage.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Storage/WinCredLocalStorage.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/WinCredLocalStorage.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/WinCredLocalStorage.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/WinCredLocalStorage.o"
+  },
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Auth/Types.swift" : {
+    "index-unit-output-path" : "/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Types.o",
+    "llvm-bc" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Types.bc",
+    "object" : "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/Supabase.build/Release/Auth.build/Objects-normal/x86_64/Types.o"
+  }
+}

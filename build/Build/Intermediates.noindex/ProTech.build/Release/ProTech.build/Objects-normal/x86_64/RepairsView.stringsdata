@@ -1,0 +1,96 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Repairs/RepairsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Filter",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "Repairs",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 45
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld active repair%@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 48
+        }
+      },
+      {
+        "comment": "",
+        "key": "Check In Customer",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 58
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ (%lld)",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "All caught up!",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "No active repairs",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 90
+        }
+      },
+      {
+        "comment": "",
+        "key": "Check In Customer",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 97
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unknown Customer",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 209
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 206
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quick View",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 251
+        }
+      }
+    ]
+  },
+  "version": 1
+}

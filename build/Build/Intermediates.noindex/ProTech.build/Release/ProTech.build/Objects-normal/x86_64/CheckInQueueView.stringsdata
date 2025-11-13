@@ -1,0 +1,240 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Queue/CheckInQueueView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Customer Check-In Queue",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld customer%@ waiting",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 29
+        }
+      },
+      {
+        "comment": "",
+        "key": "Refresh",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 40
+        }
+      },
+      {
+        "comment": "",
+        "key": "No customers waiting",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "Customers who check in from the portal will appear here",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unknown Customer",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 144
+        }
+      },
+      {
+        "comment": "",
+        "key": "• %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 156
+        }
+      },
+      {
+        "comment": "",
+        "key": "Checked in",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 178
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start Repair",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 193
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start Repair",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 319
+        }
+      },
+      {
+        "comment": "",
+        "key": "A new repair ticket will be created for this check-in.",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 301
+        }
+      },
+      {
+        "comment": "",
+        "key": "Customer",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 270
+        }
+      },
+      {
+        "comment": "",
+        "key": "Device",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 282
+        }
+      },
+      {
+        "comment": "",
+        "key": "Repair Details",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 287
+        }
+      },
+      {
+        "comment": "",
+        "key": "Name",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 272
+        }
+      },
+      {
+        "comment": "",
+        "key": "Email",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 274
+        }
+      },
+      {
+        "comment": "",
+        "key": "Phone",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 277
+        }
+      },
+      {
+        "comment": "",
+        "key": "Device Type",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 283
+        }
+      },
+      {
+        "comment": "",
+        "key": "Device Model",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 284
+        }
+      },
+      {
+        "comment": "",
+        "key": "Issue Description",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 288
+        }
+      },
+      {
+        "comment": "",
+        "key": "Priority",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 291
+        }
+      },
+      {
+        "comment": "",
+        "key": "Estimated Completion",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 298
+        }
+      },
+      {
+        "comment": "",
+        "key": "Low",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 292
+        }
+      },
+      {
+        "comment": "",
+        "key": "Normal",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 293
+        }
+      },
+      {
+        "comment": "",
+        "key": "High",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 294
+        }
+      },
+      {
+        "comment": "",
+        "key": "Urgent",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 295
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create Repair",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 312
+        }
+      },
+      {
+        "comment": "",
+        "key": "Creating Repair...",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 309
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 322
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,27 @@
+version: "Apple Swift version 6.0 (swiftlang-6.0.0.9.10 clang-1600.0.26.2)"
+options: "5dada51d1007f4553f2e6112dd9829c3cba2c1e04e54bbd41f183c4d770b4af6"
+build_start_time: [1763056003, 188657000]
+build_end_time: [1763056011, 987824000]
+inputs:
+  ? "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/ActorIsolated.swift"
+  : [1763055985, 193657342]
+  ? "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/AnyHashableSendable.swift"
+  : [1763055985, 193871935]
+  ? "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/AsyncStream.swift"
+  : [1763055985, 194192391]
+  ? "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/AsyncThrowingStream.swift"
+  : [1763055985, 194501731]
+  ? "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/Internal/Locking.swift"
+  : [1763055985, 196455926]
+  ? "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/Internal/UncheckedBox.swift"
+  : [1763055985, 196637301]
+  ? "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/LockIsolated.swift"
+  : [1763055985, 196873394]
+  ? "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/MainSerialExecutor.swift"
+  : [1763055985, 197234956]
+  ? "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/Result.swift"
+  : [1763055985, 197448841]
+  ? "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/Task.swift"
+  : [1763055985, 197685737]
+  ? "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/swift-concurrency-extras/Sources/ConcurrencyExtras/UncheckedSendable.swift"
+  : [1763055985, 197970639]

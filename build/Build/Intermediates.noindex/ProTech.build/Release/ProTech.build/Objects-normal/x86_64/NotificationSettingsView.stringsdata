@@ -1,0 +1,400 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Notifications/NotificationSettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Automated Notifications",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 58
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld notification rule%@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 62
+        }
+      },
+      {
+        "comment": "",
+        "key": "View Logs",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 75
+        }
+      },
+      {
+        "comment": "",
+        "key": "Load Defaults",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 80
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Rule",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Notification Rules",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 145
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create automated notifications to keep customers informed",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 149
+        }
+      },
+      {
+        "comment": "",
+        "key": "Load Default Rules",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 155
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create Custom Rule",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 160
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 174
+        }
+      },
+      {
+        "comment": "",
+        "key": "Disable",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 178
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable",
+        "location": {
+          "startingColumn": 52,
+          "startingLine": 178
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 184
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enabled",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 258
+        }
+      },
+      {
+        "comment": "",
+        "key": "Disabled",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 258
+        }
+      },
+      {
+        "comment": "",
+        "key": "Email",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 237
+        }
+      },
+      {
+        "comment": "",
+        "key": "SMS",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 247
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit Rule",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 352
+        }
+      },
+      {
+        "comment": "",
+        "key": "New Rule",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 352
+        }
+      },
+      {
+        "comment": "",
+        "key": "Rule Details",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 295
+        }
+      },
+      {
+        "comment": "",
+        "key": "Email Template",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 314
+        }
+      },
+      {
+        "comment": "",
+        "key": "SMS Template",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 332
+        }
+      },
+      {
+        "comment": "",
+        "key": "Rule Name",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 296
+        }
+      },
+      {
+        "comment": "",
+        "key": "Trigger Status",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 298
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notification Type",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 306
+        }
+      },
+      {
+        "comment": "",
+        "key": "Checked In",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 299
+        }
+      },
+      {
+        "comment": "",
+        "key": "In Progress",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 300
+        }
+      },
+      {
+        "comment": "",
+        "key": "Completed",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 301
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ready for Pickup",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 302
+        }
+      },
+      {
+        "comment": "",
+        "key": "Picked Up",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 303
+        }
+      },
+      {
+        "comment": "",
+        "key": "Email Only",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 307
+        }
+      },
+      {
+        "comment": "",
+        "key": "SMS Only",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 308
+        }
+      },
+      {
+        "comment": "",
+        "key": "Both Email & SMS",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 309
+        }
+      },
+      {
+        "comment": "",
+        "key": "Available placeholders:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 317
+        }
+      },
+      {
+        "comment": "",
+        "key": "{customer_name}, {ticket_number}, {device_type}, {device_model}, {status}",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 321
+        }
+      },
+      {
+        "comment": "",
+        "key": "Subject",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 315
+        }
+      },
+      {
+        "comment": "",
+        "key": "Available placeholders:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 333
+        }
+      },
+      {
+        "comment": "",
+        "key": "{customer_name}, {ticket_number}, {device_type}, {status}",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 337
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld/160 characters",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 345
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 355
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 361
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notification Logs",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 459
+        }
+      },
+      {
+        "comment": "",
+        "key": "Filter",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 441
+        }
+      },
+      {
+        "comment": "",
+        "key": "All",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 442
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sent",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 443
+        }
+      },
+      {
+        "comment": "",
+        "key": "Failed",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 444
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pending",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 445
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 462
+        }
+      },
+      {
+        "comment": "",
+        "key": "Error: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 555
+        }
+      }
+    ]
+  },
+  "version": 1
+}

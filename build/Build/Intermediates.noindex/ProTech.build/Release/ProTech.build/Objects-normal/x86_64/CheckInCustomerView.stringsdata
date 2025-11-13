@@ -1,0 +1,296 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Queue/CheckInCustomerView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Service Request Sheet",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "Customer",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 150
+        }
+      },
+      {
+        "comment": "",
+        "key": "Customer Information",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 210
+        }
+      },
+      {
+        "comment": "",
+        "key": "Device Information",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 232
+        }
+      },
+      {
+        "comment": "",
+        "key": "Promotions",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 272
+        }
+      },
+      {
+        "comment": "",
+        "key": "Data & Security",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 280
+        }
+      },
+      {
+        "comment": "",
+        "key": "Alternative Contact",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 288
+        }
+      },
+      {
+        "comment": "",
+        "key": "Agreement & Signature",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 295
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select a customer to continue filling out the service request sheet.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 80
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 90
+        }
+      },
+      {
+        "comment": "",
+        "key": "Check In",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 95
+        }
+      },
+      {
+        "comment": "",
+        "key": "Type to search for a customer",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 164
+        }
+      },
+      {
+        "comment": "",
+        "key": "No customers match your search",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 202
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search customer...",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 152
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add a new customer",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 160
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ %@",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 178
+        }
+      },
+      {
+        "comment": "",
+        "key": "Full Name",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 212
+        }
+      },
+      {
+        "comment": "",
+        "key": "Date",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 217
+        }
+      },
+      {
+        "comment": "",
+        "key": "Phone Number",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 224
+        }
+      },
+      {
+        "comment": "",
+        "key": "Email",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 225
+        }
+      },
+      {
+        "comment": "",
+        "key": "Address",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 226
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 218
+        }
+      },
+      {
+        "comment": "",
+        "key": "Device Model",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 233
+        }
+      },
+      {
+        "comment": "",
+        "key": "Device Serial Number",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 234
+        }
+      },
+      {
+        "comment": "",
+        "key": "Issue with device",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 237
+        }
+      },
+      {
+        "comment": "",
+        "key": "Describe the issue... *",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 244
+        }
+      },
+      {
+        "comment": "",
+        "key": "Additional Details About Repair",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 253
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add any extra notes or observations",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 260
+        }
+      },
+      {
+        "comment": "",
+        "key": "Device passcode",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 282
+        }
+      },
+      {
+        "comment": "",
+        "key": "Contact Name",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 289
+        }
+      },
+      {
+        "comment": "",
+        "key": "Contact Number",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 290
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear Signature",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 312
+        }
+      },
+      {
+        "comment": "",
+        "key": "Capture Customer Signature",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 324
+        }
+      },
+      {
+        "comment": "",
+        "key": "Yes",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 467
+        }
+      },
+      {
+        "comment": "",
+        "key": "No",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 468
+        }
+      }
+    ]
+  },
+  "version": 1
+}

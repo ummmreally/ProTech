@@ -1,0 +1,384 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/POS/DiscountCodeManagerView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Discount Codes",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 113
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete Discount Code",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 134
+        }
+      },
+      {
+        "comment": "",
+        "key": "Filter",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 80
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search discount codes...",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 73
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 116
+        }
+      },
+      {
+        "comment": "",
+        "key": "New Code",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 125
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 136
+        }
+      },
+      {
+        "comment": "",
+        "key": "Are you sure you want to delete '%@'? This action cannot be undone.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 142
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Discount Codes",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 154
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Matching Codes",
+        "location": {
+          "startingColumn": 61,
+          "startingLine": 154
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create promotional discount codes for your customers",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 158
+        }
+      },
+      {
+        "comment": "",
+        "key": "Try a different search term",
+        "location": {
+          "startingColumn": 96,
+          "startingLine": 158
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create Discount Code",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 165
+        }
+      },
+      {
+        "comment": "",
+        "key": "%d/%d uses",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 256
+        }
+      },
+      {
+        "comment": "",
+        "key": "%d uses",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 260
+        }
+      },
+      {
+        "comment": "",
+        "key": "Min: %@",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 272
+        }
+      },
+      {
+        "comment": "",
+        "key": "Deactivate",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 291
+        }
+      },
+      {
+        "comment": "",
+        "key": "Activate",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 291
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit Discount Code",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 457
+        }
+      },
+      {
+        "comment": "",
+        "key": "Discount Code Details",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 374
+        }
+      },
+      {
+        "comment": "",
+        "key": "Validity Period",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 400
+        }
+      },
+      {
+        "comment": "",
+        "key": "Usage Restrictions",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 410
+        }
+      },
+      {
+        "comment": "",
+        "key": "Statistics",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 443
+        }
+      },
+      {
+        "comment": "",
+        "key": "Code (e.g., SAVE20)",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 375
+        }
+      },
+      {
+        "comment": "",
+        "key": "Type",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 378
+        }
+      },
+      {
+        "comment": "",
+        "key": "Description (optional)",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 396
+        }
+      },
+      {
+        "comment": "",
+        "key": "%",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 388
+        }
+      },
+      {
+        "comment": "",
+        "key": "$",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 391
+        }
+      },
+      {
+        "comment": "",
+        "key": "Percentage",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 385
+        }
+      },
+      {
+        "comment": "",
+        "key": "Amount",
+        "location": {
+          "startingColumn": 72,
+          "startingLine": 385
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start Date",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 401
+        }
+      },
+      {
+        "comment": "",
+        "key": "Set End Date",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 403
+        }
+      },
+      {
+        "comment": "",
+        "key": "End Date",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 406
+        }
+      },
+      {
+        "comment": "",
+        "key": "Set Usage Limit",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 411
+        }
+      },
+      {
+        "comment": "",
+        "key": "Maximum Uses",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 414
+        }
+      },
+      {
+        "comment": "",
+        "key": "Set Minimum Purchase",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 418
+        }
+      },
+      {
+        "comment": "",
+        "key": "Set Maximum Discount Cap",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 430
+        }
+      },
+      {
+        "comment": "",
+        "key": "$",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 422
+        }
+      },
+      {
+        "comment": "",
+        "key": "Minimum Amount",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 424
+        }
+      },
+      {
+        "comment": "",
+        "key": "$",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 434
+        }
+      },
+      {
+        "comment": "",
+        "key": "Maximum Discount",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 436
+        }
+      },
+      {
+        "comment": "",
+        "key": "Times Used",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 444
+        }
+      },
+      {
+        "comment": "",
+        "key": "Status",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 449
+        }
+      },
+      {
+        "comment": "",
+        "key": "%d",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 445
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 460
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 466
+        }
+      }
+    ]
+  },
+  "version": 1
+}

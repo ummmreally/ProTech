@@ -1,0 +1,128 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Loyalty/LoyaltySettingsTab.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Program Configuration",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 23
+        }
+      },
+      {
+        "comment": "",
+        "key": "Points Earning",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "Features",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "Actions",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 64
+        }
+      },
+      {
+        "comment": "",
+        "key": "Program Name",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 24
+        }
+      },
+      {
+        "comment": "",
+        "key": "Program Active",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "Points per Dollar Spent",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 32
+        }
+      },
+      {
+        "comment": "",
+        "key": "1.0",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 34
+        }
+      },
+      {
+        "comment": "",
+        "key": "Bonus Points per Visit",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 40
+        }
+      },
+      {
+        "comment": "",
+        "key": "10",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Points Expiration (days)",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 48
+        }
+      },
+      {
+        "comment": "",
+        "key": "0 = never",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable VIP Tiers",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "Auto SMS Notifications",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save Settings",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 68
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,48 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Main/ContentView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Upgrade to Pro",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 35
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ is a Pro Feature",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 203
+        }
+      },
+      {
+        "comment": "",
+        "key": "Upgrade to Pro to unlock %@ and all premium features.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 207
+        }
+      },
+      {
+        "comment": "",
+        "key": "$19.99/month • 7-day free trial",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 224
+        }
+      },
+      {
+        "comment": "",
+        "key": "Upgrade to Pro",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 216
+        }
+      }
+    ]
+  },
+  "version": 1
+}

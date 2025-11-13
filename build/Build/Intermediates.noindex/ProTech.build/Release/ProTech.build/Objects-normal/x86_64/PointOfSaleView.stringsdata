@@ -1,0 +1,368 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/POS/PointOfSaleView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Point of Sale",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 81
+        }
+      },
+      {
+        "comment": "",
+        "key": "Square Payment Error",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 95
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 84
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "No products available",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 206
+        }
+      },
+      {
+        "comment": "",
+        "key": "No products found",
+        "location": {
+          "startingColumn": 73,
+          "startingLine": 206
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear Search",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 210
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search products...",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 239
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 279
+        }
+      },
+      {
+        "comment": "",
+        "key": "Change",
+        "location": {
+          "startingColumn": 59,
+          "startingLine": 279
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select a customer",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 316
+        }
+      },
+      {
+        "comment": "",
+        "key": "View purchase and repair history",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 319
+        }
+      },
+      {
+        "comment": "",
+        "key": "Order details",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 329
+        }
+      },
+      {
+        "comment": "",
+        "key": "Dish name",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 336
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add ons",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 341
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quantity",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 346
+        }
+      },
+      {
+        "comment": "",
+        "key": "Amount",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 351
+        }
+      },
+      {
+        "comment": "",
+        "key": "Subtotal",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 374
+        }
+      },
+      {
+        "comment": "",
+        "key": "Service charges",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 383
+        }
+      },
+      {
+        "comment": "",
+        "key": "+ %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 386
+        }
+      },
+      {
+        "comment": "",
+        "key": "Tax (8.25%)",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 392
+        }
+      },
+      {
+        "comment": "",
+        "key": "+ %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 395
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 402
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cart is empty",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 426
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add products to get started",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 430
+        }
+      },
+      {
+        "comment": "",
+        "key": "Here apply the offered discount coupons or customers provided coupons for special discount on current cart value",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 448
+        }
+      },
+      {
+        "comment": "",
+        "key": "Discount coupon",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 443
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter coupon code here or SELECT HERE",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 453
+        }
+      },
+      {
+        "comment": "",
+        "key": "Apply",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 463
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select payment mode",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 508
+        }
+      },
+      {
+        "comment": "",
+        "key": "Square Terminal Device",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 516
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Device",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 521
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Terminal...",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 522
+        }
+      },
+      {
+        "comment": "",
+        "key": "Confirm payment",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 575
+        }
+      },
+      {
+        "comment": "",
+        "key": "Checkout ID: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 619
+        }
+      },
+      {
+        "comment": "",
+        "key": "Please complete payment on Square Terminal",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 624
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 628
+        }
+      },
+      {
+        "comment": "",
+        "key": "Loyalty Rewards",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 937
+        }
+      },
+      {
+        "comment": "",
+        "key": "-$%.2f",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 968
+        }
+      },
+      {
+        "comment": "",
+        "key": "Discount: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 961
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld reward%@ available",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 982
+        }
+      },
+      {
+        "comment": "",
+        "key": "%d in stock",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1084
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add ons",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1151
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld Add-ons",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1142
+        }
+      },
+      {
+        "comment": "",
+        "key": "×%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1167
+        }
+      }
+    ]
+  },
+  "version": 1
+}

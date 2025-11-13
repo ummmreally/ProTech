@@ -1,0 +1,216 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/RecurringInvoices/RecurringInvoicesView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Recurring Invoices",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 66
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld active",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 70
+        }
+      },
+      {
+        "comment": "",
+        "key": "New Recurring Invoice",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search recurring invoices...",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 106
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Recurring Invoices",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 139
+        }
+      },
+      {
+        "comment": "",
+        "key": "Set up automatic recurring invoices for subscriptions and contracts",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 143
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create Recurring Invoice",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 150
+        }
+      },
+      {
+        "comment": "",
+        "key": "View Details",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 162
+        }
+      },
+      {
+        "comment": "",
+        "key": "Generate Now",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 169
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pause",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 177
+        }
+      },
+      {
+        "comment": "",
+        "key": "Activate",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 184
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 192
+        }
+      },
+      {
+        "comment": "",
+        "key": "Next: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 229
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 222
+        }
+      },
+      {
+        "comment": "",
+        "key": "%d invoices",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 238
+        }
+      },
+      {
+        "comment": "",
+        "key": "New Recurring Invoice",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 278
+        }
+      },
+      {
+        "comment": "",
+        "key": "Details",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 268
+        }
+      },
+      {
+        "comment": "",
+        "key": "Name",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 269
+        }
+      },
+      {
+        "comment": "",
+        "key": "Frequency",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 270
+        }
+      },
+      {
+        "comment": "",
+        "key": "Monthly",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 271
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quarterly",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 272
+        }
+      },
+      {
+        "comment": "",
+        "key": "Yearly",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 273
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 281
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 284
+        }
+      },
+      {
+        "comment": "",
+        "key": "Details",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 305
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 308
+        }
+      }
+    ]
+  },
+  "version": 1
+}

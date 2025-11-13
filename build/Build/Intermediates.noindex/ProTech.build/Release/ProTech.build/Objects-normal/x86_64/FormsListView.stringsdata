@@ -1,0 +1,96 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Forms/FormsListView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Form Templates",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 61
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit Template",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 39
+        }
+      },
+      {
+        "comment": "",
+        "key": "Duplicate",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 45
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 53
+        }
+      },
+      {
+        "comment": "",
+        "key": "View Submissions",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 67
+        }
+      },
+      {
+        "comment": "",
+        "key": "New Form",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 73
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Form Templates",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create your first custom form template",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 99
+        }
+      },
+      {
+        "comment": "",
+        "key": "Load Defaults",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create New",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 114
+        }
+      },
+      {
+        "comment": "",
+        "key": "DEFAULT",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 178
+        }
+      }
+    ]
+  },
+  "version": 1
+}

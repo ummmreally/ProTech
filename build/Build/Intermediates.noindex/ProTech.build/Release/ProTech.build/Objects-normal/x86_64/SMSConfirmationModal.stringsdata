@@ -1,0 +1,64 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Components/SMSConfirmationModal.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Confirm SMS Message",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 34
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 66
+        }
+      },
+      {
+        "comment": "",
+        "key": "Message Preview",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld characters",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "• %lld SMS segments",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 113
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 127
+        }
+      },
+      {
+        "comment": "",
+        "key": "Send SMS",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 143
+        }
+      }
+    ]
+  },
+  "version": 1
+}

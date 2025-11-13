@@ -1,0 +1,376 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Settings/FormTemplateManagerView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Form Templates",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 80
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete Template",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 115
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search templates...",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 46
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "New Template",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 93
+        }
+      },
+      {
+        "comment": "",
+        "key": "Import from JSON",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 99
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 116
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 117
+        }
+      },
+      {
+        "comment": "",
+        "key": "Are you sure you want to delete '%@'? This action cannot be undone.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 123
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Templates Yet",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Matching Templates",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create your first custom form template",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 139
+        }
+      },
+      {
+        "comment": "",
+        "key": "Try a different search term",
+        "location": {
+          "startingColumn": 82,
+          "startingLine": 139
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create Template",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 146
+        }
+      },
+      {
+        "comment": "",
+        "key": "DEFAULT",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 312
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld fields",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 330
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 356
+        }
+      },
+      {
+        "comment": "",
+        "key": "Duplicate",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 362
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 368
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 376
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit Template",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 493
+        }
+      },
+      {
+        "comment": "",
+        "key": "Template Information",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 421
+        }
+      },
+      {
+        "comment": "",
+        "key": "Description & Instructions",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 432
+        }
+      },
+      {
+        "comment": "",
+        "key": "Template Name",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 422
+        }
+      },
+      {
+        "comment": "",
+        "key": "Type",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 423
+        }
+      },
+      {
+        "comment": "",
+        "key": "e.g., repair, intake, waiver",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 424
+        }
+      },
+      {
+        "comment": "",
+        "key": "Set as Default",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 426
+        }
+      },
+      {
+        "comment": "",
+        "key": "Form Fields",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 448
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Field",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 454
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Fields Yet",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 467
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add fields to build your form",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 469
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 496
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 502
+        }
+      },
+      {
+        "comment": "",
+        "key": "*",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 583
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit Field",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 698
+        }
+      },
+      {
+        "comment": "",
+        "key": "Basic Information",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 668
+        }
+      },
+      {
+        "comment": "",
+        "key": "Options",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 683
+        }
+      },
+      {
+        "comment": "",
+        "key": "Default Value",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 693
+        }
+      },
+      {
+        "comment": "",
+        "key": "Field Label",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 669
+        }
+      },
+      {
+        "comment": "",
+        "key": "Field Type",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 671
+        }
+      },
+      {
+        "comment": "",
+        "key": "Placeholder",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 677
+        }
+      },
+      {
+        "comment": "",
+        "key": "Required Field",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 679
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enter one option per line",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 684
+        }
+      },
+      {
+        "comment": "",
+        "key": "Default Value",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 694
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 701
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 707
+        }
+      }
+    ]
+  },
+  "version": 1
+}

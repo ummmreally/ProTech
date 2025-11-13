@@ -1,0 +1,104 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Customers/AddCustomerView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "New Customer",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unable to Save Customer",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 72
+        }
+      },
+      {
+        "comment": "",
+        "key": "Customer Information",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 34
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notes",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "First Name *",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 35
+        }
+      },
+      {
+        "comment": "",
+        "key": "Last Name *",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "Email",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 37
+        }
+      },
+      {
+        "comment": "",
+        "key": "Phone",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Address",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 47
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 66
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 73
+        }
+      }
+    ]
+  },
+  "version": 1
+}

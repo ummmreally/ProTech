@@ -1,0 +1,144 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Customers/PortalCheckInView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Check In for Service",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "Please provide your device information and we'll call you shortly",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 34
+        }
+      },
+      {
+        "comment": "",
+        "key": "Device Type",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "e.g., iPhone, iPad, MacBook",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 47
+        }
+      },
+      {
+        "comment": "",
+        "key": "Device Model",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 52
+        }
+      },
+      {
+        "comment": "",
+        "key": "e.g., iPhone 14 Pro, iPad Air",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "What's the issue?",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "Describe the problem...",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "Check In Now",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 84
+        }
+      },
+      {
+        "comment": "",
+        "key": "Your information",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "Name:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 110
+        }
+      },
+      {
+        "comment": "",
+        "key": "Email:",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 119
+        }
+      },
+      {
+        "comment": "",
+        "key": "Phone:",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 129
+        }
+      },
+      {
+        "comment": "",
+        "key": "You're Checked In!",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 209
+        }
+      },
+      {
+        "comment": "",
+        "key": "Please have a seat",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "A team member will call you shortly",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 217
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 226
+        }
+      }
+    ]
+  },
+  "version": 1
+}

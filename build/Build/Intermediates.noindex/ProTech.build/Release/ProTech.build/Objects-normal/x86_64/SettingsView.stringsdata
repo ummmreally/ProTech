@@ -1,0 +1,480 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Settings/SettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "General",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 18
+        }
+      },
+      {
+        "comment": "",
+        "key": "SMS",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 24
+        }
+      },
+      {
+        "comment": "",
+        "key": "Square",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "Social Media",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "Forms",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "Kiosk Mode",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 48
+        }
+      },
+      {
+        "comment": "",
+        "key": "Subscription",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "Developer",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "Branding",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "Company Information",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 122
+        }
+      },
+      {
+        "comment": "",
+        "key": "About",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 129
+        }
+      },
+      {
+        "comment": "",
+        "key": "Support",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "Brand Name (shown on login)",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "This name will appear on the login screen",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 88
+        }
+      },
+      {
+        "comment": "",
+        "key": "Login Screen Logo",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 91
+        }
+      },
+      {
+        "comment": "",
+        "key": "Choose Logo...",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remove Logo",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 112
+        }
+      },
+      {
+        "comment": "",
+        "key": "Company Name",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 123
+        }
+      },
+      {
+        "comment": "",
+        "key": "Email",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 124
+        }
+      },
+      {
+        "comment": "",
+        "key": "Phone",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 125
+        }
+      },
+      {
+        "comment": "",
+        "key": "Address",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 126
+        }
+      },
+      {
+        "comment": "",
+        "key": "App Name",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 130
+        }
+      },
+      {
+        "comment": "",
+        "key": "Version",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 131
+        }
+      },
+      {
+        "comment": "",
+        "key": "Build",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 132
+        }
+      },
+      {
+        "comment": "",
+        "key": "Support Website",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 137
+        }
+      },
+      {
+        "comment": "",
+        "key": "Privacy Policy",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 140
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current Subscription",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 201
+        }
+      },
+      {
+        "comment": "",
+        "key": "Features Unlocked",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 225
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unable to load subscription info",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 220
+        }
+      },
+      {
+        "comment": "",
+        "key": "Plan",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 205
+        }
+      },
+      {
+        "comment": "",
+        "key": "Price",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 206
+        }
+      },
+      {
+        "comment": "",
+        "key": "Expires",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 207
+        }
+      },
+      {
+        "comment": "",
+        "key": "Status",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 208
+        }
+      },
+      {
+        "comment": "",
+        "key": "Days Remaining",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 217
+        }
+      },
+      {
+        "comment": "",
+        "key": "Active",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "Expired",
+        "location": {
+          "startingColumn": 65,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "Free Version",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 237
+        }
+      },
+      {
+        "comment": "",
+        "key": "You're using the free version with limited features.",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 239
+        }
+      },
+      {
+        "comment": "",
+        "key": "Upgrade to Pro",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 247
+        }
+      },
+      {
+        "comment": "",
+        "key": "Restore Purchases",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 254
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pro Features Testing",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 294
+        }
+      },
+      {
+        "comment": "",
+        "key": "Current Status",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 321
+        }
+      },
+      {
+        "comment": "",
+        "key": "Features Unlocked",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 338
+        }
+      },
+      {
+        "comment": "",
+        "key": "These settings are for testing and development only.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 288
+        }
+      },
+      {
+        "comment": "",
+        "key": "Developer Mode",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 285
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable Pro Mode",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 297
+        }
+      },
+      {
+        "comment": "",
+        "key": "Test premium features without subscription",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 299
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pro Mode Active",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 313
+        }
+      },
+      {
+        "comment": "",
+        "key": "Real Subscription",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 322
+        }
+      },
+      {
+        "comment": "",
+        "key": "Developer Override",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 327
+        }
+      },
+      {
+        "comment": "",
+        "key": "Effective Status",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 332
+        }
+      },
+      {
+        "comment": "",
+        "key": "Active",
+        "location": {
+          "startingColumn": 70,
+          "startingLine": 323
+        }
+      },
+      {
+        "comment": "",
+        "key": "None",
+        "location": {
+          "startingColumn": 81,
+          "startingLine": 323
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enabled",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 328
+        }
+      },
+      {
+        "comment": "",
+        "key": "Disabled",
+        "location": {
+          "startingColumn": 55,
+          "startingLine": 328
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pro",
+        "location": {
+          "startingColumn": 82,
+          "startingLine": 333
+        }
+      },
+      {
+        "comment": "",
+        "key": "Free",
+        "location": {
+          "startingColumn": 90,
+          "startingLine": 333
+        }
+      },
+      {
+        "comment": "",
+        "key": "⚠️ Important",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 351
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remember to disable Pro Mode before releasing to production or submitting to the App Store.",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 354
+        }
+      }
+    ]
+  },
+  "version": 1
+}

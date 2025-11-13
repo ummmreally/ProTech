@@ -1,0 +1,176 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Inventory/InventoryListView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Inventory",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 158
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search items, part numbers, SKU...",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 72
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld items",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "Category",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 89
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sort",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "Low Stock Only",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "View Details",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 130
+        }
+      },
+      {
+        "comment": "",
+        "key": "Adjust Stock",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 136
+        }
+      },
+      {
+        "comment": "",
+        "key": "Print Label",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 142
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 150
+        }
+      },
+      {
+        "comment": "",
+        "key": "Print All Visible (%lld)",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 165
+        }
+      },
+      {
+        "comment": "",
+        "key": "Print with Options...",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 172
+        }
+      },
+      {
+        "comment": "",
+        "key": "Print Labels",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 176
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 182
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Item",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 188
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Inventory Items",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 216
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Results Found",
+        "location": {
+          "startingColumn": 62,
+          "startingLine": 216
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add First Item",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 223
+        }
+      },
+      {
+        "comment": "",
+        "key": "PN: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 289
+        }
+      },
+      {
+        "comment": "",
+        "key": "SKU: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 295
+        }
+      },
+      {
+        "comment": "",
+        "key": "%d",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 315
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,48 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Main/SidebarView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Core",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 18
+        }
+      },
+      {
+        "comment": "",
+        "key": "Financial",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "Business",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 34
+        }
+      },
+      {
+        "comment": "",
+        "key": "Pro Features",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 52
+        }
+      },
+      {
+        "comment": "",
+        "key": "Logout",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 99
+        }
+      }
+    ]
+  },
+  "version": 1
+}

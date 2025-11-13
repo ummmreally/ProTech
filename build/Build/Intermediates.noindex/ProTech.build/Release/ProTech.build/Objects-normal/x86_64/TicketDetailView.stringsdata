@@ -1,0 +1,496 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Queue/TicketDetailView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "SMS Error",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 341
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ticket Details",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 293
+        }
+      },
+      {
+        "comment": "",
+        "key": "Customer",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 66
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ticket Information",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "Device",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 117
+        }
+      },
+      {
+        "comment": "",
+        "key": "Issue Description",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add New Note",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 141
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notes History",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 162
+        }
+      },
+      {
+        "comment": "",
+        "key": "Time Tracking",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 174
+        }
+      },
+      {
+        "comment": "",
+        "key": "Parts & Inventory",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 185
+        }
+      },
+      {
+        "comment": "",
+        "key": "Barcode",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 199
+        }
+      },
+      {
+        "comment": "",
+        "key": "Actions",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 219
+        }
+      },
+      {
+        "comment": "",
+        "key": "Name",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "Phone",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 72
+        }
+      },
+      {
+        "comment": "",
+        "key": "Email",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 77
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ticket #",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "Status",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 91
+        }
+      },
+      {
+        "comment": "",
+        "key": "Priority",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 98
+        }
+      },
+      {
+        "comment": "",
+        "key": "Checked In",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 104
+        }
+      },
+      {
+        "comment": "",
+        "key": "Est. Completion",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 110
+        }
+      },
+      {
+        "comment": "",
+        "key": "—",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "%d",
+        "location": {
+          "startingColumn": 65,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "Type",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 119
+        }
+      },
+      {
+        "comment": "",
+        "key": "Model",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 128
+        }
+      },
+      {
+        "comment": "",
+        "key": "Type your note here...",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 146
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Note",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 155
+        }
+      },
+      {
+        "comment": "",
+        "key": "No notes yet",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 167
+        }
+      },
+      {
+        "comment": "",
+        "key": "Save ticket to enable time tracking",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 178
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Parts Used",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 189
+        }
+      },
+      {
+        "comment": "",
+        "key": "Print Ticket Label",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 203
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ticket #%d",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 208
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start Working",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 224
+        }
+      },
+      {
+        "comment": "",
+        "key": "Notify Work Started",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 232
+        }
+      },
+      {
+        "comment": "",
+        "key": "Mark as Completed",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 246
+        }
+      },
+      {
+        "comment": "",
+        "key": "Print Pickup Form",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 254
+        }
+      },
+      {
+        "comment": "",
+        "key": "Customer Picked Up",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 260
+        }
+      },
+      {
+        "comment": "",
+        "key": "Send Pickup Reminder",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 268
+        }
+      },
+      {
+        "comment": "",
+        "key": "Send Custom SMS",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 279
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete Ticket",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 288
+        }
+      },
+      {
+        "comment": "",
+        "key": "Print Dymo Label",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 300
+        }
+      },
+      {
+        "comment": "",
+        "key": "Show Barcode",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 306
+        }
+      },
+      {
+        "comment": "",
+        "key": "Print",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 309
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 314
+        }
+      },
+      {
+        "comment": "",
+        "key": "OK",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 342
+        }
+      },
+      {
+        "comment": "",
+        "key": "Status",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 532
+        }
+      },
+      {
+        "comment": "",
+        "key": "No parts used yet",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 559
+        }
+      },
+      {
+        "comment": "",
+        "key": "Qty: %d",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 568
+        }
+      },
+      {
+        "comment": "",
+        "key": "Select Parts",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 667
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search parts...",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 616
+        }
+      },
+      {
+        "comment": "",
+        "key": "Qty: 0 (Out of Stock)",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 656
+        }
+      },
+      {
+        "comment": "",
+        "key": "Qty: %lld",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 648
+        }
+      },
+      {
+        "comment": "",
+        "key": "Stock: %d",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 632
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 635
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 670
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Parts",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 676
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ticket Label",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 746
+        }
+      },
+      {
+        "comment": "",
+        "key": "Generating barcode...",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 716
+        }
+      },
+      {
+        "comment": "",
+        "key": "Ticket #%d",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 720
+        }
+      },
+      {
+        "comment": "",
+        "key": "Print Label",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 739
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 749
+        }
+      }
+    ]
+  },
+  "version": 1
+}

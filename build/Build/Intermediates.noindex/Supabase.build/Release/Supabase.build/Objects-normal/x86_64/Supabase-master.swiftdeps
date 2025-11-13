@@ -1,0 +1,10 @@
+version: "Apple Swift version 6.0 (swiftlang-6.0.0.9.10 clang-1600.0.26.2)"
+options: "e87f4171a937363b94117355839e0958aef3193eda4ab7a4daf4542ddd2783d1"
+build_start_time: [1763056057, 5507000]
+build_end_time: [1763056059, 71620000]
+inputs:
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Supabase/Constants.swift": [1763055986, 864888414]
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Supabase/Deprecated.swift": [1763055986, 865193611]
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Supabase/Exports.swift": [1763055986, 865450476]
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Supabase/SupabaseClient.swift": [1763055986, 866000293]
+  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Supabase/Types.swift": [1763055986, 866339097]

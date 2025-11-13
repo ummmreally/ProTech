@@ -1,0 +1,80 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Forms/FormPrintPreviewView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Print Preview",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 72
+        }
+      },
+      {
+        "comment": "",
+        "key": "Generating preview...",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "Copies: %lld",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 28
+        }
+      },
+      {
+        "comment": "",
+        "key": "Quick Print",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 35
+        }
+      },
+      {
+        "comment": "",
+        "key": "Print Options",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 43
+        }
+      },
+      {
+        "comment": "",
+        "key": "Failed to generate preview",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "Retry",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 75
+        }
+      },
+      {
+        "comment": "",
+        "key": "Print",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 166
+        }
+      }
+    ]
+  },
+  "version": 1
+}

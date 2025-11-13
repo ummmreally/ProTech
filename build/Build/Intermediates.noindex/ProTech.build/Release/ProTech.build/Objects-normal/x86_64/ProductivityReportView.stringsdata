@@ -1,0 +1,96 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/TimeTracking/ProductivityReportView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Productivity Report",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 101
+        }
+      },
+      {
+        "comment": "",
+        "key": "Date Range",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 125
+        }
+      },
+      {
+        "comment": "",
+        "key": "Overview",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 142
+        }
+      },
+      {
+        "comment": "",
+        "key": "Daily Breakdown",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 205
+        }
+      },
+      {
+        "comment": "",
+        "key": "Date",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 210
+        }
+      },
+      {
+        "comment": "",
+        "key": "Hours",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 211
+        }
+      },
+      {
+        "comment": "",
+        "key": "Date",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 216
+        }
+      },
+      {
+        "comment": "",
+        "key": "Billable",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 217
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total Hours",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 231
+        }
+      },
+      {
+        "comment": "",
+        "key": "Billable Hours",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 235
+        }
+      },
+      {
+        "comment": "",
+        "key": "Insights",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 246
+        }
+      }
+    ]
+  },
+  "version": 1
+}

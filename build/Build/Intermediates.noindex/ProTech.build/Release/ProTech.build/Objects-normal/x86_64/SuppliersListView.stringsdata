@@ -1,0 +1,168 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Inventory/SuppliersListView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Suppliers",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search suppliers...",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 35
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Supplier",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "No Suppliers",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 81
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add First Supplier",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "Inactive",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 116
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Supplier",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 146
+        }
+      },
+      {
+        "comment": "",
+        "key": "Basic Information",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 138
+        }
+      },
+      {
+        "comment": "",
+        "key": "Supplier Name *",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 139
+        }
+      },
+      {
+        "comment": "",
+        "key": "Contact Person",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 140
+        }
+      },
+      {
+        "comment": "",
+        "key": "Email",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 141
+        }
+      },
+      {
+        "comment": "",
+        "key": "Phone",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 142
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 149
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 152
+        }
+      },
+      {
+        "comment": "",
+        "key": "Information",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 176
+        }
+      },
+      {
+        "comment": "",
+        "key": "Name",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 177
+        }
+      },
+      {
+        "comment": "",
+        "key": "Contact",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 179
+        }
+      },
+      {
+        "comment": "",
+        "key": "Email",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 182
+        }
+      },
+      {
+        "comment": "",
+        "key": "Phone",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 185
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 193
+        }
+      }
+    ]
+  },
+  "version": 1
+}

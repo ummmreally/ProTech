@@ -1,0 +1,9 @@
+version: "Apple Swift version 6.0 (swiftlang-6.0.0.9.10 clang-1600.0.26.2)"
+options: "c85d134b8443889fa45a851161ed9794eadc27cfdcd1e7e77e38d9debe474a3f"
+build_start_time: [1763056014, 807070000]
+build_end_time: [1763056016, 348574000]
+inputs:
+  ? "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/XCTestDynamicOverlay/Internal/Deprecations.swift"
+  : [1763055984, 813485203]
+  ? "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/XCTestDynamicOverlay/Internal/Exports.swift"
+  : [1763055984, 814495343]

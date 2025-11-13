@@ -1,0 +1,248 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Settings/KioskModeSettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Kiosk Mode",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable Kiosk Mode?",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "Disable Kiosk Mode?",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 116
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable Kiosk Mode",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 18
+        }
+      },
+      {
+        "comment": "",
+        "key": "Status",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 31
+        }
+      },
+      {
+        "comment": "",
+        "key": "Active",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 33
+        }
+      },
+      {
+        "comment": "",
+        "key": "Kiosk Mode",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 38
+        }
+      },
+      {
+        "comment": "",
+        "key": "Kiosk mode locks the app to the Customer Portal for walk-up customer self-service. Use ⌘⇧Q or tap the top-right corner to exit with passcode.",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 40
+        }
+      },
+      {
+        "comment": "",
+        "key": "Welcome Title",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "Welcome Message",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 46
+        }
+      },
+      {
+        "comment": "",
+        "key": "Customization",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "Admin Passcode",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 53
+        }
+      },
+      {
+        "comment": "",
+        "key": "Passcode required to exit kiosk mode",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "Auto-logout: %lld minutes",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "Automatically log out inactive customers",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "Security",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 59
+        }
+      },
+      {
+        "comment": "",
+        "key": "Customers can create profiles if not found",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "Customer Self-Registration",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 64
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sessions end after %lld minutes of inactivity",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 78
+        }
+      },
+      {
+        "comment": "",
+        "key": "Auto-Logout Timer",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "Press ⌘⇧Q or tap top-right corner, then enter passcode",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 88
+        }
+      },
+      {
+        "comment": "",
+        "key": "Admin Access",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 84
+        }
+      },
+      {
+        "comment": "",
+        "key": "Features",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 93
+        }
+      },
+      {
+        "comment": "",
+        "key": "Disable Kiosk Mode",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 101
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 109
+        }
+      },
+      {
+        "comment": "",
+        "key": "Enable",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 110
+        }
+      },
+      {
+        "comment": "",
+        "key": "The app will lock to Customer Portal only. You'll need the admin passcode to exit.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 114
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 117
+        }
+      },
+      {
+        "comment": "",
+        "key": "Disable",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 118
+        }
+      },
+      {
+        "comment": "",
+        "key": "The app will return to normal operation with full admin access.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 122
+        }
+      }
+    ]
+  },
+  "version": 1
+}

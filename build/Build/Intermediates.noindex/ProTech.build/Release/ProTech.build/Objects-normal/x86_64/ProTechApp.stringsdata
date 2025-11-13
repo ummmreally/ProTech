@@ -1,0 +1,24 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/ProTechApp.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "New Customer",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 51
+        }
+      },
+      {
+        "comment": "",
+        "key": "Twilio Setup Tutorial",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 58
+        }
+      }
+    ]
+  },
+  "version": 1
+}

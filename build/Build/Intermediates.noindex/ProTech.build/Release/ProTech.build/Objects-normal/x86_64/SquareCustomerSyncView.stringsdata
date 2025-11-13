@@ -1,0 +1,168 @@
+{
+  "source": "/Users/swiezytv/Documents/Unknown/ProTech/ProTech/Views/Settings/SquareCustomerSyncView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Customer Sync",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 47
+        }
+      },
+      {
+        "comment": "",
+        "key": "Confirm Sync",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 48
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "Square Customer Sync",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 81
+        }
+      },
+      {
+        "comment": "",
+        "key": "Keep your customers in sync between ProTech and Square",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "Status:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 98
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%% Complete",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 115
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sync Status",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "Idle",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 145
+        }
+      },
+      {
+        "comment": "",
+        "key": "Syncing...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 150
+        }
+      },
+      {
+        "comment": "",
+        "key": "Completed",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 155
+        }
+      },
+      {
+        "comment": "",
+        "key": "Error",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 160
+        }
+      },
+      {
+        "comment": "",
+        "key": "Statistics",
+        "location": {
+          "startingColumn": 19,
+          "startingLine": 175
+        }
+      },
+      {
+        "comment": "",
+        "key": "Sync Actions",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 195
+        }
+      },
+      {
+        "comment": "",
+        "key": "Last Sync:",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 268
+        }
+      },
+      {
+        "comment": "",
+        "key": "View Sync History",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 284
+        }
+      },
+      {
+        "comment": "",
+        "key": "Last Sync Results",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 294
+        }
+      },
+      {
+        "comment": "",
+        "key": "Total",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 308
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 311
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 323
+        }
+      }
+    ]
+  },
+  "version": 1
+}

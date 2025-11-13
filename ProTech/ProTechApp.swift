@@ -37,7 +37,7 @@ struct ProTechApp: App {
                         }
                 } else {
                     LoginView()
-                        .frame(minWidth: 600, minHeight: 700)
+                        .frame(minWidth: 600, minHeight: 800)
                         .onAppear {
                             // Create default admin if needed
                             employeeService.createDefaultAdminIfNeeded()
@@ -45,6 +45,7 @@ struct ProTechApp: App {
                 }
             }
         }
+        .defaultSize(width: 650, height: 850)
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("New Customer") {
