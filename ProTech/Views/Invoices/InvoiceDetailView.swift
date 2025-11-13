@@ -796,33 +796,30 @@ struct EmailInvoiceView: View {
     }
     
     private func sendEmail() {
-        // TODO: Implement actual email sending
-        // For now, just open default mail client
-        
-        guard let pdfDocument = pdfDocument,
-              let pdfData = pdfDocument.dataRepresentation() else {
+        guard let pdfDocument = pdfDocument else {
             alertMessage = "Failed to generate PDF"
             showingAlert = true
             return
         }
         
-        // Save PDF temporarily
-        let tempURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("Invoice_\(invoice.formattedInvoiceNumber).pdf")
+        guard let customerId = invoice.customerId,
+              let invoiceCustomer = coreDataManager.fetchCustomer(id: customerId) else {
+            alertMessage = "Customer information not available"
+            showingAlert = true
+            return
+        }
         
-        do {
-            try pdfData.write(to: tempURL)
-            
-            // Open mail client with attachment
-            let mailtoString = "mailto:\(recipientEmail)?subject=\(subject.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
-            
-            if let url = URL(string: mailtoString) {
-                NSWorkspace.shared.open(url)
-                alertMessage = "Email client opened. Please attach the PDF manually from: \(tempURL.path)"
-                showingAlert = true
-            }
-        } catch {
-            alertMessage = "Failed to prepare email: \(error.localizedDescription)"
+        let success = EmailService.shared.sendInvoice(
+            invoice: invoice,
+            customer: invoiceCustomer,
+            pdfDocument: pdfDocument
+        )
+        
+        if success {
+            alertMessage = "Email sent successfully! Check your Mail app to complete sending."
+            showingAlert = true
+        } else {
+            alertMessage = "Failed to send email. Please check the customer's email address."
             showingAlert = true
         }
     }

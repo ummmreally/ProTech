@@ -13,6 +13,8 @@ extension FormTemplate {
     @NSManaged public var name: String?
     @NSManaged public var type: String?
     @NSManaged public var templateJSON: String?
+    @NSManaged public var templateDescription: String?
+    @NSManaged public var instructions: String?
     @NSManaged public var isDefault: Bool
     @NSManaged public var createdAt: Date?
     @NSManaged public var updatedAt: Date?
@@ -76,6 +78,12 @@ extension FormTemplate {
         if let data = try? JSONEncoder().encode(templateData),
            let json = String(data: data, encoding: .utf8) {
             self.templateJSON = json
+        }
+        if let description {
+            self.templateDescription = description
+        }
+        if let instructions {
+            self.instructions = instructions
         }
     }
     

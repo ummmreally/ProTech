@@ -9,6 +9,8 @@ import SwiftUI
 import CoreData
 
 struct AddCustomerView: View {
+    let onSave: ((Customer) -> Void)?
+    let onCancel: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
     @Environment(\.managedObjectContext) private var viewContext
     
@@ -18,7 +20,14 @@ struct AddCustomerView: View {
     @State private var phone = ""
     @State private var address = ""
     @State private var notes = ""
+    @State private var errorMessage: String?
+    @State private var showError = false
     
+    init(onSave: ((Customer) -> Void)? = nil, onCancel: (() -> Void)? = nil) {
+        self.onSave = onSave
+        self.onCancel = onCancel
+    }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -49,6 +58,7 @@ struct AddCustomerView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") {
+                        onCancel?()
                         dismiss()
                     }
                 }
@@ -59,8 +69,13 @@ struct AddCustomerView: View {
                     .disabled(firstName.isEmpty || lastName.isEmpty)
                 }
             }
+            .alert("Unable to Save Customer", isPresented: $showError, presenting: errorMessage) { _ in
+                Button("OK", role: .cancel) {}
+            } message: { message in
+                Text(message)
+            }
         }
-        .frame(width: 500, height: 500)
+        .frame(minWidth: 600, minHeight: 600)
     }
     
     private func saveCustomer() {
@@ -76,7 +91,14 @@ struct AddCustomerView: View {
         customer.updatedAt = Date()
         customer.cloudSyncStatus = "local"
         
-        CoreDataManager.shared.save()
-        dismiss()
+        do {
+            try viewContext.save()
+            onSave?(customer)
+            dismiss()
+        } catch {
+            viewContext.delete(customer)
+            errorMessage = error.localizedDescription
+            showError = true
+        }
     }
 }

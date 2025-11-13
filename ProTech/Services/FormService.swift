@@ -49,7 +49,19 @@ class FormService {
             template.createdAt = Date()
             template.updatedAt = Date()
         }
-        
+
+        // Load default estimate template
+        if let estimateJSON = defaultEstimateFormJSON() {
+            let template = FormTemplate(context: context)
+            template.id = UUID()
+            template.name = "Repair Estimate Form"
+            template.type = "estimate"
+            template.templateJSON = estimateJSON
+            template.isDefault = true
+            template.createdAt = Date()
+            template.updatedAt = Date()
+        }
+
         CoreDataManager.shared.save()
     }
     
@@ -287,6 +299,37 @@ class FormService {
             ]
         )
         
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted
+        guard let data = try? encoder.encode(template),
+              let json = String(data: data, encoding: .utf8) else {
+            return nil
+        }
+        return json
+    }
+
+    private func defaultEstimateFormJSON() -> String? {
+        let template = FormTemplateModel(
+            id: "estimate-default",
+            name: "Repair Estimate Form",
+            type: "estimate",
+            companyName: "Your Store Name",
+            companyLogo: nil,
+            headerText: "Repair Estimate",
+            footerText: "Please approve the estimate to proceed with the repair.",
+            fields: [
+                FormField(id: UUID(), type: .text, label: "Customer Name", placeholder: "John Doe", isRequired: true, options: nil, defaultValue: nil, order: 0),
+                FormField(id: UUID(), type: .text, label: "Device", placeholder: "Device make/model", isRequired: true, options: nil, defaultValue: nil, order: 1),
+                FormField(id: UUID(), type: .multiline, label: "Issues Found", placeholder: "Summary of issues", isRequired: true, options: nil, defaultValue: nil, order: 2),
+                FormField(id: UUID(), type: .multiline, label: "Recommended Repairs", placeholder: "List recommended repairs", isRequired: true, options: nil, defaultValue: nil, order: 3),
+                FormField(id: UUID(), type: .number, label: "Parts Cost", placeholder: "0.00", isRequired: true, options: nil, defaultValue: nil, order: 4),
+                FormField(id: UUID(), type: .number, label: "Labor Cost", placeholder: "0.00", isRequired: true, options: nil, defaultValue: nil, order: 5),
+                FormField(id: UUID(), type: .number, label: "Estimated Total", placeholder: "0.00", isRequired: true, options: nil, defaultValue: nil, order: 6),
+                FormField(id: UUID(), type: .dropdown, label: "Customer Decision", placeholder: nil, isRequired: false, options: ["Pending", "Approved", "Declined"], defaultValue: "Pending", order: 7),
+                FormField(id: UUID(), type: .signature, label: "Customer Signature", placeholder: nil, isRequired: false, options: nil, defaultValue: nil, order: 8)
+            ]
+        )
+
         let encoder = JSONEncoder()
         encoder.outputFormatting = .prettyPrinted
         guard let data = try? encoder.encode(template),

@@ -87,18 +87,20 @@ struct OperationalStatusWidget: View {
         .padding()
         .background(Color.gray.opacity(0.05))
         .cornerRadius(12)
-        .onAppear {
-            loadData()
+        .task {
+            await loadData()
         }
     }
     
-    func loadData() {
-        activeRepairs = metricsService.getActiveRepairs()
-        repairsByStatus = metricsService.getRepairsByStatus()
-        pendingEstimates = metricsService.getPendingEstimates()
-        unpaidInvoices = metricsService.getUnpaidInvoices().count
-        overdueRepairs = metricsService.getOverdueRepairs().count
-        todayPickups = metricsService.getTodayPickups().count
+    func loadData() async {
+        await MainActor.run {
+            activeRepairs = metricsService.getActiveRepairs()
+            repairsByStatus = metricsService.getRepairsByStatus()
+            pendingEstimates = metricsService.getPendingEstimates()
+            unpaidInvoices = metricsService.getUnpaidInvoices().count
+            overdueRepairs = metricsService.getOverdueRepairs().count
+            todayPickups = metricsService.getTodayPickups().count
+        }
     }
 }
 

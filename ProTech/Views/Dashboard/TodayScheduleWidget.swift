@@ -89,14 +89,16 @@ struct TodayScheduleWidget: View {
         .padding()
         .background(Color.gray.opacity(0.05))
         .cornerRadius(12)
-        .onAppear {
-            loadSchedule()
+        .task {
+            await loadSchedule()
         }
     }
     
-    private func loadSchedule() {
-        appointments = metricsService.getTodayAppointments()
-        todayPickups = metricsService.getTodayPickups()
+    private func loadSchedule() async {
+        await MainActor.run {
+            appointments = metricsService.getTodayAppointments()
+            todayPickups = metricsService.getTodayPickups()
+        }
     }
 }
 

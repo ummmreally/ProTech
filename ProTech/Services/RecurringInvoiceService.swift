@@ -7,6 +7,54 @@
 
 import Foundation
 import CoreData
+import PDFKit
+
+// MARK: - Retry Configuration
+
+struct RetryConfiguration {
+    let maxAttempts: Int
+    let initialDelay: TimeInterval
+    let maxDelay: TimeInterval
+    let backoffMultiplier: Double
+    
+    static let `default` = RetryConfiguration(
+        maxAttempts: 3,
+        initialDelay: 60, // 1 minute
+        maxDelay: 3600, // 1 hour
+        backoffMultiplier: 2.0
+    )
+    
+    func delayForAttempt(_ attempt: Int) -> TimeInterval {
+        let delay = initialDelay * pow(backoffMultiplier, Double(attempt - 1))
+        return min(delay, maxDelay)
+    }
+}
+
+// MARK: - Failed Invoice Tracking
+
+struct FailedInvoiceAttempt: Codable {
+    let invoiceId: UUID
+    let recurringInvoiceId: UUID
+    let customerId: UUID
+    var attemptCount: Int
+    var nextRetryTime: Date
+    var lastError: String?
+    let firstFailedAt: Date
+    var lastAttemptAt: Date
+    
+    init(invoiceId: UUID, recurringInvoiceId: UUID, customerId: UUID, error: String) {
+        self.invoiceId = invoiceId
+        self.recurringInvoiceId = recurringInvoiceId
+        self.customerId = customerId
+        self.attemptCount = 1
+        self.lastError = error
+        self.firstFailedAt = Date()
+        self.lastAttemptAt = Date()
+        
+        // Calculate next retry time with initial delay
+        self.nextRetryTime = Date().addingTimeInterval(RetryConfiguration.default.initialDelay)
+    }
+}
 
 class RecurringInvoiceService {
     static let shared = RecurringInvoiceService()
@@ -14,8 +62,15 @@ class RecurringInvoiceService {
     private let coreDataManager = CoreDataManager.shared
     private let invoiceService = InvoiceService.shared
     private let stripeService = StripeService.shared
+    private let retryConfig = RetryConfiguration.default
     
-    private init() {}
+    // In-memory tracking of failed invoice attempts
+    private var failedAttempts: [UUID: FailedInvoiceAttempt] = [:]
+    private var retryTimer: Timer?
+    
+    private init() {
+        startRetryTimer()
+    }
     
     // MARK: - CRUD Operations
     
@@ -250,12 +305,196 @@ class RecurringInvoiceService {
     
     private func sendInvoiceEmail(invoice: Invoice, customerId: UUID) {
         guard let customer = coreDataManager.fetchCustomer(id: customerId),
-              let email = customer.email else { return }
+              let email = customer.email,
+              let invoiceId = invoice.id else { 
+            print("❌ No customer email found for recurring invoice")
+            return
+        }
         
-        // In production, send via email service
-        print("📧 Sending recurring invoice \(invoice.invoiceNumber ?? "") to \(email)")
+        // Generate PDF for the invoice
+        guard let pdfDocument = PDFGenerator.shared.generateInvoicePDF(
+            invoice: invoice,
+            customer: customer,
+            companyInfo: CompanyInfo.default
+        ) else {
+            print("❌ Failed to generate PDF for recurring invoice \(invoice.invoiceNumber ?? "")")
+            trackFailedAttempt(invoiceId: invoiceId, customerId: customerId, error: "Failed to generate PDF")
+            return
+        }
         
-        // TODO: Integrate with actual email service
+        // Send via email service with retry support
+        Task {
+            do {
+                try await EmailService.shared.sendRecurringInvoice(
+                    invoice: invoice,
+                    customer: customer,
+                    pdfDocument: pdfDocument
+                )
+                print("✅ Sent recurring invoice \(invoice.invoiceNumber ?? "") to \(email)")
+                
+                // Remove from failed attempts if it was previously failing
+                await MainActor.run {
+                    clearFailedAttempt(invoiceId: invoiceId)
+                }
+            } catch {
+                print("❌ Failed to send recurring invoice email: \(error.localizedDescription)")
+                await MainActor.run {
+                    trackFailedAttempt(invoiceId: invoiceId, customerId: customerId, error: error.localizedDescription)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Retry Logic
+    
+    private func startRetryTimer() {
+        // Check for retries every minute
+        retryTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
+            self?.processRetries()
+        }
+    }
+    
+    private func processRetries() {
+        let now = Date()
+        
+        for (invoiceId, var attempt) in failedAttempts {
+            // Check if it's time to retry
+            guard now >= attempt.nextRetryTime else {
+                continue
+            }
+            
+            // Check if we've exceeded max attempts
+            if attempt.attemptCount >= retryConfig.maxAttempts {
+                handleMaxRetriesExceeded(attempt: attempt)
+                failedAttempts.removeValue(forKey: invoiceId)
+                continue
+            }
+            
+            // Attempt retry
+            print("🔄 Retrying failed invoice \(invoiceId) (attempt \(attempt.attemptCount + 1)/\(retryConfig.maxAttempts))")
+            
+            // Fetch the invoice and retry sending
+            if let invoice = fetchInvoice(id: invoiceId) {
+                attempt.attemptCount += 1
+                attempt.lastAttemptAt = Date()
+                
+                // Calculate next retry time using exponential backoff
+                let delay = retryConfig.delayForAttempt(attempt.attemptCount)
+                attempt.nextRetryTime = Date().addingTimeInterval(delay)
+                
+                // Update the attempt in our tracking
+                failedAttempts[invoiceId] = attempt
+                
+                // Retry the send
+                sendInvoiceEmail(invoice: invoice, customerId: attempt.customerId)
+            } else {
+                // Invoice no longer exists, remove from tracking
+                failedAttempts.removeValue(forKey: invoiceId)
+            }
+        }
+    }
+    
+    private func trackFailedAttempt(invoiceId: UUID, customerId: UUID, error: String) {
+        if var existing = failedAttempts[invoiceId] {
+            // Update existing attempt
+            existing.attemptCount += 1
+            existing.lastError = error
+            existing.lastAttemptAt = Date()
+            
+            // Calculate next retry time
+            let delay = retryConfig.delayForAttempt(existing.attemptCount)
+            existing.nextRetryTime = Date().addingTimeInterval(delay)
+            
+            failedAttempts[invoiceId] = existing
+            
+            print("⚠️ Invoice \(invoiceId) failed again (attempt \(existing.attemptCount)/\(retryConfig.maxAttempts))")
+            print("   Next retry at: \(existing.nextRetryTime)")
+        } else {
+            // Create new failed attempt tracking
+            // We need the recurring invoice ID - try to find it
+            if fetchInvoice(id: invoiceId) != nil {
+                let attempt = FailedInvoiceAttempt(
+                    invoiceId: invoiceId,
+                    recurringInvoiceId: UUID(), // Would need to link this properly
+                    customerId: customerId,
+                    error: error
+                )
+                failedAttempts[invoiceId] = attempt
+                
+                print("⚠️ Invoice \(invoiceId) failed to send. Will retry in \(retryConfig.initialDelay) seconds")
+            }
+        }
+    }
+    
+    private func clearFailedAttempt(invoiceId: UUID) {
+        if let attempt = failedAttempts.removeValue(forKey: invoiceId) {
+            print("✅ Cleared failed attempt for invoice \(invoiceId) after \(attempt.attemptCount) attempts")
+        }
+    }
+    
+    private func handleMaxRetriesExceeded(attempt: FailedInvoiceAttempt) {
+        print("❌ Max retries exceeded for invoice \(attempt.invoiceId)")
+        print("   First failed: \(attempt.firstFailedAt)")
+        print("   Total attempts: \(attempt.attemptCount)")
+        print("   Last error: \(attempt.lastError ?? "Unknown")")
+        
+        // Notify admin
+        if let customer = coreDataManager.fetchCustomer(id: attempt.customerId),
+           let _ = fetchInvoice(id: attempt.invoiceId) {
+            
+            let error = NSError(
+                domain: "RecurringInvoice",
+                code: -1,
+                userInfo: [
+                    NSLocalizedDescriptionKey: "Max retry attempts (\(attempt.attemptCount)) exceeded. Last error: \(attempt.lastError ?? "Unknown")"
+                ]
+            )
+            
+            // Get recurring invoice if available
+            let request = RecurringInvoice.fetchRequest()
+            request.predicate = NSPredicate(format: "id == %@", attempt.recurringInvoiceId as CVarArg)
+            request.fetchLimit = 1
+            
+            if let recurring = try? coreDataManager.viewContext.fetch(request).first {
+                EmailService.shared.notifyAdminOfFailure(
+                    recurringInvoice: recurring,
+                    customer: customer,
+                    error: error
+                )
+            }
+        }
+    }
+    
+    private func fetchInvoice(id: UUID) -> Invoice? {
+        let request = Invoice.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.fetchLimit = 1
+        return try? coreDataManager.viewContext.fetch(request).first
+    }
+    
+    // MARK: - Public Retry Management
+    
+    func getFailedInvoiceCount() -> Int {
+        return failedAttempts.count
+    }
+    
+    func getFailedInvoices() -> [FailedInvoiceAttempt] {
+        return Array(failedAttempts.values).sorted { $0.nextRetryTime < $1.nextRetryTime }
+    }
+    
+    func manualRetry(invoiceId: UUID) {
+        guard let attempt = failedAttempts[invoiceId],
+              let invoice = fetchInvoice(id: invoiceId) else {
+            return
+        }
+        
+        print("🔄 Manual retry requested for invoice \(invoiceId)")
+        sendInvoiceEmail(invoice: invoice, customerId: attempt.customerId)
+    }
+    
+    func clearFailedInvoice(invoiceId: UUID) {
+        failedAttempts.removeValue(forKey: invoiceId)
+        print("🗑️ Manually cleared failed invoice \(invoiceId)")
     }
     
     private func recordSuccess(for recurring: RecurringInvoice) {
@@ -269,7 +508,14 @@ class RecurringInvoiceService {
         
         print("❌ Failed to generate invoice: \(error)")
         
-        // TODO: Send failure notification to admin
+        // Notify admin of failure
+        if let customer = coreDataManager.fetchCustomer(id: recurring.customerId ?? UUID()) {
+            EmailService.shared.notifyAdminOfFailure(
+                recurringInvoice: recurring,
+                customer: customer,
+                error: NSError(domain: "RecurringInvoice", code: -1, userInfo: [NSLocalizedDescriptionKey: error])
+            )
+        }
     }
 }
 

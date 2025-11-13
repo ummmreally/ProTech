@@ -292,22 +292,199 @@ struct EditInventoryItemView: View {
     }
 }
 
-struct StockAdjustmentView: View {
-    @Environment(\.dismiss) private var dismiss
-    let item: InventoryItem
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Text("Adjust Stock for \(item.name ?? "Item")")
-                .font(.title3)
-                .bold()
-            Text("Stock adjustments will be available soon.")
-                .foregroundColor(.secondary)
-            Button("Close") {
-                dismiss()
+struct StockAdjustmentSheet: View {
+    private enum AdjustmentMode: String, CaseIterable, Identifiable {
+        case add
+        case remove
+        case set
+        
+        var id: String { rawValue }
+        
+        var displayName: String {
+            switch self {
+            case .add: return "Add"
+            case .remove: return "Remove"
+            case .set: return "Set Quantity"
             }
-            .buttonStyle(.bordered)
         }
-        .frame(width: 400, height: 250)
+        
+        var defaultReason: String {
+            switch self {
+            case .add: return "Stock received"
+            case .remove: return "Manual deduction"
+            case .set: return "Inventory recount"
+            }
+        }
+    }
+    
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject private var item: InventoryItem
+    private let onComplete: (() -> Void)?
+    
+    @State private var mode: AdjustmentMode = .add
+    @State private var quantityChange: Int = 1
+    @State private var targetQuantity: Int = 0
+    @State private var reason: String = ""
+    @State private var reference: String = ""
+    @State private var notes: String = ""
+    
+    init(item: InventoryItem, onComplete: (() -> Void)? = nil) {
+        self._item = ObservedObject(wrappedValue: item)
+        self.onComplete = onComplete
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.name ?? "Inventory Item")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                Text("Current Stock: \(currentQuantity)")
+                    .foregroundColor(.secondary)
+            }
+            
+            Picker("Adjustment", selection: $mode) {
+                ForEach(AdjustmentMode.allCases) { mode in
+                    Text(mode.displayName).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .onChange(of: mode) {
+                reason = mode.defaultReason
+                if mode == .set {
+                    targetQuantity = currentQuantity
+                }
+            }
+            
+            Group {
+                if mode == .set {
+                    Stepper(value: $targetQuantity, in: 0...100_000) {
+                        HStack {
+                            Text("New Quantity")
+                            Spacer()
+                            Text("\(targetQuantity)")
+                                .font(.headline)
+                        }
+                    }
+                } else {
+                    Stepper(value: $quantityChange, in: 1...50_000) {
+                        HStack {
+                            Text("Amount")
+                            Spacer()
+                            Text("\(quantityChange)")
+                                .font(.headline)
+                        }
+                    }
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Resulting Quantity")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                HStack {
+                    Text("\(resultingQuantity)")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundColor(resultingQuantity < 0 ? .red : .primary)
+                    Spacer()
+                    if resultingQuantity < 0 {
+                        Text("Warning: negative stock")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    }
+                }
+            }
+            
+            Group {
+                TextField("Reason", text: $reason)
+                TextField("Reference (optional)", text: $reference)
+                TextField("Notes (optional)", text: $notes)
+            }
+            
+            Spacer()
+            
+            Divider()
+            
+            HStack {
+                Button("Cancel") {
+                    dismiss()
+                }
+                .buttonStyle(.bordered)
+                
+                Spacer()
+                
+                Button("Record Adjustment") {
+                    performAdjustment()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(!isValidAdjustment)
+            }
+        }
+        .padding(24)
+        .frame(width: 440, height: 420)
+        .onAppear {
+            targetQuantity = currentQuantity
+            reason = mode.defaultReason
+        }
+    }
+    
+    private var currentQuantity: Int {
+        Int(item.quantity)
+    }
+    
+    private var changeAmount: Int {
+        switch mode {
+        case .add:
+            return quantityChange
+        case .remove:
+            return -quantityChange
+        case .set:
+            return targetQuantity - currentQuantity
+        }
+    }
+    
+    private var resultingQuantity: Int {
+        switch mode {
+        case .set:
+            return targetQuantity
+        default:
+            return currentQuantity + changeAmount
+        }
+    }
+    
+    private var adjustmentType: StockAdjustmentType {
+        switch mode {
+        case .add: return .add
+        case .remove: return .remove
+        case .set: return .recount
+        }
+    }
+    
+    private var isValidAdjustment: Bool {
+        switch mode {
+        case .add, .remove:
+            return quantityChange > 0
+        case .set:
+            return targetQuantity >= 0 && targetQuantity != currentQuantity
+        }
+    }
+    
+    private func performAdjustment() {
+        guard isValidAdjustment, changeAmount != 0 else { return }
+        let trimmedReason = reason.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedReference = reference.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        InventoryService.shared.adjustStock(
+            item: item,
+            change: changeAmount,
+            type: adjustmentType,
+            reason: trimmedReason.isEmpty ? adjustmentType.displayName : trimmedReason,
+            reference: trimmedReference.isEmpty ? nil : trimmedReference,
+            notes: trimmedNotes.isEmpty ? nil : trimmedNotes
+        )
+        onComplete?()
+        dismiss()
     }
 }

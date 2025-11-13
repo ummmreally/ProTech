@@ -19,6 +19,7 @@ struct InventoryListView: View {
     @State private var showLowStockOnly = false
     @State private var showingAddItem = false
     @State private var selectedItem: InventoryItem?
+    @State private var adjustingItem: InventoryItem?
     @State private var showingBatchPrintDialog = false
     @State private var labelCopies = 1
     
@@ -194,6 +195,9 @@ struct InventoryListView: View {
         .sheet(item: $selectedItem) { item in
             InventoryItemDetailView(item: item)
         }
+        .sheet(item: $adjustingItem) { item in
+            StockAdjustmentSheet(item: item)
+        }
         .sheet(isPresented: $showingBatchPrintDialog) {
             BatchPrintOptionsView(
                 itemCount: filteredItems.count,
@@ -225,7 +229,7 @@ struct InventoryListView: View {
     }
     
     private func adjustStock(item: InventoryItem) {
-        // TODO: Show stock adjustment sheet
+        adjustingItem = item
     }
     
     private func deleteItem(_ item: InventoryItem) {

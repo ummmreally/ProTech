@@ -101,7 +101,16 @@ struct CheckInCustomerView: View {
         }
         .frame(width: 650, height: 820)
         .sheet(isPresented: $showingNewCustomer) {
-            AddCustomerView()
+            AddCustomerView(
+                onSave: { customer in
+                    selectedCustomer = customer
+                    searchText = "\(customer.firstName ?? "") \(customer.lastName ?? "")"
+                    populateCustomerDetails(from: customer)
+                },
+                onCancel: {
+                    showingNewCustomer = false
+                }
+            )
         }
         .sheet(isPresented: $showingSignaturePad) {
             SignaturePadView(signatureData: $signatureData)

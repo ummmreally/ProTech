@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PDFKit
 
 struct EstimateGeneratorView: View {
     @Environment(\.dismiss) private var dismiss
@@ -23,6 +24,9 @@ struct EstimateGeneratorView: View {
     @State private var validUntilDays = 30
     @State private var notes = ""
     @State private var taxRate: Double = 8.0
+    @State private var savedEstimate: Estimate?
+    @State private var showingEmailAlert = false
+    @State private var emailAlertMessage = ""
     
     private let estimateService = EstimateService.shared
     
@@ -122,8 +126,7 @@ struct EstimateGeneratorView: View {
                         }
                         
                         Button("Save & Send to Customer") {
-                            saveEstimate(status: "pending")
-                            // TODO: Send email
+                            saveEstimateAndEmail()
                         }
                     } label: {
                         Label("Save", systemImage: "checkmark.circle.fill")
@@ -138,6 +141,11 @@ struct EstimateGeneratorView: View {
             if lineItems.isEmpty {
                 addLineItem()
             }
+        }
+        .alert("Email Status", isPresented: $showingEmailAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(emailAlertMessage)
         }
     }
     
@@ -192,6 +200,109 @@ struct EstimateGeneratorView: View {
             quantity: 1,
             unitPrice: Decimal(0)
         ))
+    }
+    
+    private func saveEstimateAndEmail() {
+        guard let customerId = selectedCustomerId else { return }
+        
+        // First save the estimate
+        let validUntilDate = Calendar.current.date(byAdding: .day, value: validUntilDays, to: Date()) ?? Date()
+        let taxDecimal = Decimal(taxRate)
+        
+        let estimateToEmail: Estimate
+        
+        if let existingEstimate = estimate {
+            existingEstimate.customerId = customerId
+            existingEstimate.ticketId = selectedTicketId
+            existingEstimate.validUntil = validUntilDate
+            existingEstimate.notes = notes.isEmpty ? nil : notes
+            existingEstimate.status = "pending"
+            existingEstimate.taxRate = taxDecimal
+            existingEstimate.updatedAt = Date()
+            
+            // Remove existing line items
+            for item in existingEstimate.lineItemsArray {
+                estimateService.deleteLineItem(item)
+            }
+            
+            // Add updated line items
+            for (index, itemData) in lineItems.enumerated() {
+                let lineItem = estimateService.addLineItem(
+                    to: existingEstimate,
+                    type: itemData.itemType,
+                    description: itemData.itemDescription,
+                    quantity: Decimal(itemData.quantity),
+                    unitPrice: itemData.unitPrice
+                )
+                lineItem.order = Int16(index)
+            }
+            
+            estimateService.recalculateEstimate(existingEstimate)
+            estimateToEmail = existingEstimate
+        } else {
+            // Create new
+            let newEstimate = estimateService.createEstimate(
+                customerId: customerId,
+                ticketId: selectedTicketId,
+                validUntil: validUntilDate,
+                notes: notes.isEmpty ? nil : notes
+            )
+            newEstimate.status = "pending"
+            newEstimate.taxRate = taxDecimal
+            
+            for (index, itemData) in lineItems.enumerated() {
+                let lineItem = estimateService.addLineItem(
+                    to: newEstimate,
+                    type: itemData.itemType,
+                    description: itemData.itemDescription,
+                    quantity: Decimal(itemData.quantity),
+                    unitPrice: itemData.unitPrice
+                )
+                lineItem.order = Int16(index)
+            }
+            
+            estimateService.recalculateEstimate(newEstimate)
+            estimateToEmail = newEstimate
+        }
+        
+        try? viewContext.save()
+        
+        // Now send the email
+        guard let customer = fetchCustomer(id: customerId) else {
+            emailAlertMessage = "Could not find customer information"
+            showingEmailAlert = true
+            dismiss()
+            return
+        }
+        
+        // Generate PDF
+        guard let pdfDocument = PDFGenerator.shared.generateEstimatePDF(
+            estimate: estimateToEmail,
+            customer: customer,
+            companyInfo: CompanyInfo.default
+        ) else {
+            emailAlertMessage = "Failed to generate PDF"
+            showingEmailAlert = true
+            dismiss()
+            return
+        }
+        
+        // Send email
+        let success = EmailService.shared.sendEstimate(
+            estimate: estimateToEmail,
+            customer: customer,
+            pdfDocument: pdfDocument
+        )
+        
+        if success {
+            emailAlertMessage = "Estimate saved and email opened. Complete sending in Mail app."
+            showingEmailAlert = true
+        } else {
+            emailAlertMessage = "Estimate saved but failed to send email. Check customer email address."
+            showingEmailAlert = true
+        }
+        
+        dismiss()
     }
     
     private func saveEstimate(status: String) {
@@ -261,6 +372,13 @@ struct EstimateGeneratorView: View {
         formatter.numberStyle = .currency
         formatter.locale = Locale.current
         return formatter.string(from: value as NSDecimalNumber) ?? "$0.00"
+    }
+    
+    private func fetchCustomer(id: UUID) -> Customer? {
+        let request = Customer.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.fetchLimit = 1
+        return try? viewContext.fetch(request).first
     }
 }
 

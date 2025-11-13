@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreData
 
 struct SquareSettingsView: View {
     @State private var accessToken = ""
@@ -132,21 +133,84 @@ struct SquareSettingsView: View {
     
     private func testConnection() {
         testingConnection = true
+        errorMessage = ""
         
-        // Save configuration
+        // Save configuration first
         _ = SecureStorage.save(key: SecureStorage.Keys.squareAccessToken, value: accessToken)
         _ = SecureStorage.save(key: SecureStorage.Keys.squareEnvironment, value: environment.rawValue)
         
-        // TODO: Implement actual Square API test
-        // For now, simulate success
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            testingConnection = false
-            isConnected = true
-            
-            // Mock location ID for demo
-            if locationId.isEmpty {
-                locationId = "MAIN_LOCATION"
-                _ = SecureStorage.save(key: SecureStorage.Keys.squareLocationId, value: locationId)
+        // Create a temporary configuration for testing
+        // Note: SquareConfiguration is a Core Data entity, so we'll create it in memory
+        let context = CoreDataManager.shared.viewContext
+        let tempConfig = SquareConfiguration(context: context)
+        tempConfig.accessToken = accessToken
+        tempConfig.environmentRaw = environment.rawValue
+        tempConfig.locationId = locationId
+        tempConfig.merchantId = "test" // placeholder for connection test
+        
+        SquareAPIService.shared.setConfiguration(tempConfig)
+        
+        // Test connection by fetching locations
+        Task {
+            do {
+                let locations = try await SquareAPIService.shared.listLocations()
+                
+                await MainActor.run {
+                    testingConnection = false
+                    
+                    // Clean up temporary Core Data object
+                    context.rollback()
+                    
+                    if locations.isEmpty {
+                        isConnected = false
+                        errorMessage = "No locations found. Please check your Square account."
+                        showingError = true
+                    } else {
+                        isConnected = true
+                        
+                        // Auto-fill first location if not set
+                        if locationId.isEmpty, let firstLocation = locations.first {
+                            locationId = firstLocation.id
+                            _ = SecureStorage.save(key: SecureStorage.Keys.squareLocationId, value: locationId)
+                        }
+                        
+                        errorMessage = "✅ Connected! Found \(locations.count) location(s): \(locations.map { $0.name ?? "Unnamed" }.joined(separator: ", "))"
+                        showingError = true
+                    }
+                }
+            } catch let error as SquareAPIError {
+                await MainActor.run {
+                    testingConnection = false
+                    isConnected = false
+                    
+                    // Clean up temporary Core Data object
+                    context.rollback()
+                    
+                    switch error {
+                    case .unauthorized:
+                        errorMessage = "Unauthorized: Invalid access token. Please check your credentials."
+                    case .notConfigured:
+                        errorMessage = "Configuration error: Please enter your access token."
+                    case .apiError(let message):
+                        errorMessage = "Square API Error: \(message)"
+                    case .rateLimitExceeded:
+                        errorMessage = "Rate limit exceeded. Please try again in a moment."
+                    default:
+                        errorMessage = "Connection failed: \(error.localizedDescription)"
+                    }
+                    showingError = true
+                }
+            } catch {
+                await MainActor.run {
+                    testingConnection = false
+                    isConnected = false
+                    
+                    // Clean up temporary Core Data object
+                    context.rollback()
+                    
+                    errorMessage = "Connection failed: \(error.localizedDescription)"
+                    showingError = true
+                }
             }
         }
     }

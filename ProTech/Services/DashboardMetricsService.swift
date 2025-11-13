@@ -190,15 +190,21 @@ class DashboardMetricsService {
         
         if let payments = try? context.fetch(paymentRequest) {
             for payment in payments {
-                if let customer = fetchCustomer(id: payment.customerId), let date = payment.createdAt {
+                if let customer = fetchCustomer(id: payment.customerId),
+                   let paymentDate = payment.createdAt,
+                   let paymentId = payment.id {
+                    let formatter = NumberFormatter()
+                    formatter.numberStyle = .currency
+                    let amountString = formatter.string(from: payment.amount as NSDecimalNumber) ?? "$0"
+                    
                     activities.append(ActivityItem(
                         type: .paymentReceived,
-                        title: "Payment received: \(payment.formattedAmount)",
+                        title: "Payment received: \(amountString)",
                         subtitle: customer.displayName,
-                        timestamp: date,
+                        timestamp: paymentDate,
                         icon: "dollarsign.circle.fill",
                         color: .green,
-                        relatedId: payment.id
+                        relatedId: paymentId
                     ))
                 }
             }
@@ -232,18 +238,21 @@ class DashboardMetricsService {
         
         if let estimates = try? context.fetch(estimateRequest) {
             for estimate in estimates.prefix(3) {
-                if let customer = fetchCustomer(id: estimate.customerId), let date = estimate.createdAt {
+                if let customer = fetchCustomer(id: estimate.customerId),
+                   let estimateDate = estimate.createdAt,
+                   let estimateId = estimate.id {
                     let title = estimate.status == "approved" ? "Estimate approved" : "Estimate sent"
                     let color: Color = estimate.status == "approved" ? .green : .orange
+                    let estimateNum = estimate.estimateNumber ?? "EST-\(estimateId.uuidString.prefix(8))"
                     
                     activities.append(ActivityItem(
                         type: estimate.status == "approved" ? .estimateApproved : .estimateSent,
                         title: title,
-                        subtitle: "\(customer.displayName) - \(estimate.formattedEstimateNumber)",
-                        timestamp: date,
+                        subtitle: "\(customer.displayName) - \(estimateNum)",
+                        timestamp: estimateDate,
                         icon: "doc.plaintext.fill",
                         color: color,
-                        relatedId: estimate.id
+                        relatedId: estimateId
                     ))
                 }
             }

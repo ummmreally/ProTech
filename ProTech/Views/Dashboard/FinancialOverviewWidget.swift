@@ -84,18 +84,20 @@ struct FinancialOverviewWidget: View {
         .padding()
         .background(Color.gray.opacity(0.05))
         .cornerRadius(12)
-        .onAppear {
-            loadData()
+        .task {
+            await loadData()
         }
     }
     
-    private func loadData() {
-        todayRevenue = metricsService.getTodayRevenue()
-        weekRevenue = metricsService.getWeekRevenue()
-        monthRevenue = metricsService.getMonthRevenue()
-        outstandingBalance = metricsService.getOutstandingBalance()
-        averageTicketValue = metricsService.getAverageTicketValue()
-        revenueGrowth = metricsService.getRevenueGrowth()
+    private func loadData() async {
+        await MainActor.run {
+            todayRevenue = metricsService.getTodayRevenue()
+            weekRevenue = metricsService.getWeekRevenue()
+            monthRevenue = metricsService.getMonthRevenue()
+            outstandingBalance = metricsService.getOutstandingBalance()
+            averageTicketValue = metricsService.getAverageTicketValue()
+            revenueGrowth = metricsService.getRevenueGrowth()
+        }
     }
     
     private func formatCurrency(_ value: Decimal) -> String {

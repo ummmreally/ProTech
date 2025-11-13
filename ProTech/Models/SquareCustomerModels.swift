@@ -35,6 +35,31 @@ struct SquareCustomer: Codable, Identifiable {
         case referenceId = "reference_id"
         case version
     }
+    
+    // Custom initializer for JSON dictionary parsing
+    init?(json: [String: Any]) {
+        guard let id = json["id"] as? String else {
+            return nil
+        }
+        
+        self.id = id
+        self.createdAt = json["created_at"] as? String
+        self.updatedAt = json["updated_at"] as? String
+        self.givenName = json["given_name"] as? String
+        self.familyName = json["family_name"] as? String
+        self.emailAddress = json["email_address"] as? String
+        self.phoneNumber = json["phone_number"] as? String
+        self.note = json["note"] as? String
+        self.referenceId = json["reference_id"] as? String
+        self.version = json["version"] as? Int
+        
+        // Parse address if present
+        if let addressJson = json["address"] as? [String: Any] {
+            self.address = SquareAddress(json: addressJson)
+        } else {
+            self.address = nil
+        }
+    }
 }
 
 struct SquareAddress: Codable {
@@ -66,6 +91,37 @@ struct SquareAddress: Codable {
             components.append("\(city), \(state) \(zip)")
         }
         return components.joined(separator: ", ")
+    }
+    
+    // Memberwise initializer
+    init(addressLine1: String? = nil,
+         addressLine2: String? = nil,
+         addressLine3: String? = nil,
+         locality: String? = nil,
+         sublocality: String? = nil,
+         administrativeDistrictLevel1: String? = nil,
+         postalCode: String? = nil,
+         country: String? = nil) {
+        self.addressLine1 = addressLine1
+        self.addressLine2 = addressLine2
+        self.addressLine3 = addressLine3
+        self.locality = locality
+        self.sublocality = sublocality
+        self.administrativeDistrictLevel1 = administrativeDistrictLevel1
+        self.postalCode = postalCode
+        self.country = country
+    }
+    
+    // Custom initializer for JSON dictionary parsing
+    init?(json: [String: Any]) {
+        self.addressLine1 = json["address_line_1"] as? String
+        self.addressLine2 = json["address_line_2"] as? String
+        self.addressLine3 = json["address_line_3"] as? String
+        self.locality = json["locality"] as? String
+        self.sublocality = json["sublocality"] as? String
+        self.administrativeDistrictLevel1 = json["administrative_district_level_1"] as? String
+        self.postalCode = json["postal_code"] as? String
+        self.country = json["country"] as? String
     }
 }
 

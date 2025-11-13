@@ -196,7 +196,9 @@ struct InventoryItemDetailView: View {
                 }
             }
             .sheet(isPresented: $showingStockAdjustment) {
-                StockAdjustmentView(item: item)
+                StockAdjustmentSheet(item: item) {
+                    loadStockHistory()
+                }
             }
             .sheet(isPresented: $showingEditView) {
                 EditInventoryItemView(item: item)

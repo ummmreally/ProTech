@@ -858,25 +858,4 @@ struct SyncStatistics {
     }
 }
 
-enum SyncError: Error, LocalizedError {
-    case notConfigured
-    case mappingNotFound
-    case invalidResponse
-    case conflict
-    case invalidData(String)
-    
-    var errorDescription: String? {
-        switch self {
-        case .notConfigured:
-            return "Square sync is not configured"
-        case .mappingNotFound:
-            return "Item mapping not found"
-        case .invalidResponse:
-            return "Invalid response from Square"
-        case .conflict:
-            return "Sync conflict detected"
-        case .invalidData(let message):
-            return "Invalid data: \(message)"
-        }
-    }
-}
+// SyncError is defined in Models/SyncErrors.swift

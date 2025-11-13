@@ -58,13 +58,15 @@ struct AlertsWidget: View {
         .padding()
         .background(Color.gray.opacity(0.05))
         .cornerRadius(12)
-        .onAppear {
-            loadAlerts()
+        .task {
+            await loadAlerts()
         }
     }
     
-    private func loadAlerts() {
-        alerts = metricsService.getCriticalAlerts()
+    private func loadAlerts() async {
+        await MainActor.run {
+            alerts = metricsService.getCriticalAlerts()
+        }
     }
 }
 

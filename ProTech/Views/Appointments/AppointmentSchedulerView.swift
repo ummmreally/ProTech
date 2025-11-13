@@ -157,10 +157,15 @@ struct AppointmentSchedulerView: View {
     private var calendarView: some View {
         ScrollView {
             VStack(spacing: 0) {
-                if viewMode == .day {
+                switch viewMode {
+                case .day:
                     dayView
-                } else {
+                case .week:
                     weekView
+                case .month:
+                    monthView
+                case .list:
+                    EmptyView()
                 }
             }
             .padding()
@@ -201,18 +206,125 @@ struct AppointmentSchedulerView: View {
         }
     }
     
+    // MARK: - Week View
+    
     private var weekView: some View {
-        VStack {
-            Text("Week View")
-                .font(.headline)
-                .foregroundColor(.secondary)
-                .padding()
+        VStack(spacing: 0) {
+            // Week day headers
+            HStack(spacing: 0) {
+                // Time column spacer
+                Text("")
+                    .frame(width: 60)
+                
+                ForEach(weekDays, id: \.self) { date in
+                    VStack(spacing: 4) {
+                        Text(dayName(for: date))
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                        Text("\(calendar.component(.day, from: date))")
+                            .font(.title3)
+                            .fontWeight(calendar.isDateInToday(date) ? .bold : .regular)
+                            .foregroundColor(calendar.isDateInToday(date) ? .blue : .primary)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            .padding(.bottom, 8)
             
-            Text("Coming soon - showing day view for now")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            Divider()
             
-            dayView
+            // Time slots with appointments
+            ScrollView {
+                VStack(spacing: 0) {
+                    ForEach(9..<18) { hour in
+                        HStack(alignment: .top, spacing: 0) {
+                            // Time label
+                            Text(formatHour(hour))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .frame(width: 60, alignment: .trailing)
+                                .padding(.trailing, 8)
+                            
+                            // Day columns
+                            ForEach(weekDays, id: \.self) { date in
+                                ZStack(alignment: .topLeading) {
+                                    Rectangle()
+                                        .fill(calendar.isDateInToday(date) ? Color.blue.opacity(0.05) : Color.gray.opacity(0.03))
+                                        .frame(height: 60)
+                                    
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.2))
+                                        .frame(height: 1)
+                                    
+                                    // Appointments for this hour on this day
+                                    ForEach(appointmentsForHour(hour, on: date)) { appointment in
+                                        AppointmentBlock(appointment: appointment)
+                                            .onTapGesture {
+                                                selectedAppointment = appointment
+                                            }
+                                    }
+                                }
+                                .frame(maxWidth: .infinity)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Month View
+    
+    private var monthView: some View {
+        VStack(spacing: 16) {
+            // Month calendar grid
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 8) {
+                // Day of week headers
+                ForEach(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], id: \.self) { day in
+                    Text(day)
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.secondary)
+                }
+                
+                // Calendar days
+                ForEach(monthDays, id: \.self) { date in
+                    MonthDayCell(
+                        date: date,
+                        isCurrentMonth: calendar.isDate(date, equalTo: selectedDate, toGranularity: .month),
+                        isToday: calendar.isDateInToday(date),
+                        isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
+                        appointmentCount: appointmentCount(for: date)
+                    )
+                    .onTapGesture {
+                        selectedDate = date
+                        viewMode = .day
+                    }
+                }
+            }
+            
+            Divider()
+            
+            // Selected day appointments
+            if !appointments.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Appointments on \(selectedDate.formatted(date: .long, time: .omitted))")
+                        .font(.headline)
+                    
+                    ForEach(appointments) { appointment in
+                        AppointmentListRow(appointment: appointment)
+                            .onTapGesture {
+                                selectedAppointment = appointment
+                            }
+                    }
+                }
+                .padding(.top)
+            } else {
+                Text("No appointments on this day")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .padding()
+            }
         }
     }
     
@@ -265,6 +377,71 @@ struct AppointmentSchedulerView: View {
     }
     
     // MARK: - Actions
+    
+    // MARK: - Week/Month Helpers
+    
+    private var weekDays: [Date] {
+        guard let weekInterval = calendar.dateInterval(of: .weekOfYear, for: selectedDate) else {
+            return []
+        }
+        
+        var days: [Date] = []
+        var currentDate = weekInterval.start
+        
+        while currentDate < weekInterval.end {
+            days.append(currentDate)
+            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else { break }
+            currentDate = nextDate
+        }
+        
+        return days
+    }
+    
+    private var monthDays: [Date] {
+        guard let monthInterval = calendar.dateInterval(of: .month, for: selectedDate) else {
+            return []
+        }
+        
+        // Get the first day of the month
+        let firstOfMonth = monthInterval.start
+        
+        // Find the Sunday before (or equal to) the first day
+        guard let firstSunday = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: firstOfMonth)) else {
+            return []
+        }
+        
+        // Generate 42 days (6 weeks) to fill the calendar grid
+        var days: [Date] = []
+        var currentDate = firstSunday
+        
+        for _ in 0..<42 {
+            days.append(currentDate)
+            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else { break }
+            currentDate = nextDate
+        }
+        
+        return days
+    }
+    
+    private func dayName(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEE"
+        return formatter.string(from: date)
+    }
+    
+    private func appointmentsForHour(_ hour: Int, on date: Date) -> [Appointment] {
+        let dayAppointments = appointmentService.fetchAppointments(for: date)
+        
+        return dayAppointments.filter { appointment in
+            guard let scheduledDate = appointment.scheduledDate else { return false }
+            let appointmentHour = calendar.component(.hour, from: scheduledDate)
+            return appointmentHour == hour
+        }
+    }
+    
+    private func appointmentCount(for date: Date) -> Int {
+        return appointmentService.fetchAppointments(for: date).count
+    }
     
     private func loadAppointments() {
         if viewMode == .list {
@@ -484,12 +661,69 @@ struct AppointmentStatCard: View {
     }
 }
 
+// MARK: - Month Day Cell
+
+struct MonthDayCell: View {
+    let date: Date
+    let isCurrentMonth: Bool
+    let isToday: Bool
+    let isSelected: Bool
+    let appointmentCount: Int
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            Text("\(Calendar.current.component(.day, from: date))")
+                .font(.system(size: 14, weight: isToday ? .bold : .regular))
+                .foregroundColor(textColor)
+                .frame(width: 32, height: 32)
+                .background(backgroundColor)
+                .clipShape(Circle())
+            
+            if appointmentCount > 0 {
+                HStack(spacing: 2) {
+                    ForEach(0..<min(appointmentCount, 3), id: \.self) { _ in
+                        Circle()
+                            .fill(Color.blue)
+                            .frame(width: 4, height: 4)
+                    }
+                }
+            }
+        }
+        .frame(height: 50)
+        .frame(maxWidth: .infinity)
+        .contentShape(Rectangle())
+    }
+    
+    private var textColor: Color {
+        if !isCurrentMonth {
+            return .secondary.opacity(0.5)
+        } else if isToday {
+            return .white
+        } else if isSelected {
+            return .blue
+        } else {
+            return .primary
+        }
+    }
+    
+    private var backgroundColor: Color {
+        if isToday {
+            return .blue
+        } else if isSelected {
+            return .blue.opacity(0.2)
+        } else {
+            return .clear
+        }
+    }
+}
+
 // MARK: - View Mode
 
-enum ViewMode {
-    case day
-    case week
-    case list
+enum ViewMode: String, CaseIterable {
+    case day = "Day"
+    case week = "Week"
+    case month = "Month"
+    case list = "List"
 }
 
 // MARK: - Preview

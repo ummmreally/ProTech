@@ -55,13 +55,15 @@ struct RecentActivityWidget: View {
         .padding()
         .background(Color.gray.opacity(0.05))
         .cornerRadius(12)
-        .onAppear {
-            loadActivity()
+        .task {
+            await loadActivity()
         }
     }
     
-    private func loadActivity() {
-        activities = metricsService.getRecentActivity(limit: 8)
+    private func loadActivity() async {
+        await MainActor.run {
+            activities = metricsService.getRecentActivity(limit: 8)
+        }
     }
 }
 

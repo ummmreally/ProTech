@@ -134,7 +134,7 @@ struct EstimateDetailView: View {
             EstimateGeneratorView(estimate: estimate)
         }
         .sheet(isPresented: $showingEmailSheet) {
-            EmailEstimateView(estimate: estimate, pdfDocument: pdfDocument)
+            EmailEstimateView(estimate: estimate, customer: customer, pdfDocument: pdfDocument)
         }
         .alert("Approve Estimate", isPresented: $showingApprovalConfirm) {
             Button("Cancel", role: .cancel) {}
@@ -491,11 +491,14 @@ struct EmailEstimateView: View {
     @Environment(\.dismiss) private var dismiss
     
     let estimate: Estimate
+    let customer: Customer?
     let pdfDocument: PDFDocument?
     
     @State private var recipientEmail = ""
     @State private var subject = ""
     @State private var message = ""
+    @State private var showingAlert = false
+    @State private var alertMessage = ""
     
     var body: some View {
         NavigationStack {
@@ -518,8 +521,7 @@ struct EmailEstimateView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Send") {
-                        // TODO: Send email
-                        dismiss()
+                        sendEmail()
                     }
                     .disabled(recipientEmail.isEmpty)
                 }
@@ -527,8 +529,49 @@ struct EmailEstimateView: View {
         }
         .frame(width: 600, height: 500)
         .onAppear {
-                subject = "Estimate \(estimate.formattedEstimateNumber)"
+            // Pre-fill customer email
+            if let customerEmail = customer?.email {
+                recipientEmail = customerEmail
+            }
+            subject = "Estimate \(estimate.formattedEstimateNumber)"
             message = "Please find attached estimate for your review."
+        }
+        .alert("Email Status", isPresented: $showingAlert) {
+            Button("OK") { 
+                if alertMessage.contains("successfully") {
+                    dismiss()
+                }
+            }
+        } message: {
+            Text(alertMessage)
+        }
+    }
+    
+    private func sendEmail() {
+        guard let pdfDocument = pdfDocument else {
+            alertMessage = "Failed to generate PDF document"
+            showingAlert = true
+            return
+        }
+        
+        guard let customer = customer else {
+            alertMessage = "Customer information not available"
+            showingAlert = true
+            return
+        }
+        
+        let success = EmailService.shared.sendEstimate(
+            estimate: estimate,
+            customer: customer,
+            pdfDocument: pdfDocument
+        )
+        
+        if success {
+            alertMessage = "Email sent successfully! Check your Mail app to complete sending."
+            showingAlert = true
+        } else {
+            alertMessage = "Failed to send email. Please check the customer's email address."
+            showingAlert = true
         }
     }
 }
