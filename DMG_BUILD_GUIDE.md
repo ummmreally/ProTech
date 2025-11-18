@@ -21,6 +21,18 @@ This will:
 
 **Output:** `ProTech-Installer.dmg` in the ProTech directory
 
+## Secure Onboarding & Credentials
+
+After installing the app for the first time you must create your own administrator account—no default credentials are bundled anymore.
+
+1. Launch ProTech and sign in with a new admin you create from **Employees > Add Employee**.
+2. Use a password that meets the built-in policy (≥10 characters, at least one uppercase, one lowercase, one digit, one symbol).
+3. If you enable quick PIN access, choose a 6-digit PIN with no repeating or sequential digits.
+4. Accounts lock for 15 minutes after 5 failed PIN or password attempts. Wait for the lock to expire or have another admin reset the user’s credentials in the Employees screen.
+5. Document the new admin credentials securely and rotate them whenever staff change.
+
+> Tip: create at least two admin accounts so one admin can unlock or reset another if they hit the lockout threshold.
+
 ## Manual Build Process
 
 If you prefer to build manually or need more control:

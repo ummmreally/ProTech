@@ -40,7 +40,7 @@ struct RecentActivityWidget: View {
                 // Activity List
                 VStack(spacing: 0) {
                     ForEach(activities) { activity in
-                        ActivityRow(activity: activity)
+                        DashboardActivityRow(activity: activity)
                         
                         if activity.id != activities.last?.id {
                             Divider()
@@ -67,7 +67,7 @@ struct RecentActivityWidget: View {
     }
 }
 
-struct ActivityRow: View {
+private struct DashboardActivityRow: View {
     let activity: ActivityItem
     
     var body: some View {

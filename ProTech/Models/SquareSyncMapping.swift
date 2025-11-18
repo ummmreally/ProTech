@@ -29,10 +29,10 @@ extension SquareSyncMapping {
     @NSManaged public var errorMessage: String?
     
     // Computed properties for enums
-    var syncStatus: SyncStatus {
+    var syncStatus: SyncOutcome {
         get {
             guard let raw = syncStatusRaw else { return .pending }
-            return SyncStatus(rawValue: raw) ?? .pending
+            return SyncOutcome(rawValue: raw) ?? .pending
         }
         set {
             syncStatusRaw = newValue.rawValue
@@ -115,47 +115,7 @@ extension SquareSyncMapping {
     }
 }
 
-enum SyncStatus: String, Codable {
-    case synced
-    case pending
-    case failed
-    case conflict
-    case disabled
-    
-    var displayName: String {
-        switch self {
-        case .synced: return "Synced"
-        case .pending: return "Pending"
-        case .failed: return "Failed"
-        case .conflict: return "Conflict"
-        case .disabled: return "Disabled"
-        }
-    }
-    
-    var iconName: String {
-        switch self {
-        case .synced: return "checkmark.circle.fill"
-        case .pending: return "clock.fill"
-        case .failed: return "exclamationmark.triangle.fill"
-        case .conflict: return "exclamationmark.2"
-        case .disabled: return "pause.circle.fill"
-        }
-    }
-}
-
-enum SyncDirection: String, Codable {
-    case toSquare
-    case fromSquare
-    case bidirectional
-    
-    var displayName: String {
-        switch self {
-        case .toSquare: return "ProTech → Square"
-        case .fromSquare: return "Square → ProTech"
-        case .bidirectional: return "Bidirectional"
-        }
-    }
-}
+// SyncDirection defined in SyncSharedTypes.swift
 
 enum ConflictResolutionStrategy: String, Codable {
     case squareWins

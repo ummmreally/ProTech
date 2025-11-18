@@ -20,7 +20,7 @@ extension Employee {
     @NSManaged public var email: String?
     @NSManaged public var phone: String?
     @NSManaged public var role: String? // Admin, Technician, FrontDesk
-    @NSManaged public var pinCode: String? // 4-6 digit PIN for quick login
+    @NSManaged public var pinCode: String? // 6 digit PIN for quick login
     @NSManaged public var passwordHash: String? // For secure password login
     @NSManaged public var hourlyRate: NSDecimalNumber
     @NSManaged public var isActive: Bool
@@ -28,6 +28,12 @@ extension Employee {
     @NSManaged public var employeeNumber: String?
     @NSManaged public var hireDate: Date?
     @NSManaged public var lastLoginAt: Date?
+    @NSManaged public var failedPinAttempts: Int16
+    @NSManaged public var lastPinAttemptAt: Date?
+    @NSManaged public var pinLockedUntil: Date?
+    @NSManaged public var failedPasswordAttempts: Int16
+    @NSManaged public var lastPasswordAttemptAt: Date?
+    @NSManaged public var passwordLockedUntil: Date?
     @NSManaged public var profileImageData: Data?
     @NSManaged public var createdAt: Date?
     @NSManaged public var updatedAt: Date?
@@ -54,6 +60,8 @@ extension Employee {
         self.hireDate = Date()
         self.createdAt = Date()
         self.updatedAt = Date()
+        self.failedPinAttempts = 0
+        self.failedPasswordAttempts = 0
     }
     
     // Generate unique employee number
@@ -133,6 +141,12 @@ extension Employee {
             makeAttribute("employeeNumber", type: .stringAttributeType),
             makeAttribute("hireDate", type: .dateAttributeType),
             makeAttribute("lastLoginAt", type: .dateAttributeType),
+            makeAttribute("failedPinAttempts", type: .integer16AttributeType, optional: false, defaultValue: 0),
+            makeAttribute("lastPinAttemptAt", type: .dateAttributeType),
+            makeAttribute("pinLockedUntil", type: .dateAttributeType),
+            makeAttribute("failedPasswordAttempts", type: .integer16AttributeType, optional: false, defaultValue: 0),
+            makeAttribute("lastPasswordAttemptAt", type: .dateAttributeType),
+            makeAttribute("passwordLockedUntil", type: .dateAttributeType),
             makeAttribute("profileImageData", type: .binaryDataAttributeType),
             makeAttribute("createdAt", type: .dateAttributeType, optional: false),
             makeAttribute("updatedAt", type: .dateAttributeType, optional: false)
@@ -200,10 +214,32 @@ extension Employee {
     
     var roleType: EmployeeRole {
         get {
-            EmployeeRole(rawValue: role ?? "Technician") ?? .technician
+            let normalized = (role ?? "technician").lowercased()
+            switch normalized {
+            case "admin":
+                return .admin
+            case "manager":
+                return .manager
+            case "receptionist", "front desk", "front_desk":
+                return .frontDesk
+            case "technician":
+                return .technician
+            default:
+                return .technician
+            }
         }
         set {
-            role = newValue.rawValue
+            // Persist Supabase-compatible lowercase role identifiers
+            switch newValue {
+            case .admin:
+                role = "admin"
+            case .manager:
+                role = "manager"
+            case .technician:
+                role = "technician"
+            case .frontDesk:
+                role = "receptionist"
+            }
             isAdmin = (newValue == .admin)
         }
     }
@@ -231,5 +267,10 @@ extension Employee {
     
     var hasPasswordSet: Bool {
         return passwordHash != nil && !passwordHash!.isEmpty
+    }
+    
+    /// Display name for migration purposes
+    var migrationDisplayName: String {
+        return fullName.isEmpty ? (email ?? "Unknown Employee") : fullName
     }
 }

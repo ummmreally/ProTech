@@ -457,54 +457,39 @@ struct SquareInventorySyncSettingsView: View {
         Task {
             do {
                 // Validate token format based on environment
-                let tokenPrefix = String(manualAccessToken.prefix(4))
-                let isSandboxToken = tokenPrefix.lowercased().starts(with: "eaaa") // Sandbox tokens typically start with EAAA
-                let isProductionToken = tokenPrefix.lowercased().starts(with: "eq") || tokenPrefix.lowercased().starts(with: "ea") // Production tokens start with EQ or EA (not EAAA)
+                let cleanedAccessToken = manualAccessToken.trimmingCharacters(in: .whitespacesAndNewlines)
+                let tokenPrefix = String(cleanedAccessToken.prefix(4)).lowercased()
+                let looksSandboxToken = tokenPrefix.starts(with: "eaaa")
+                let looksProductionToken = tokenPrefix.starts(with: "eq") || (!looksSandboxToken && tokenPrefix.starts(with: "ea"))
                 
-                if manualEnvironment == .sandbox && !isSandboxToken && isProductionToken {
-                    await MainActor.run {
-                        sheetErrorMessage = """
-                        ⚠️ Token Mismatch Detected
-                        
-                        You selected SANDBOX environment but your access token appears to be a PRODUCTION token.
-                        
-                        Fix:
-                        • Switch environment to "Production (Live)" OR
-                        • Use a sandbox access token from Square Developer Dashboard
-                        
-                        Sandbox tokens typically start with "EAAA..."
-                        Production tokens typically start with "EQ..." or other prefixes
-                        """
-                        showSheetError = true
-                        isConnecting = false
-                    }
-                    return
+                var mismatchWarning: String?
+                if manualEnvironment == .sandbox && looksProductionToken {
+                    mismatchWarning = """
+                    ⚠️ Sandbox environment selected but the token looks like a production credential.
+                    Double-check that you're using the desired environment.
+                    """
+                } else if manualEnvironment == .production && looksSandboxToken {
+                    mismatchWarning = """
+                    ⚠️ Production environment selected but the token looks like a sandbox credential.
+                    We'll continue verifying with Square; switch environments if the request fails.
+                    """
                 }
                 
-                if manualEnvironment == .production && isSandboxToken {
+                if let warning = mismatchWarning {
                     await MainActor.run {
                         sheetErrorMessage = """
-                        ⚠️ Token Mismatch Detected
+                        \(warning)
                         
-                        You selected PRODUCTION environment but your access token appears to be a SANDBOX token.
-                        
-                        Fix:
-                        • Switch environment to "Sandbox (Testing)" OR
-                        • Use a production access token from Square Dashboard
-                        
-                        Sandbox tokens typically start with "EAAA..."
-                        Production tokens typically start with "EQ..." or other prefixes
+                        We'll continue verifying with Square using the selected environment. If the connection fails, adjust your token or environment and try again.
                         """
                         showSheetError = true
-                        isConnecting = false
                     }
-                    return
                 }
                 
                 // Create configuration with real credentials
                 let config = SquareConfiguration(context: context)
                 config.id = UUID()
-                config.accessToken = manualAccessToken
+                config.accessToken = cleanedAccessToken
                 config.merchantId = "merchant_" + UUID().uuidString // Will be fetched from API
                 config.locationId = manualLocationId.isEmpty ? nil : manualLocationId
                 config.environment = manualEnvironment

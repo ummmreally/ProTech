@@ -12,6 +12,7 @@ struct ProTechApp: App {
     // Use @ObservedObject for singletons (not @StateObject which manages lifecycle)
     @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     @ObservedObject private var authService = AuthenticationService.shared
+    @StateObject private var supabaseAuth = SupabaseAuthService.shared
     @StateObject private var employeeService = EmployeeService()
     let persistenceController = CoreDataManager.shared
     
@@ -38,11 +39,11 @@ struct ProTechApp: App {
                 } else {
                     LoginView()
                         .frame(minWidth: 600, minHeight: 800)
-                        .onAppear {
-                            // Create default admin if needed
-                            employeeService.createDefaultAdminIfNeeded()
-                        }
                 }
+            }
+            .onOpenURL { url in
+                // Handle deep links for Supabase email confirmations
+                handleDeepLink(url)
             }
         }
         .defaultSize(width: 650, height: 850)
@@ -65,6 +66,27 @@ struct ProTechApp: App {
             SettingsView()
                 .frame(width: 600, height: 500)
                 .environmentObject(subscriptionManager)
+        }
+    }
+    
+    // MARK: - Deep Link Handling
+    
+    private func handleDeepLink(_ url: URL) {
+        // Check if this is an auth callback
+        guard url.scheme == "protech", url.host == "auth-callback" else {
+            print("⚠️ Unhandled URL scheme: \(url)")
+            return
+        }
+        
+        print("✅ Handling auth callback: \(url)")
+        
+        Task {
+            do {
+                try await supabaseAuth.handleAuthCallback(url: url)
+                print("✅ Successfully authenticated via email confirmation")
+            } catch {
+                print("❌ Error handling auth callback: \(error)")
+            }
         }
     }
 }

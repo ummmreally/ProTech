@@ -1,9 +1,0 @@
-"/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/swift-http-types/Sources/HTTPTypes/HTTPField.swift":
-  objc-header: "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/x86_64/HTTPTypes-Swift.h"
-  dependencies: "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/x86_64/HTTPTypes-master.d"
-  const-values: "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/x86_64/HTTPTypes-master.swiftconstvalues"
-  swiftmodule: "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/x86_64/HTTPTypes.swiftmodule"
-  diagnostics: "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/x86_64/HTTPTypes-master.dia"
-  abi-baseline-json: "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/x86_64/HTTPTypes.abi.json"
-  swiftdoc: "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/x86_64/HTTPTypes.swiftdoc"
-  swiftsourceinfo: "/Users/swiezytv/Documents/Unknown/ProTech/build/Build/Intermediates.noindex/swift-http-types.build/Release/HTTPTypes.build/Objects-normal/x86_64/HTTPTypes.swiftsourceinfo"

@@ -42,6 +42,11 @@ extension Customer {
         }
         return "Customer"
     }
+    
+    /// Display name for migration purposes
+    var migrationDisplayName: String {
+        return displayName
+    }
 }
 
 

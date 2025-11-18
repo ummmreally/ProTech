@@ -43,6 +43,29 @@ extension Ticket {
 extension Ticket: Identifiable {}
 
 extension Ticket {
+    /// Display name for migration purposes
+    var migrationDisplayName: String {
+        return "Ticket #\(ticketNumber)"
+    }
+    
+    /// Customer display name (requires fetching customer from Core Data)
+    var customerDisplayName: String {
+        guard let customerId = customerId else { return "Unknown Customer" }
+        
+        let context = CoreDataManager.shared.viewContext
+        let request: NSFetchRequest<Customer> = Customer.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", customerId as CVarArg)
+        request.fetchLimit = 1
+        
+        if let customer = try? context.fetch(request).first {
+            return customer.displayName
+        }
+        
+        return "Unknown Customer"
+    }
+}
+
+extension Ticket {
     static func entityDescription() -> NSEntityDescription {
         let entity = NSEntityDescription()
         entity.name = "Ticket"

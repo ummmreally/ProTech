@@ -8,18 +8,21 @@
 import SwiftUI
 
 struct LoginView: View {
-    @StateObject private var authService = AuthenticationService.shared
-    @StateObject private var employeeService = EmployeeService()
-    
+    @StateObject private var supabaseAuth = SupabaseAuthService.shared
+    @StateObject private var offlineQueue = OfflineQueueManager.shared
+    @StateObject private var oldAuthService = AuthenticationService.shared // Keep for fallback
     @AppStorage("brandName") private var brandName = "ProTech"
     @AppStorage("customLogoPath") private var customLogoPath = ""
     
     @State private var loginMode: LoginMode = .pin
     @State private var pinCode = ""
+    @State private var employeeNumber = "" // For PIN login
     @State private var email = ""
     @State private var password = ""
     @State private var errorMessage = ""
     @State private var showError = false
+    @State private var showSignup = false
+    @State private var isLoading = false
     @State private var currentTime = Date()
     
     enum LoginMode {
@@ -91,25 +94,54 @@ struct LoginView: View {
                     
                     // Login button
                     Button(action: handleLogin) {
-                        HStack {
-                            Image(systemName: "arrow.right.circle.fill")
-                            Text("Login")
-                                .fontWeight(.semibold)
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .scaleEffect(0.8)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                        } else {
+                            HStack {
+                                Image(systemName: "arrow.right.circle.fill")
+                                Text("Login")
+                                    .fontWeight(.semibold)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding()
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
                     }
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
                     .buttonStyle(.plain)
+                    .disabled(isLoading)
                     .keyboardShortcut(.return)
+                    
+                    // Signup link
+                    Button("Create Account") {
+                        showSignup = true
+                    }
+                    .buttonStyle(.link)
+                    .foregroundColor(.blue)
                 }
                 .padding(30)
                 .background(Color(NSColor.windowBackgroundColor))
                 .cornerRadius(20)
                 .shadow(radius: 20)
                 .frame(width: 400)
+                
+                // Network status
+                if !offlineQueue.isOnline {
+                    HStack {
+                        Image(systemName: "wifi.slash")
+                        Text("Offline Mode - Limited functionality")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.orange)
+                    .padding(8)
+                    .background(Color.white.opacity(0.9))
+                    .cornerRadius(8)
+                }
                 
                 // Error message
                 if showError {
@@ -122,16 +154,14 @@ struct LoginView: View {
                 
                 Spacer()
                 
-                // Default credentials hint
-                Text("Default: PIN 1234 or admin@protech.com / admin123")
-                    .font(.caption)
-                    .foregroundColor(.white.opacity(0.7))
             }
             .padding()
         }
         .onAppear {
-            employeeService.createDefaultAdminIfNeeded()
             startTimeUpdater()
+        }
+        .sheet(isPresented: $showSignup) {
+            SignupView()
         }
     }
     
@@ -147,18 +177,21 @@ struct LoginView: View {
     
     private var pinLoginView: some View {
         VStack(spacing: 15) {
-            Text("Enter your 4-6 digit PIN")
+            Text("Enter Employee Number and PIN")
                 .font(.headline)
+                .help("Use your employee number and 6-digit PIN")
+            
+            TextField("Employee Number", text: $employeeNumber)
+                .textFieldStyle(.roundedBorder)
+                .textContentType(.username)
             
             SecureField("PIN Code", text: $pinCode)
                 .textFieldStyle(.roundedBorder)
                 .font(.system(size: 18, weight: .bold))
                 .multilineTextAlignment(.center)
                 .onChange(of: pinCode) { _, newValue in
-                    // Limit to 6 digits
-                    if newValue.count > 6 {
-                        pinCode = String(newValue.prefix(6))
-                    }
+                    let digitsOnly = newValue.filter { $0.isNumber }
+                    pinCode = String(digitsOnly.prefix(6))
                 }
                 .onSubmit {
                     handleLogin()
@@ -199,6 +232,10 @@ struct LoginView: View {
                     .buttonStyle(.plain)
                 }
             }
+            
+            Text("Up to 5 failed attempts allowed. Accounts lock for 15 minutes after repeated failures.")
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
     }
     
@@ -241,34 +278,95 @@ struct LoginView: View {
     // MARK: - Actions
     
     private func handleLogin() {
+        print("🔑 Login button pressed - Mode: \(loginMode == .pin ? "PIN" : "Password")")
         showError = false
         errorMessage = ""
+        isLoading = true
         
-        let result: Result<Employee, AuthError>
-        
-        if loginMode == .pin {
-            guard !pinCode.isEmpty else {
-                showErrorMessage("Please enter your PIN")
-                return
+        Task {
+            do {
+                if loginMode == .pin {
+                    guard !employeeNumber.isEmpty && !pinCode.isEmpty else {
+                        await MainActor.run {
+                            showErrorMessage("Please enter employee number and PIN")
+                            isLoading = false
+                        }
+                        return
+                    }
+                    
+                    // Try Supabase PIN auth first
+                    if offlineQueue.isOnline {
+                        print("🌐 Online - using Supabase PIN auth")
+                        try await supabaseAuth.signInWithPIN(
+                            employeeNumber: employeeNumber,
+                            pin: pinCode
+                        )
+                    } else {
+                        // Fallback to local auth when offline
+                        print("📴 Offline - using local PIN auth")
+                        let result = oldAuthService.loginWithPIN(pinCode)
+                        switch result {
+                        case .success:
+                            break
+                        case .failure(let error):
+                            throw error
+                        }
+                    }
+                } else {
+                    guard !email.isEmpty && !password.isEmpty else {
+                        await MainActor.run {
+                            showErrorMessage("Please enter email and password")
+                            isLoading = false
+                        }
+                        return
+                    }
+                    
+                    print("🌐 Online - attempting Supabase email/password auth for: \(email)")
+                    // Use Supabase email/password auth
+                    if offlineQueue.isOnline {
+                        try await supabaseAuth.signIn(
+                            email: email,
+                            password: password
+                        )
+                        print("✅ SignIn completed, checking auth state...")
+                        print("   - supabaseAuth.isAuthenticated: \(supabaseAuth.isAuthenticated)")
+                        print("   - oldAuthService.isAuthenticated: \(oldAuthService.isAuthenticated)")
+                    } else {
+                        // Fallback to local auth when offline
+                        print("📴 Offline - using local email/password auth")
+                        let result = oldAuthService.loginWithEmail(email, password: password)
+                        switch result {
+                        case .success:
+                            break
+                        case .failure(let error):
+                            throw error
+                        }
+                    }
+                }
+                
+                await MainActor.run {
+                    // Only clear fields if authentication actually succeeded
+                    if supabaseAuth.isAuthenticated || oldAuthService.isAuthenticated {
+                        print("✅ Authentication successful - clearing form fields")
+                        pinCode = ""
+                        employeeNumber = ""
+                        email = ""
+                        password = ""
+                    } else {
+                        print("❌ Authentication state not updated - showing error")
+                        showErrorMessage("Login failed - authentication state not updated. Please try again.")
+                    }
+                    isLoading = false
+                }
+            } catch {
+                print("❌ Login error caught: \(error)")
+                print("   Error type: \(type(of: error))")
+                print("   Error description: \(error.localizedDescription)")
+                await MainActor.run {
+                    showErrorMessage(error.localizedDescription)
+                    isLoading = false
+                }
             }
-            result = authService.loginWithPIN(pinCode)
-        } else {
-            guard !email.isEmpty && !password.isEmpty else {
-                showErrorMessage("Please enter email and password")
-                return
-            }
-            result = authService.loginWithEmail(email, password: password)
-        }
-        
-        switch result {
-        case .success(let employee):
-            print("Login successful: \(employee.fullName)")
-            // Clear fields
-            pinCode = ""
-            email = ""
-            password = ""
-        case .failure(let error):
-            showErrorMessage(error.localizedDescription)
         }
     }
     

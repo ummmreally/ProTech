@@ -570,14 +570,14 @@ struct EditTimeCardsView: View {
         .sheet(item: $editingEntry) { entry in
             EditTimeCardSheet(entry: entry)
         }
-        .onChange(of: selectedEmployee) { loadEntries() }
-        .onChange(of: selectedDateRange) { loadEntries() }
-        .onChange(of: customStartDate) { _ in
+        .onChange(of: selectedEmployee) { _, _ in loadEntries() }
+        .onChange(of: selectedDateRange) { _, _ in loadEntries() }
+        .onChange(of: customStartDate) { _, _ in
             if selectedDateRange == .custom {
                 loadEntries()
             }
         }
-        .onChange(of: customEndDate) { _ in
+        .onChange(of: customEndDate) { _, _ in
             if selectedDateRange == .custom {
                 loadEntries()
             }

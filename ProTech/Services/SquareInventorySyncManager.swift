@@ -107,7 +107,7 @@ class SquareInventorySyncManager: ObservableObject {
         log.id = UUID()
         log.timestamp = Date()
         log.operation = .batchImport
-        log.status = .synced
+        log.status = .completed
         log.changedFields = []
         log.syncDuration = Date().timeIntervalSince(startTime)
         log.details = "Imported \(importedCount) items from Square"
@@ -152,7 +152,7 @@ class SquareInventorySyncManager: ObservableObject {
         log.id = UUID()
         log.timestamp = Date()
         log.operation = .batchExport
-        log.status = .synced
+        log.status = .completed
         log.changedFields = []
         log.syncDuration = Date().timeIntervalSince(startTime)
         log.details = "Exported \(exportedCount) items to Square"
@@ -196,7 +196,7 @@ class SquareInventorySyncManager: ObservableObject {
         log.timestamp = Date()
         log.operation = .update
         log.itemId = item.id
-        log.status = .synced
+        log.status = .completed
         log.changedFields = []
         log.syncDuration = Date().timeIntervalSince(startTime)
         try context.save()
@@ -276,7 +276,7 @@ class SquareInventorySyncManager: ObservableObject {
         log.operation = .mappingCreated
         log.itemId = itemId
         log.squareObjectId = squareObjectId
-        log.status = .synced
+        log.status = .completed
         log.changedFields = []
         try context.save()
         
@@ -307,7 +307,7 @@ class SquareInventorySyncManager: ObservableObject {
         log.operation = .mappingDeleted
         log.itemId = mapping.proTechItemId
         log.squareObjectId = mapping.squareCatalogObjectId
-        log.status = .synced
+        log.status = .completed
         log.changedFields = []
         try context.save()
     }
@@ -382,7 +382,7 @@ class SquareInventorySyncManager: ObservableObject {
         log.operation = .conflictResolved
         log.itemId = conflict.proTechItem.id
         log.squareObjectId = mapping.squareCatalogObjectId
-        log.status = .synced
+        log.status = .completed
         log.changedFields = conflict.conflictingFields
         log.details = "Resolved using strategy: \(strategy.displayName)"
         try context.save()
@@ -449,7 +449,7 @@ class SquareInventorySyncManager: ObservableObject {
         log.timestamp = Date()
         log.operation = .webhookReceived
         log.squareObjectId = event.data.id
-        log.status = .synced
+        log.status = .completed
         log.changedFields = []
         log.syncDuration = Date().timeIntervalSince(startTime)
         log.details = "Event type: \(event.type)"
@@ -773,7 +773,7 @@ class SquareInventorySyncManager: ObservableObject {
             // Both modified since last sync - conflict
             mapping.syncStatus = .conflict
             try context.save()
-            throw SyncError.conflict
+            throw SyncError.conflict(details: "Both Square and ProTech modified since last sync")
         } else if squareLastModified > mappingLastSynced {
             // Square is newer
             try await updateProTechItem(item: item, mapping: mapping)

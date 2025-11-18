@@ -1,7 +1,0 @@
-version: "Apple Swift version 6.0 (swiftlang-6.0.0.9.10 clang-1600.0.26.2)"
-options: "3d633465affaa5f1dfd91701ddc6a600eb44ba696ed090a0e538fdcbba5f5193"
-build_start_time: [1763056003, 187534000]
-build_end_time: [1763056004, 256368000]
-inputs:
-  ? "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/xctest-dynamic-overlay/Sources/IssueReportingPackageSupport/_Test.swift"
-  : [1763055984, 808868095]

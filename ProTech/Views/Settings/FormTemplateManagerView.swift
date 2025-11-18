@@ -189,7 +189,7 @@ struct FormTemplateManagerView: View {
     }
     
     private func exportTemplate(_ template: FormTemplate) {
-        guard let templateData = template.templateData else { return }
+        guard template.templateData != nil else { return }
         
         let exportData: [String: Any] = [
             "name": template.name ?? "",

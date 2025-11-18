@@ -69,6 +69,11 @@ extension InventoryItem {
         guard maxQuantity > 0 else { return 0 }
         return Double(quantity) / Double(maxQuantity) * 100
     }
+    
+    /// Display name for migration purposes
+    var migrationDisplayName: String {
+        return name ?? "Unknown Item"
+    }
 }
 
 extension InventoryItem: Identifiable {}

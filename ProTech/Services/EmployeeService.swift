@@ -54,6 +54,9 @@ class EmployeeService: ObservableObject {
         
         // Hash password if provided
         if let password = password, !password.isEmpty {
+            guard isValidPassword(password) else {
+                throw EmployeeError.invalidPassword
+            }
             employee.passwordHash = hashPassword(password)
         }
         
@@ -110,7 +113,7 @@ class EmployeeService: ObservableObject {
     }
     
     func updateEmployeePassword(_ employee: Employee, newPassword: String) throws {
-        guard !newPassword.isEmpty else {
+        guard isValidPassword(newPassword) else {
             throw EmployeeError.invalidPassword
         }
         
@@ -188,15 +191,32 @@ class EmployeeService: ObservableObject {
     // MARK: - Validation
     
     func isValidPIN(_ pin: String) -> Bool {
-        let pinPattern = "^[0-9]{4,6}$"
-        let pinTest = NSPredicate(format: "SELF MATCHES %@", pinPattern)
-        return pinTest.evaluate(with: pin)
+        guard pin.range(of: #"^\\d{6}$"#, options: .regularExpression) != nil else { return false }
+        let digits = pin.compactMap { $0.wholeNumberValue }
+        guard digits.count == 6 else { return false }
+        let repeated = Set(digits).count == 1
+        let ascending = zip(digits, digits.dropFirst()).allSatisfy { (current, next) in next == current + 1 }
+        let descending = zip(digits, digits.dropFirst()).allSatisfy { (current, next) in next == current - 1 }
+        return !repeated && !ascending && !descending
     }
     
     func isValidEmail(_ email: String) -> Bool {
         let emailPattern = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,64}"
         let emailTest = NSPredicate(format: "SELF MATCHES %@", emailPattern)
         return emailTest.evaluate(with: email)
+    }
+    
+    func isValidPassword(_ password: String) -> Bool {
+        guard password.count >= 10 else { return false }
+        let uppercase = CharacterSet.uppercaseLetters
+        let lowercase = CharacterSet.lowercaseLetters
+        let digits = CharacterSet.decimalDigits
+        let specialCharacters = CharacterSet(charactersIn: "!@#$%^&*()_-+=[]{}|\\:;\"'<>?,./")
+        guard password.rangeOfCharacter(from: uppercase) != nil else { return false }
+        guard password.rangeOfCharacter(from: lowercase) != nil else { return false }
+        guard password.rangeOfCharacter(from: digits) != nil else { return false }
+        guard password.rangeOfCharacter(from: specialCharacters) != nil else { return false }
+        return true
     }
     
     // MARK: - Password Hashing
@@ -211,29 +231,6 @@ class EmployeeService: ObservableObject {
         return hashPassword(password) == hash
     }
     
-    // MARK: - Default Admin Setup
-    
-    func createDefaultAdminIfNeeded() {
-        let employees = fetchAllEmployees()
-        
-        // Create default admin if no employees exist
-        if employees.isEmpty {
-            do {
-                let admin = try createEmployee(
-                    firstName: "Admin",
-                    lastName: "User",
-                    email: "admin@protech.com",
-                    role: .admin,
-                    pinCode: "1234",
-                    password: "admin123",
-                    hourlyRate: 50.00
-                )
-                print("Default admin created: \(admin.email ?? "")")
-            } catch {
-                print("Failed to create default admin: \(error)")
-            }
-        }
-    }
 }
 
 // MARK: - Employee Errors
@@ -248,9 +245,9 @@ enum EmployeeError: LocalizedError {
         case .emailAlreadyExists:
             return "An employee with this email already exists"
         case .invalidPIN:
-            return "PIN must be 4-6 digits"
+            return "PIN must be 6 digits with no repeats or sequences"
         case .invalidPassword:
-            return "Password cannot be empty"
+            return "Password must be at least 10 characters with upper/lowercase, number, and symbol"
         case .employeeNotFound:
             return "Employee not found"
         }

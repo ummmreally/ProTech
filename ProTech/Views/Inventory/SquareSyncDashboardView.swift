@@ -444,11 +444,10 @@ struct SyncLogRow: View {
     
     private var statusColor: Color {
         switch log.status {
-        case .synced: return .green
         case .pending: return .orange
+        case .inProgress: return .blue
+        case .completed: return .green
         case .failed: return .red
-        case .conflict: return .yellow
-        case .disabled: return .gray
         }
     }
 }

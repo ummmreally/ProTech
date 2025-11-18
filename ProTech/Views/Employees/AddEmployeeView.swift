@@ -79,10 +79,15 @@ struct AddEmployeeView: View {
                     Toggle("Set PIN Code", isOn: $setPIN)
                     
                     if setPIN {
-                        HStack {
-                            SecureField("4-6 digit PIN", text: $pinCode)
-                                .frame(width: 150)
-                            Text("Quick login with PIN")
+                        VStack(alignment: .leading, spacing: 6) {
+                            SecureField("6-digit PIN", text: $pinCode)
+                                .frame(maxWidth: 200)
+                                .textContentType(.oneTimeCode)
+                                .onChange(of: pinCode) { _, value in
+                                    let digitsOnly = value.filter { $0.isNumber }
+                                    pinCode = String(digitsOnly.prefix(6))
+                                }
+                            Text("PIN must be 6 digits with no repeats or sequential numbers.")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -91,8 +96,15 @@ struct AddEmployeeView: View {
                     Toggle("Set Password", isOn: $setPassword)
                     
                     if setPassword {
-                        SecureField("Password", text: $password)
-                        SecureField("Confirm Password", text: $confirmPassword)
+                        VStack(alignment: .leading, spacing: 6) {
+                            SecureField("Password", text: $password)
+                                .textContentType(.newPassword)
+                            SecureField("Confirm Password", text: $confirmPassword)
+                                .textContentType(.newPassword)
+                            Text("Min 10 chars with upper/lowercase, number, and symbol.")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
                 
@@ -154,8 +166,8 @@ struct AddEmployeeView: View {
         !lastName.isEmpty &&
         !email.isEmpty &&
         employeeService.isValidEmail(email) &&
-        (!setPIN || !pinCode.isEmpty) &&
-        (!setPassword || (!password.isEmpty && password == confirmPassword))
+        (!setPIN || employeeService.isValidPIN(pinCode)) &&
+        (!setPassword || (employeeService.isValidPassword(password) && password == confirmPassword))
     }
     
     // MARK: - Actions
@@ -165,14 +177,20 @@ struct AddEmployeeView: View {
         
         // Validate PIN if set
         if setPIN && !employeeService.isValidPIN(pinCode) {
-            showErrorMessage("PIN must be 4-6 digits")
+            showErrorMessage("PIN must be 6 digits with no repeats or sequences")
             return
         }
         
-        // Validate password match
-        if setPassword && password != confirmPassword {
-            showErrorMessage("Passwords do not match")
-            return
+        // Validate password requirements
+        if setPassword {
+            guard employeeService.isValidPassword(password) else {
+                showErrorMessage("Password must be at least 10 characters with upper/lowercase, number, and symbol")
+                return
+            }
+            guard password == confirmPassword else {
+                showErrorMessage("Passwords do not match")
+                return
+            }
         }
         
         guard let rate = Decimal(string: hourlyRate) else {

@@ -1,8 +1,0 @@
-version: "Apple Swift version 6.0 (swiftlang-6.0.0.9.10 clang-1600.0.26.2)"
-options: "dfbee4270bc54bcdc6adc5fac77c1f25a255524ab96b4e83ecd57bf89488e2c6"
-build_start_time: [1763056037, 731405000]
-build_end_time: [1763056039, 181748000]
-inputs:
-  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Functions/Exports.swift": [1763055986, 831843489]
-  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Functions/FunctionsClient.swift": [1763055986, 832155821]
-  "/Users/swiezytv/Documents/Unknown/ProTech/build/SourcePackages/checkouts/supabase-swift/Sources/Functions/Types.swift": [1763055986, 832651025]

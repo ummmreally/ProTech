@@ -7,6 +7,7 @@
 
 import Foundation
 import Supabase
+import Auth
 
 @MainActor
 class SupabaseService: ObservableObject {
@@ -16,13 +17,46 @@ class SupabaseService: ObservableObject {
     
     @Published var isInitialized = false
     @Published var syncStatus: SupabaseSyncStatus = .idle
+    @Published var currentShopId: String?
+    @Published var currentRole: String?
     
     private init() {
+        let authOptions = SupabaseClientOptions.AuthOptions(emitLocalSessionAsInitialSession: true)
+        let clientOptions = SupabaseClientOptions(auth: authOptions)
         self.client = SupabaseClient(
             supabaseURL: URL(string: SupabaseConfig.supabaseURL)!,
-            supabaseKey: SupabaseConfig.supabaseAnonKey
+            supabaseKey: SupabaseConfig.supabaseAnonKey,
+            options: clientOptions
         )
         self.isInitialized = true
+        
+        // Setup auth state listener
+        Task {
+            await setupAuthListener()
+        }
+    }
+    
+    private func setupAuthListener() async {
+        for await (event, session) in client.auth.authStateChanges {
+            switch event {
+            case .signedIn:
+                if let session = session {
+                    await extractClaims(from: session)
+                }
+            case .signedOut:
+                currentShopId = nil
+                currentRole = nil
+            default:
+                break
+            }
+        }
+    }
+    
+    private func extractClaims(from session: Session) async {
+        // For now, use default shop ID
+        // In production, this would extract from JWT claims
+        currentShopId = "00000000-0000-0000-0000-000000000001"
+        currentRole = "admin"
     }
     
     // MARK: - Session Management

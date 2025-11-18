@@ -373,28 +373,7 @@ class SupabaseSyncService: ObservableObject {
 }
 
 // MARK: - Supabase Model Structs
-
-struct SupabaseCustomer: Codable {
-    let id: UUID
-    let firstName: String
-    let lastName: String
-    let email: String
-    let phone: String?
-    let address: String?
-    let createdAt: Date
-    let updatedAt: Date
-    
-    enum CodingKeys: String, CodingKey {
-        case id
-        case firstName = "first_name"
-        case lastName = "last_name"
-        case email
-        case phone
-        case address
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
-    }
-}
+// Note: SupabaseCustomer is now defined in CustomerSyncer.swift with full schema
 
 struct SupabaseRepairTicket: Codable {
     let id: UUID
@@ -422,27 +401,7 @@ struct SupabaseRepairTicket: Codable {
     }
 }
 
-struct SupabaseEmployee: Codable {
-    let id: UUID
-    let firstName: String
-    let lastName: String
-    let email: String
-    let role: String
-    let isActive: Bool
-    let createdAt: Date
-    let updatedAt: Date
-    
-    enum CodingKeys: String, CodingKey {
-        case id
-        case firstName = "first_name"
-        case lastName = "last_name"
-        case email
-        case role
-        case isActive = "is_active"
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
-    }
-}
+// Note: SupabaseEmployee is now defined in SupabaseAuthService.swift with full schema
 
 enum SupabaseRepairStatus: String, Codable {
     case checkedIn = "checked_in"
