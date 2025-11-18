@@ -10,7 +10,7 @@ import CoreData
 import Charts
 
 struct SquareSyncDashboardView: View {
-    @StateObject private var syncManager: SquareInventorySyncManager
+    @ObservedObject private var syncManager = SquareInventorySyncManager.shared
     @FetchRequest(
         sortDescriptors: [NSSortDescriptor(keyPath: \SyncLog.timestamp, ascending: false)],
         animation: .default
@@ -28,10 +28,6 @@ struct SquareSyncDashboardView: View {
     @State private var showingConflicts = false
     @State private var conflicts: [SyncConflict] = []
     @State private var statistics: SyncStatistics?
-    
-    init(context: NSManagedObjectContext = CoreDataManager.shared.viewContext) {
-        _syncManager = StateObject(wrappedValue: SquareInventorySyncManager(context: context))
-    }
     
     var body: some View {
         ZStack {
@@ -728,6 +724,6 @@ struct ConflictRow: View {
 
 #Preview {
     NavigationStack {
-        SquareSyncDashboardView(context: CoreDataManager.shared.viewContext)
+        SquareSyncDashboardView()
     }
 }

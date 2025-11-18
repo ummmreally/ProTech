@@ -345,6 +345,7 @@ struct StartRepairFromCheckInView: View {
         ticket.estimatedCompletion = estimatedCompletion
         ticket.createdAt = Date()
         ticket.updatedAt = Date()
+        ticket.cloudSyncStatus = "pending"
         
         // Get next ticket number
         let fetchRequest: NSFetchRequest<Ticket> = Ticket.fetchRequest()
@@ -363,6 +364,21 @@ struct StartRepairFromCheckInView: View {
         
         do {
             try viewContext.save()
+            
+            // Sync to Supabase in background
+            Task { @MainActor in
+                do {
+                    let syncer = TicketSyncer()
+                    try await syncer.upload(ticket)
+                    ticket.cloudSyncStatus = "synced"
+                    try? viewContext.save()
+                } catch {
+                    ticket.cloudSyncStatus = "failed"
+                    try? viewContext.save()
+                    print("⚠️ Ticket sync failed: \(error.localizedDescription)")
+                }
+            }
+            
             isCreating = false
             onComplete()
         } catch {

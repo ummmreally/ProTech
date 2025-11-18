@@ -55,9 +55,6 @@ struct InventoryItemDetailView: View {
                                 InventoryStatusBadge(text: "In Stock", color: .green)
                             }
                             
-                            if item.isDiscontinued {
-                                InventoryStatusBadge(text: "Discontinued", color: .gray)
-                            }
                         }
                     }
                     .padding()
@@ -68,7 +65,7 @@ struct InventoryItemDetailView: View {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                         QuickStatCard(title: "Quantity", value: "\(item.quantity)", icon: "cube.box")
                         QuickStatCard(title: "Value", value: String(format: "$%.2f", item.totalValue), icon: "dollarsign.circle")
-                        QuickStatCard(title: "Price", value: String(format: "$%.2f", item.sellingPrice), icon: "tag")
+                        QuickStatCard(title: "Price", value: String(format: "$%.2f", item.priceDouble), icon: "tag")
                     }
                     
                     // Stock Management
@@ -132,19 +129,11 @@ struct InventoryItemDetailView: View {
                             Divider()
                             InventoryDetailRow(label: "SKU", value: item.sku ?? "—")
                             Divider()
-                            InventoryDetailRow(label: "Location", value: item.location ?? "—")
-                            Divider()
                             InventoryDetailRow(label: "Min Quantity", value: "\(item.minQuantity)")
                             Divider()
-                            InventoryDetailRow(label: "Max Quantity", value: "\(item.maxQuantity)")
+                            InventoryDetailRow(label: "Cost Price", value: String(format: "$%.2f", item.costDouble))
                             Divider()
-                            InventoryDetailRow(label: "Cost Price", value: String(format: "$%.2f", item.costPrice))
-                            Divider()
-                            InventoryDetailRow(label: "Selling Price", value: String(format: "$%.2f", item.sellingPrice))
-                            if item.msrp > 0 {
-                                Divider()
-                                InventoryDetailRow(label: "MSRP", value: String(format: "$%.2f", item.msrp))
-                            }
+                            InventoryDetailRow(label: "Selling Price", value: String(format: "$%.2f", item.priceDouble))
                         }
                         .background(Color(NSColor.controlBackgroundColor))
                         .cornerRadius(12)

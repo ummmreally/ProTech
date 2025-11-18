@@ -2,18 +2,52 @@ import Foundation
 import CoreData
 import EventKit
 
+@MainActor
 class AppointmentService {
     static let shared = AppointmentService()
     
     private let coreDataManager = CoreDataManager.shared
     private let notificationService = NotificationService.shared
     private let eventStore = EKEventStore()
+    private let appointmentSyncer = AppointmentSyncer()
     
     private var context: NSManagedObjectContext {
         coreDataManager.viewContext
     }
     
     private init() {}
+    
+    // MARK: - Supabase Sync Methods
+    
+    /// Sync all appointments from Supabase
+    @MainActor
+    func syncAppointments() async throws {
+        try await appointmentSyncer.download()
+    }
+    
+    /// Sync appointments for a specific date range
+    @MainActor
+    func syncAppointments(from startDate: Date, to endDate: Date) async throws {
+        try await appointmentSyncer.downloadForDateRange(from: startDate, to: endDate)
+    }
+    
+    /// Start real-time sync subscriptions
+    @MainActor
+    func startRealtimeSync() async throws {
+        try await appointmentSyncer.startRealtimeSync()
+    }
+    
+    /// Stop real-time sync subscriptions
+    @MainActor
+    func stopRealtimeSync() async {
+        await appointmentSyncer.stopRealtimeSync()
+    }
+    
+    /// Upload pending local changes
+    @MainActor
+    func uploadPendingChanges() async throws {
+        try await appointmentSyncer.uploadPendingChanges()
+    }
     
     // MARK: - Appointment Creation
     
@@ -49,6 +83,11 @@ class AppointmentService {
         addToCalendar(appointment)
         NotificationCenter.default.post(name: .appointmentsDidChange, object: appointment)
         
+        // Sync to Supabase
+        Task { @MainActor in
+            try? await appointmentSyncer.upload(appointment)
+        }
+        
         return appointment
     }
     
@@ -82,6 +121,11 @@ class AppointmentService {
         appointment.updatedAt = Date()
         coreDataManager.save()
         NotificationCenter.default.post(name: .appointmentsDidChange, object: appointment)
+        
+        // Sync to Supabase
+        Task { @MainActor in
+            try? await appointmentSyncer.upload(appointment)
+        }
     }
     
     /// Cancel appointment
@@ -96,6 +140,11 @@ class AppointmentService {
         // Send cancellation notification
         sendCancellationNotification(for: appointment)
         NotificationCenter.default.post(name: .appointmentsDidChange, object: appointment)
+        
+        // Sync to Supabase
+        Task { @MainActor in
+            try? await appointmentSyncer.upload(appointment)
+        }
     }
     
     /// Mark appointment as completed
@@ -106,6 +155,11 @@ class AppointmentService {
         
         coreDataManager.save()
         NotificationCenter.default.post(name: .appointmentsDidChange, object: appointment)
+        
+        // Sync to Supabase
+        Task { @MainActor in
+            try? await appointmentSyncer.upload(appointment)
+        }
     }
     
     /// Mark appointment as no-show
@@ -115,6 +169,11 @@ class AppointmentService {
         
         coreDataManager.save()
         NotificationCenter.default.post(name: .appointmentsDidChange, object: appointment)
+        
+        // Sync to Supabase
+        Task { @MainActor in
+            try? await appointmentSyncer.upload(appointment)
+        }
     }
     
     /// Confirm appointment
@@ -124,6 +183,11 @@ class AppointmentService {
         
         coreDataManager.save()
         NotificationCenter.default.post(name: .appointmentsDidChange, object: appointment)
+        
+        // Sync to Supabase
+        Task { @MainActor in
+            try? await appointmentSyncer.upload(appointment)
+        }
     }
     
     // MARK: - Fetch Operations
@@ -435,6 +499,11 @@ class AppointmentService {
     
     /// Delete appointment
     func deleteAppointment(_ appointment: Appointment) {
+        // Soft delete in Supabase, hard delete locally
+        Task { @MainActor in
+            try? await appointmentSyncer.softDelete(appointment)
+        }
+        
         context.delete(appointment)
         coreDataManager.save()
         NotificationCenter.default.post(name: .appointmentsDidChange, object: appointment)

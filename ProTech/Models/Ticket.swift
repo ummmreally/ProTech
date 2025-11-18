@@ -38,6 +38,7 @@ extension Ticket {
     @NSManaged public var additionalRepairDetails: String?
     @NSManaged public var checkInSignature: Data?
     @NSManaged public var checkInAgreedAt: Date?
+    @NSManaged public var cloudSyncStatus: String?
 }
 
 extension Ticket: Identifiable {}
@@ -118,6 +119,7 @@ extension Ticket {
         signatureAttribute.allowsExternalBinaryDataStorage = true
 
         let agreementDateAttribute = makeAttribute("checkInAgreedAt", type: .dateAttributeType)
+        let cloudSyncStatusAttribute = makeAttribute("cloudSyncStatus", type: .stringAttributeType)
 
         entity.properties = [
             idAttribute,
@@ -149,7 +151,8 @@ extension Ticket {
             altContactNumberAttribute,
             additionalDetailsAttribute,
             signatureAttribute,
-            agreementDateAttribute
+            agreementDateAttribute,
+            cloudSyncStatusAttribute
         ]
         
         let idIndex = NSFetchIndexDescription(name: "ticket_id_index", elements: [NSFetchIndexElementDescription(property: idAttribute, collationType: .binary)])

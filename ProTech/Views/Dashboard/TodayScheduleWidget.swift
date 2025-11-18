@@ -228,25 +228,4 @@ struct PickupScheduleRow: View {
 }
 
 // MARK: - Appointment Extensions
-
-extension Appointment {
-    var typeDisplayIcon: String {
-        switch appointmentType {
-        case "dropoff", "drop_off": return "arrow.down.circle.fill"
-        case "pickup": return "checkmark.circle.fill"
-        case "consultation": return "person.2.fill"
-        case "repair": return "wrench.and.screwdriver.fill"
-        default: return "calendar"
-        }
-    }
-    
-    var typeDisplayColor: Color {
-        switch appointmentType {
-        case "dropoff", "drop_off": return .blue
-        case "pickup": return .green
-        case "consultation": return .purple
-        case "repair": return .orange
-        default: return .gray
-        }
-    }
-}
+// Note: typeDisplayIcon and typeDisplayColor are now defined in Appointment.swift

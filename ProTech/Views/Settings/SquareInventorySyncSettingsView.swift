@@ -9,8 +9,8 @@ import SwiftUI
 import CoreData
 
 struct SquareInventorySyncSettingsView: View {
+    @ObservedObject private var syncManager = SquareInventorySyncManager.shared
     private let context: NSManagedObjectContext
-    @StateObject private var syncManager: SquareInventorySyncManager
     @State private var configuration: SquareConfiguration?
     @State private var isConnecting = false
     @State private var showError = false
@@ -28,7 +28,6 @@ struct SquareInventorySyncSettingsView: View {
     
     init(context: NSManagedObjectContext = CoreDataManager.shared.viewContext) {
         self.context = context
-        _syncManager = StateObject(wrappedValue: SquareInventorySyncManager(context: context))
     }
     
     var body: some View {
@@ -214,7 +213,7 @@ struct SquareInventorySyncSettingsView: View {
                 // Actions
                 Section {
                     // Navigation to Sync Dashboard
-                    NavigationLink(destination: SquareSyncDashboardView(context: context)) {
+                    NavigationLink(destination: SquareSyncDashboardView()) {
                         Label("Open Sync Dashboard", systemImage: "chart.line.uptrend.xyaxis")
                     }
                     

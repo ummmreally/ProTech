@@ -390,4 +390,244 @@ class LoyaltyService {
         
         return try? context.fetch(request).first
     }
+    
+    // MARK: - NEW FEATURES
+    
+    // MARK: - Manual Points Adjustment
+    
+    /// Manually adjust points for a member (admin function)
+    func adjustPoints(for memberId: UUID, points: Int32, reason: String, adjustedBy: UUID?) -> Bool {
+        guard let member = getMember(memberId: memberId) else {
+            return false
+        }
+        
+        // Create adjustment transaction
+        let transaction = LoyaltyTransaction(context: context)
+        transaction.id = UUID()
+        transaction.memberId = memberId
+        transaction.type = "adjusted"
+        transaction.points = points // Can be positive or negative
+        transaction.description_ = reason
+        transaction.createdAt = Date()
+        
+        // Update member points
+        member.availablePoints += points
+        if points > 0 {
+            member.totalPoints += points
+            member.lifetimePoints += points
+        }
+        member.lastActivityAt = Date()
+        
+        CoreDataManager.shared.save()
+        
+        return true
+    }
+    
+    // MARK: - Referral System
+    
+    /// Generate unique referral code for a member
+    func generateReferralCode(for memberId: UUID) -> String {
+        guard let member = getMember(memberId: memberId),
+              let customerId = member.customerId else {
+            return ""
+        }
+        
+        // Create a short, memorable code based on customer ID
+        let uuidString = customerId.uuidString.replacingOccurrences(of: "-", with: "")
+        let shortCode = String(uuidString.prefix(8)).uppercased()
+        return shortCode
+    }
+    
+    /// Track referral when a new customer signs up with a code
+    func processReferral(referralCode: String, newCustomerId: UUID) -> Bool {
+        // Find the member who owns this referral code
+        // This requires storing referral codes - would need a new entity
+        // For now, return placeholder
+        return false
+    }
+    
+    /// Award referral bonus points
+    func awardReferralBonus(referrerId: UUID, referredCustomerId: UUID, bonusPoints: Int32 = 100) {
+        guard let referrer = getMember(memberId: referrerId) else {
+            return
+        }
+        
+        // Create referral transaction
+        let transaction = LoyaltyTransaction(context: context)
+        transaction.id = UUID()
+        transaction.memberId = referrerId
+        transaction.type = "earned"
+        transaction.points = bonusPoints
+        transaction.description_ = "Referral bonus for new customer"
+        transaction.createdAt = Date()
+        
+        // Update referrer points
+        referrer.totalPoints += bonusPoints
+        referrer.availablePoints += bonusPoints
+        referrer.lifetimePoints += bonusPoints
+        referrer.lastActivityAt = Date()
+        
+        CoreDataManager.shared.save()
+        
+        // Check for tier upgrade
+        checkAndUpdateTier(for: referrer)
+        
+        // Send notification
+        if let program = getActiveProgram(), program.enableAutoNotifications {
+            sendReferralNotification(member: referrer, points: bonusPoints)
+        }
+    }
+    
+    private func sendReferralNotification(member: LoyaltyMember, points: Int32) {
+        guard let customer = getCustomer(member.customerId) else { return }
+        
+        let message = "🎉 You earned \(points) referral bonus points! Balance: \(member.availablePoints) points"
+        
+        if TwilioService.shared.isConfigured, let phone = customer.phone {
+            Task {
+                try? await TwilioService.shared.sendSMS(to: phone, body: message)
+            }
+        }
+    }
+    
+    // MARK: - Reward Redemption Limits
+    
+    /// Check if member can redeem a specific reward
+    func canRedeemReward(memberId: UUID, rewardId: UUID) -> (canRedeem: Bool, reason: String?) {
+        guard let member = getMember(memberId: memberId),
+              let reward = getReward(rewardId) else {
+            return (false, "Invalid member or reward")
+        }
+        
+        // Check if reward is active
+        guard reward.isActive else {
+            return (false, "Reward is no longer available")
+        }
+        
+        // Check if member has enough points
+        guard member.availablePoints >= reward.pointsCost else {
+            let needed = reward.pointsCost - member.availablePoints
+            return (false, "Need \(needed) more points")
+        }
+        
+        // Check redemption count (would need to add max_redemptions to model)
+        // This is a placeholder for future enhancement
+        
+        return (true, nil)
+    }
+    
+    // MARK: - Points Expiration
+    
+    /// Get points that will expire soon
+    func getExpiringPoints(for memberId: UUID, withinDays: Int = 30) -> [(transaction: LoyaltyTransaction, pointsExpiring: Int32)] {
+        let request: NSFetchRequest<LoyaltyTransaction> = LoyaltyTransaction.fetchRequest()
+        request.predicate = NSPredicate(
+            format: "memberId == %@ AND type == %@ AND expiresAt != nil AND expiresAt <= %@",
+            memberId as CVarArg,
+            "earned",
+            Calendar.current.date(byAdding: .day, value: withinDays, to: Date())! as NSDate
+        )
+        request.sortDescriptors = [NSSortDescriptor(keyPath: \LoyaltyTransaction.expiresAt, ascending: true)]
+        
+        let expiringTransactions = (try? context.fetch(request)) ?? []
+        
+        return expiringTransactions.map { transaction in
+            (transaction: transaction, pointsExpiring: transaction.points)
+        }
+    }
+    
+    /// Manually expire points (for testing or admin cleanup)
+    func expirePoints(transactionId: UUID) -> Bool {
+        let request: NSFetchRequest<LoyaltyTransaction> = LoyaltyTransaction.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", transactionId as CVarArg)
+        request.fetchLimit = 1
+        
+        guard let transaction = try? context.fetch(request).first,
+              let memberId = transaction.memberId,
+              let member = getMember(memberId: memberId) else {
+            return false
+        }
+        
+        // Create expiration transaction
+        let expirationTx = LoyaltyTransaction(context: context)
+        expirationTx.id = UUID()
+        expirationTx.memberId = memberId
+        expirationTx.type = "expired"
+        expirationTx.points = -transaction.points // Negative to deduct
+        expirationTx.description_ = "Points expired"
+        expirationTx.createdAt = Date()
+        
+        // Update member available points
+        member.availablePoints -= transaction.points
+        member.lastActivityAt = Date()
+        
+        CoreDataManager.shared.save()
+        
+        return true
+    }
+    
+    // MARK: - Birthday Rewards
+    
+    /// Check if customer has birthday this month and hasn't received reward yet
+    func checkBirthdayReward(for customerId: UUID) -> Bool {
+        guard getCustomer(customerId) != nil,
+              getMember(for: customerId) != nil else {
+            return false
+        }
+        
+        // Would need birthday field in Customer model
+        // Placeholder for future enhancement
+        
+        return false
+    }
+    
+    /// Award birthday bonus points
+    func awardBirthdayBonus(for customerId: UUID, bonusPoints: Int32 = 50) {
+        guard let member = getMember(for: customerId) else {
+            return
+        }
+        
+        // Create birthday transaction
+        let transaction = LoyaltyTransaction(context: context)
+        transaction.id = UUID()
+        transaction.memberId = member.id
+        transaction.type = "earned"
+        transaction.points = bonusPoints
+        transaction.description_ = "🎂 Happy Birthday bonus!"
+        transaction.createdAt = Date()
+        
+        // Update member points
+        member.totalPoints += bonusPoints
+        member.availablePoints += bonusPoints
+        member.lifetimePoints += bonusPoints
+        member.lastActivityAt = Date()
+        
+        CoreDataManager.shared.save()
+        
+        // Send birthday notification
+        if let program = getActiveProgram(), program.enableAutoNotifications {
+            sendBirthdayNotification(member: member, points: bonusPoints)
+        }
+    }
+    
+    private func sendBirthdayNotification(member: LoyaltyMember, points: Int32) {
+        guard let customer = getCustomer(member.customerId) else { return }
+        
+        let message = "🎂 Happy Birthday! We've added \(points) bonus points to your account. Balance: \(member.availablePoints) points"
+        
+        if TwilioService.shared.isConfigured, let phone = customer.phone {
+            Task {
+                try? await TwilioService.shared.sendSMS(to: phone, body: message)
+            }
+        }
+    }
+    
+    // MARK: - Sync Integration
+    
+    /// Sync loyalty data with Supabase
+    @MainActor
+    func syncWithSupabase() async throws {
+        let syncer = LoyaltySyncer()
+        try await syncer.syncAll()
+    }
 }

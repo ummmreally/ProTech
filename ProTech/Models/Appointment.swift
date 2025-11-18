@@ -1,5 +1,6 @@
 import CoreData
 import Foundation
+import SwiftUI
 
 @objc(Appointment)
 public class Appointment: NSManagedObject {}
@@ -24,6 +25,7 @@ extension Appointment {
     @NSManaged public var completedAt: Date?
     @NSManaged public var cancelledAt: Date?
     @NSManaged public var cancellationReason: String?
+    @NSManaged public var cloudSyncStatus: String?
 }
 
 extension Appointment: Identifiable {}
@@ -94,6 +96,36 @@ extension Appointment {
             return "\(minutes)m"
         }
     }
+    
+    var typeDisplayIcon: String {
+        switch appointmentType {
+        case "dropoff":
+            return "arrow.down.circle.fill"
+        case "pickup":
+            return "arrow.up.circle.fill"
+        case "consultation":
+            return "person.2.fill"
+        case "repair":
+            return "wrench.and.screwdriver.fill"
+        default:
+            return "calendar.circle.fill"
+        }
+    }
+    
+    var typeDisplayColor: Color {
+        switch appointmentType {
+        case "dropoff":
+            return .blue
+        case "pickup":
+            return .green
+        case "consultation":
+            return .purple
+        case "repair":
+            return .orange
+        default:
+            return .gray
+        }
+    }
 }
 
 // MARK: - Entity Description
@@ -143,7 +175,8 @@ extension Appointment {
             updatedAtAttribute,
             completedAtAttribute,
             cancelledAtAttribute,
-            cancellationReasonAttribute
+            cancellationReasonAttribute,
+            makeAttribute("cloudSyncStatus", type: .stringAttributeType)
         ]
         
         let idIndex = NSFetchIndexDescription(name: "appointment_id_index", elements: [NSFetchIndexElementDescription(property: idAttribute, collationType: .binary)])

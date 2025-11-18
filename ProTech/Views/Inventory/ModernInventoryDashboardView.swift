@@ -190,7 +190,7 @@ struct ModernInventoryDashboardView: View {
                 }
                 .buttonStyle(.plain)
                 
-                NavigationLink(destination: SquareSyncDashboardView(context: CoreDataManager.shared.viewContext)) {
+                NavigationLink(destination: SquareSyncDashboardView()) {
                     ModernActionCard(
                         title: "Square Sync",
                         subtitle: "Sync with Square",

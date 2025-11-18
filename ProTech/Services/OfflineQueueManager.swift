@@ -22,6 +22,8 @@ class OfflineQueueManager: ObservableObject {
     private let customerSyncer = CustomerSyncer()
     private let ticketSyncer = TicketSyncer()
     private let inventorySyncer = InventorySyncer()
+    private let employeeSyncer = EmployeeSyncer()
+    private let appointmentSyncer = AppointmentSyncer()
     
     // Core Data
     private let coreData = CoreDataManager.shared
@@ -172,6 +174,34 @@ class OfflineQueueManager: ObservableObject {
             if let itemId = operation.entityId {
                 try await deleteRemoteInventoryItem(id: itemId)
             }
+            
+        case .uploadEmployee:
+            if let employeeId = operation.entityId,
+               let employee = try fetchEmployee(id: employeeId) {
+                try await employeeSyncer.upload(employee)
+            }
+            
+        case .uploadAppointment:
+            if let appointmentId = operation.entityId,
+               let appointment = try fetchAppointment(id: appointmentId) {
+                try await appointmentSyncer.upload(appointment)
+            }
+            
+        case .downloadEmployees:
+            try await employeeSyncer.download()
+            
+        case .downloadAppointments:
+            try await appointmentSyncer.download()
+            
+        case .deleteEmployee:
+            if let employeeId = operation.entityId {
+                try await deleteRemoteEmployee(id: employeeId)
+            }
+            
+        case .deleteAppointment:
+            if let appointmentId = operation.entityId {
+                try await deleteRemoteAppointment(id: appointmentId)
+            }
         }
     }
     
@@ -210,6 +240,18 @@ class OfflineQueueManager: ObservableObject {
         return try coreData.viewContext.fetch(request).first
     }
     
+    private func fetchEmployee(id: UUID) throws -> Employee? {
+        let request: NSFetchRequest<Employee> = Employee.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        return try coreData.viewContext.fetch(request).first
+    }
+    
+    private func fetchAppointment(id: UUID) throws -> Appointment? {
+        let request: NSFetchRequest<Appointment> = Appointment.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        return try coreData.viewContext.fetch(request).first
+    }
+    
     // MARK: - Remote Delete Operations
     
     private func deleteRemoteCustomer(id: UUID) async throws {
@@ -237,6 +279,26 @@ class OfflineQueueManager: ObservableObject {
         
         try await supabase.client
             .from("inventory_items")
+            .update(["deleted_at": Date().iso8601String])
+            .eq("id", value: id.uuidString)
+            .execute()
+    }
+    
+    private func deleteRemoteEmployee(id: UUID) async throws {
+        let supabase = SupabaseService.shared
+        
+        try await supabase.client
+            .from("employees")
+            .update(["deleted_at": Date().iso8601String])
+            .eq("id", value: id.uuidString)
+            .execute()
+    }
+    
+    private func deleteRemoteAppointment(id: UUID) async throws {
+        let supabase = SupabaseService.shared
+        
+        try await supabase.client
+            .from("appointments")
             .update(["deleted_at": Date().iso8601String])
             .eq("id", value: id.uuidString)
             .execute()
@@ -308,12 +370,36 @@ class OfflineQueueManager: ObservableObject {
         addToQueue(operation)
     }
     
+    /// Queue an employee upload
+    func queueEmployeeUpload(_ employee: Employee) {
+        let operation = QueuedSyncOperation(
+            type: .uploadEmployee,
+            entityId: employee.id,
+            entityType: "Employee",
+            data: nil
+        )
+        addToQueue(operation)
+    }
+    
+    /// Queue an appointment upload
+    func queueAppointmentUpload(_ appointment: Appointment) {
+        let operation = QueuedSyncOperation(
+            type: .uploadAppointment,
+            entityId: appointment.id,
+            entityType: "Appointment",
+            data: nil
+        )
+        addToQueue(operation)
+    }
+    
     /// Queue a full sync
     func queueFullSync() {
         let operations = [
             QueuedSyncOperation(type: .downloadCustomers, entityType: "Customer"),
             QueuedSyncOperation(type: .downloadTickets, entityType: "Ticket"),
-            QueuedSyncOperation(type: .downloadInventory, entityType: "InventoryItem")
+            QueuedSyncOperation(type: .downloadInventory, entityType: "InventoryItem"),
+            QueuedSyncOperation(type: .downloadEmployees, entityType: "Employee"),
+            QueuedSyncOperation(type: .downloadAppointments, entityType: "Appointment")
         ]
         
         for op in operations {
@@ -371,12 +457,18 @@ enum QueuedSyncOperationType: String, Codable {
     case uploadCustomer
     case uploadTicket
     case uploadInventory
+    case uploadEmployee
+    case uploadAppointment
     case downloadCustomers
     case downloadTickets
     case downloadInventory
+    case downloadEmployees
+    case downloadAppointments
     case deleteCustomer
     case deleteTicket
     case deleteInventory
+    case deleteEmployee
+    case deleteAppointment
 }
 
 enum QueuedSyncStatus: String, Codable {

@@ -182,7 +182,7 @@ class DymoPrintService {
         // Truncate name if too long (max 30 chars)
         let displayName = name.count > 30 ? String(name.prefix(27)) + "..." : name
         let sku = product.sku ?? "N/A"
-        let price = String(format: "$%.2f", product.sellingPrice)
+        let price = String(format: "$%.2f", product.price)
         
         return """
         \(Configuration.appName) | \(price)

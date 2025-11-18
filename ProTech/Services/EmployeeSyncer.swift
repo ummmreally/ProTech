@@ -65,7 +65,7 @@ class EmployeeSyncer: ObservableObject {
             .execute()
         
         // Mark as synced
-        // Note: cloudSyncStatus doesn't exist on Employee model
+        employee.cloudSyncStatus = "synced"
         employee.updatedAt = Date()
         try coreData.viewContext.save()
     }
@@ -73,8 +73,7 @@ class EmployeeSyncer: ObservableObject {
     /// Upload all pending local changes
     func uploadPendingChanges() async throws {
         let request: NSFetchRequest<Employee> = Employee.fetchRequest()
-        // Note: cloudSyncStatus doesn't exist, upload all employees for now
-        // TODO: Add cloudSyncStatus property to Employee model or use another tracking mechanism
+        request.predicate = NSPredicate(format: "cloudSyncStatus == %@ OR cloudSyncStatus == nil", "pending")
         
         let pendingEmployees = try coreData.viewContext.fetch(request)
         
@@ -153,7 +152,7 @@ class EmployeeSyncer: ObservableObject {
         local.pinLockedUntil = remote.pinLockedUntil
         local.lastLoginAt = remote.lastLoginAt
         local.updatedAt = remote.updatedAt
-        // Note: syncVersion and cloudSyncStatus don't exist on Employee model
+        local.cloudSyncStatus = "synced"
     }
     
     private func createLocal(from remote: SupabaseEmployee) {

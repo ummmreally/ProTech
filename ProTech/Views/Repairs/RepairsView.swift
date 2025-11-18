@@ -19,6 +19,8 @@ struct RepairsView: View {
     @State private var showingCheckIn = false
     @State private var selectedTicket: Ticket?
     @State private var filterStatus: RepairStatus = .all
+    @State private var isRefreshing = false
+    @StateObject private var ticketSyncer = TicketSyncer()
     
     var filteredTickets: [Ticket] {
         if filterStatus == .all {
@@ -39,12 +41,20 @@ struct RepairsView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            // Offline Banner
+            OfflineBanner()
+            
             // Header
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Repairs")
-                        .font(.largeTitle)
-                        .bold()
+                    HStack {
+                        Text("Repairs")
+                            .font(.largeTitle)
+                            .bold()
+                        
+                        // Sync Status Badge
+                        SyncStatusBadge()
+                    }
                     Text("\(filteredTickets.count) active repair\(filteredTickets.count == 1 ? "" : "s")")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
@@ -120,6 +130,13 @@ struct RepairsView: View {
         }
         .sheet(item: $selectedTicket) { ticket in
             TicketDetailView(ticket: ticket)
+        }
+        .pullToRefresh(isRefreshing: $isRefreshing) {
+            do {
+                try await ticketSyncer.download()
+            } catch {
+                print("⚠️ Failed to sync tickets: \(error.localizedDescription)")
+            }
         }
     }
 }
@@ -244,6 +261,11 @@ struct RepairTicketCard: View {
                     
                     RepairStatusBadge(status: ticket.status ?? "waiting")
                     
+                    // Sync status indicator
+                    if let syncStatus = ticket.cloudSyncStatus {
+                        syncStatusIcon(for: syncStatus)
+                    }
+                    
                     // Quick View button
                     Button {
                         onQuickView()
@@ -305,6 +327,30 @@ struct RepairTicketCard: View {
             return "\(hours)h ago"
         } else {
             return "\(hours / 24)d ago"
+        }
+    }
+    
+    private func syncStatusIcon(for status: String) -> some View {
+        Group {
+            switch status {
+            case "synced":
+                Image(systemName: "checkmark.icloud.fill")
+                    .foregroundColor(.green)
+                    .font(.caption)
+                    .help("Synced to cloud")
+            case "pending":
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .foregroundColor(.orange)
+                    .font(.caption)
+                    .help("Sync pending")
+            case "failed":
+                Image(systemName: "exclamationmark.icloud.fill")
+                    .foregroundColor(.red)
+                    .font(.caption)
+                    .help("Sync failed - will retry")
+            default:
+                EmptyView()
+            }
         }
     }
 }

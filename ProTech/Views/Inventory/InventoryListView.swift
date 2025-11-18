@@ -22,6 +22,8 @@ struct InventoryListView: View {
     @State private var adjustingItem: InventoryItem?
     @State private var showingBatchPrintDialog = false
     @State private var labelCopies = 1
+    @State private var isRefreshing = false
+    @StateObject private var inventorySyncer = InventorySyncer()
     
     var filteredItems: [InventoryItem] {
         var filtered = Array(items)
@@ -52,7 +54,7 @@ struct InventoryListView: View {
         case .quantity:
             filtered.sort { $0.quantity > $1.quantity }
         case .price:
-            filtered.sort { $0.sellingPrice > $1.sellingPrice }
+            filtered.sort { $0.priceDouble > $1.priceDouble }
         case .lowStock:
             filtered.sort { $0.quantity < $1.quantity }
         case .value:
@@ -64,6 +66,22 @@ struct InventoryListView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            // Offline Banner
+            OfflineBanner()
+            
+            // Header with Sync Badge
+            HStack {
+                Text("Inventory")
+                    .font(.largeTitle)
+                    .bold()
+                
+                SyncStatusBadge()
+                
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.top)
+            
             // Search and Filters
             VStack(spacing: 12) {
                 HStack {
@@ -206,6 +224,13 @@ struct InventoryListView: View {
                 }
             )
         }
+        .pullToRefresh(isRefreshing: $isRefreshing) {
+            do {
+                try await inventorySyncer.download()
+            } catch {
+                print("⚠️ Failed to sync inventory: \(error.localizedDescription)")
+            }
+        }
     }
     
     private var emptyStateView: some View {
@@ -252,9 +277,9 @@ struct InventoryListView: View {
         savePanel.begin { response in
             guard response == .OK, let url = savePanel.url else { return }
             
-            var csv = "Name,Part Number,SKU,Category,Quantity,Cost Price,Selling Price,Location\n"
+            var csv = "Name,Part Number,SKU,Category,Quantity,Cost Price,Selling Price\n"
             for item in filteredItems {
-                csv += "\(item.name ?? ""),\(item.partNumber ?? ""),\(item.sku ?? ""),\(item.category ?? ""),\(item.quantity),\(item.costPrice),\(item.sellingPrice),\(item.location ?? "")\n"
+                csv += "\(item.name ?? ""),\(item.partNumber ?? ""),\(item.sku ?? ""),\(item.category ?? ""),\(item.quantity),\(item.costDouble),\(item.priceDouble)\n"
             }
             
             try? csv.write(to: url, atomically: true, encoding: .utf8)
@@ -318,15 +343,46 @@ struct InventoryItemRow: View {
                         .foregroundColor(item.isOutOfStock ? .red : item.isLowStock ? .orange : .primary)
                 }
                 
-                Text(String(format: "$%.2f", item.sellingPrice))
+                Text(String(format: "$%.2f", item.priceDouble))
                     .font(.caption)
                     .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            // Sync status indicator
+            if let syncStatus = item.cloudSyncStatus {
+                syncStatusIcon(for: syncStatus)
             }
             
             Image(systemName: "chevron.right")
                 .foregroundColor(.secondary)
         }
         .padding(.vertical, 8)
+    }
+    
+    private func syncStatusIcon(for status: String) -> some View {
+        Group {
+            switch status {
+            case "synced":
+                Image(systemName: "checkmark.icloud.fill")
+                    .foregroundColor(.green)
+                    .font(.caption)
+                    .help("Synced to cloud")
+            case "pending":
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .foregroundColor(.orange)
+                    .font(.caption)
+                    .help("Sync pending")
+            case "failed":
+                Image(systemName: "exclamationmark.icloud.fill")
+                    .foregroundColor(.red)
+                    .font(.caption)
+                    .help("Sync failed - will retry")
+            default:
+                EmptyView()
+            }
+        }
     }
     
     private var categoryIcon: String {

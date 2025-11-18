@@ -89,10 +89,26 @@ struct AddCustomerView: View {
         customer.notes = notes.isEmpty ? nil : notes.trimmingCharacters(in: .whitespacesAndNewlines)
         customer.createdAt = Date()
         customer.updatedAt = Date()
-        customer.cloudSyncStatus = "local"
+        customer.cloudSyncStatus = "pending"
         
         do {
             try viewContext.save()
+            
+            // Sync to Supabase in background
+            Task { @MainActor in
+                do {
+                    let syncer = CustomerSyncer()
+                    try await syncer.upload(customer)
+                    customer.cloudSyncStatus = "synced"
+                    try? viewContext.save()
+                } catch {
+                    customer.cloudSyncStatus = "failed"
+                    try? viewContext.save()
+                    print("⚠️ Customer sync failed: \(error.localizedDescription)")
+                    // Don't block user flow - will retry later
+                }
+            }
+            
             onSave?(customer)
             dismiss()
         } catch {

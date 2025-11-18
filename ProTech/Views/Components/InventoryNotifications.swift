@@ -642,7 +642,7 @@ class InventoryMonitor: ObservableObject {
                     category: item.category,
                     quantity: Int(item.quantity),
                     minQuantity: Int(item.minQuantity),
-                    price: Double(item.costPrice)
+                    price: item.costDouble
                 )
             }
             

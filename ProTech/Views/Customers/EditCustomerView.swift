@@ -73,8 +73,24 @@ struct EditCustomerView: View {
         customer.address = address.isEmpty ? nil : address.trimmingCharacters(in: .whitespacesAndNewlines)
         customer.notes = notes.isEmpty ? nil : notes.trimmingCharacters(in: .whitespacesAndNewlines)
         customer.updatedAt = Date()
+        customer.cloudSyncStatus = "pending"
         
         CoreDataManager.shared.save()
+        
+        // Sync to Supabase in background
+        Task { @MainActor in
+            do {
+                let syncer = CustomerSyncer()
+                try await syncer.upload(customer)
+                customer.cloudSyncStatus = "synced"
+                try? CoreDataManager.shared.viewContext.save()
+            } catch {
+                customer.cloudSyncStatus = "failed"
+                try? CoreDataManager.shared.viewContext.save()
+                print("⚠️ Customer sync failed: \(error.localizedDescription)")
+            }
+        }
+        
         dismiss()
     }
 }

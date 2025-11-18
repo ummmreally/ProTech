@@ -10,6 +10,8 @@ struct AppointmentSchedulerView: View {
     @State private var showingNewAppointment = false
     @State private var selectedAppointment: Appointment?
     @State private var viewMode: ViewMode = .day
+    @State private var isSyncing = false
+    @State private var syncError: Error?
     
     private let appointmentService = AppointmentService.shared
     private let calendar = Calendar.current
@@ -37,8 +39,23 @@ struct AppointmentSchedulerView: View {
             .onAppear {
                 loadAppointments()
             }
+            .task {
+                // Initial sync from Supabase
+                await performInitialSync()
+                
+                // Start real-time updates
+                await startRealtimeSync()
+            }
+            .onDisappear {
+                Task {
+                    await appointmentService.stopRealtimeSync()
+                }
+            }
             .onReceive(NotificationCenter.default.publisher(for: .appointmentsDidChange)) { _ in
                 loadAppointments()
+            }
+            .refreshable {
+                await syncAppointments()
             }
             .sheet(isPresented: $showingNewAppointment) {
                 NewAppointmentView(selectedDate: selectedDate)
@@ -59,9 +76,16 @@ struct AppointmentSchedulerView: View {
     private var headerView: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Appointments")
-                    .font(.title)
-                    .fontWeight(.bold)
+                HStack(spacing: 8) {
+                    Text("Appointments")
+                        .font(.title)
+                        .fontWeight(.bold)
+                    
+                    if isSyncing {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    }
+                }
                 
                 Text(todaysSummary)
                     .font(.subheadline)
@@ -472,6 +496,41 @@ struct AppointmentSchedulerView: View {
     private func cancelAppointment(_ appointment: Appointment) {
         appointmentService.cancelAppointment(appointment, reason: "Cancelled by staff")
         loadAppointments()
+    }
+    
+    // MARK: - Sync Methods
+    
+    private func performInitialSync() async {
+        isSyncing = true
+        do {
+            try await appointmentService.syncAppointments()
+            loadAppointments()
+        } catch {
+            print("Initial sync error: \(error)")
+            syncError = error
+        }
+        isSyncing = false
+    }
+    
+    private func startRealtimeSync() async {
+        do {
+            try await appointmentService.startRealtimeSync()
+        } catch {
+            print("Realtime sync error: \(error)")
+            syncError = error
+        }
+    }
+    
+    private func syncAppointments() async {
+        isSyncing = true
+        do {
+            try await appointmentService.syncAppointments()
+            loadAppointments()
+        } catch {
+            print("Sync error: \(error)")
+            syncError = error
+        }
+        isSyncing = false
     }
     
     // MARK: - Helper Methods

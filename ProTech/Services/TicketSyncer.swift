@@ -78,7 +78,7 @@ class TicketSyncer: ObservableObject {
             .execute()
         
         // Mark as synced
-        // Note: cloudSyncStatus property doesn't exist on Ticket model
+        ticket.cloudSyncStatus = "synced"
         ticket.updatedAt = Date()
         try coreData.viewContext.save()
     }
@@ -86,8 +86,7 @@ class TicketSyncer: ObservableObject {
     /// Upload all pending local changes
     func uploadPendingChanges() async throws {
         let request: NSFetchRequest<Ticket> = Ticket.fetchRequest()
-        // Note: cloudSyncStatus doesn't exist, upload all tickets for now
-        // TODO: Add cloudSyncStatus property to Ticket model or use another tracking mechanism
+        request.predicate = NSPredicate(format: "cloudSyncStatus == %@ OR cloudSyncStatus == nil", "pending")
         
         let pendingTickets = try coreData.viewContext.fetch(request)
         
@@ -181,7 +180,8 @@ class TicketSyncer: ObservableObject {
         // Note: checkInSignatureUrl doesn't exist on Ticket model (has checkInSignature Data instead)
         local.checkInAgreedAt = remote.checkInAgreedAt
         local.updatedAt = remote.updatedAt
-        // Note: syncVersion and cloudSyncStatus don't exist on Ticket model
+        local.cloudSyncStatus = "synced"
+        // Note: syncVersion doesn't exist on Ticket model, using updatedAt for conflict resolution
     }
     
     private func createLocal(from remote: SupabaseTicket) throws {
@@ -316,7 +316,7 @@ class TicketSyncer: ObservableObject {
         
         // Mark all as synced
         for ticket in tickets {
-            // Note: cloudSyncStatus doesn't exist on Ticket model
+            ticket.cloudSyncStatus = "synced"
             ticket.updatedAt = Date()
         }
         

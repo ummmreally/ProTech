@@ -27,6 +27,8 @@ extension SquareSyncMapping {
     @NSManaged public var metadataData: Data?
     @NSManaged public var version: Int32
     @NSManaged public var errorMessage: String?
+    @NSManaged public var createdAt: Date?
+    @NSManaged public var updatedAt: Date?
     
     // Computed properties for enums
     var syncStatus: SyncOutcome {

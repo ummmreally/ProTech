@@ -654,7 +654,7 @@ struct PointOfSaleView: View {
     private func addToCart(_ item: InventoryItem) {
         let cartItem = CartItem(
             name: item.name ?? "Unknown",
-            price: item.sellingPrice,
+            price: item.priceDouble,
             quantity: 1,
             icon: item.inventoryCategory.icon,
             addOns: []
@@ -1072,7 +1072,7 @@ struct ProductCard: View {
                     .frame(height: 36)
                 
                 // Price
-                Text(String(format: "$%.2f", item.sellingPrice))
+                Text(String(format: "$%.2f", item.priceDouble))
                     .font(.caption)
                     .fontWeight(.bold)
                     .foregroundColor(Color(hex: "00C853"))

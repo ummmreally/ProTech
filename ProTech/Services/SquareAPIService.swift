@@ -20,6 +20,11 @@ class SquareAPIService {
     private let redirectUri = "protech://square-oauth-callback"
     private let scopes = ["ITEMS_READ", "ITEMS_WRITE", "INVENTORY_READ", "INVENTORY_WRITE", "MERCHANT_PROFILE_READ"]
     
+    // Cache for locations (5 minute TTL)
+    private var cachedLocations: [Location]?
+    private var locationsCacheTime: Date?
+    private let locationsCacheDuration: TimeInterval = 300
+    
     private init() {
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
@@ -348,6 +353,14 @@ class SquareAPIService {
     func listLocations() async throws -> [Location] {
         print("🔍 listLocations() called")
         
+        // Check cache first
+        if let cached = cachedLocations,
+           let cacheTime = locationsCacheTime,
+           Date().timeIntervalSince(cacheTime) < locationsCacheDuration {
+            print("💾 Using cached locations (\(cached.count) locations)")
+            return cached
+        }
+        
         guard let config = configuration else {
             print("❌ listLocations failed: No configuration")
             throw SquareAPIError.notConfigured
@@ -376,6 +389,10 @@ class SquareAPIService {
             for (index, location) in locations.enumerated() {
                 print("   Location \(index + 1): ID=\(location.id), Name=\(location.name ?? "Unnamed")")
             }
+            
+            // Cache the results
+            self.cachedLocations = locations
+            self.locationsCacheTime = Date()
             
             return locations
         } catch {

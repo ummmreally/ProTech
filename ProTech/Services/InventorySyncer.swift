@@ -37,8 +37,8 @@ class InventorySyncer: ObservableObject {
             partNumber: item.partNumber,
             name: item.name ?? "",
             category: item.category,
-            cost: Double(item.costPrice),
-            price: Double(item.sellingPrice),
+            cost: item.costDouble,
+            price: item.priceDouble,
             quantity: Int(item.quantity),
             minQuantity: Int(item.minQuantity),
             isActive: item.isActive,
@@ -54,7 +54,7 @@ class InventorySyncer: ObservableObject {
             .execute()
         
         // Mark as synced
-        // Note: cloudSyncStatus doesn't exist on InventoryItem model
+        item.cloudSyncStatus = "synced"
         item.updatedAt = Date()
         try coreData.viewContext.save()
     }
@@ -62,8 +62,7 @@ class InventorySyncer: ObservableObject {
     /// Upload all pending local changes
     func uploadPendingChanges() async throws {
         let request: NSFetchRequest<InventoryItem> = InventoryItem.fetchRequest()
-        // Note: cloudSyncStatus doesn't exist, upload all items for now
-        // request.predicate = NSPredicate(format: "cloudSyncStatus == %@ OR cloudSyncStatus == nil", "pending")
+        request.predicate = NSPredicate(format: "cloudSyncStatus == %@ OR cloudSyncStatus == nil", "pending")
         
         let pendingItems = try coreData.viewContext.fetch(request)
         
@@ -130,13 +129,14 @@ class InventorySyncer: ObservableObject {
         local.partNumber = remote.partNumber
         local.name = remote.name
         local.category = remote.category
-        local.costPrice = remote.cost
-        local.sellingPrice = remote.price
+        local.cost = NSDecimalNumber(value: remote.cost)
+        local.price = NSDecimalNumber(value: remote.price)
         local.quantity = Int32(remote.quantity)
         local.minQuantity = Int32(remote.minQuantity)
         local.isActive = remote.isActive
         local.updatedAt = remote.updatedAt
-        // Note: syncVersion and cloudSyncStatus don't exist on InventoryItem model
+        local.cloudSyncStatus = "synced"
+        // Note: syncVersion doesn't exist on InventoryItem model, using updatedAt for conflict resolution
     }
     
     private func createLocal(from remote: SupabaseInventoryItem) {
@@ -194,7 +194,7 @@ class InventorySyncer: ObservableObject {
         let newQuantity = Int(item.quantity) + adjustment
         item.quantity = Int32(newQuantity)
         item.updatedAt = Date()
-        // Note: cloudSyncStatus doesn't exist on InventoryItem model
+        item.cloudSyncStatus = "pending"
         
         try coreData.viewContext.save()
         
@@ -299,8 +299,8 @@ class InventorySyncer: ObservableObject {
                 partNumber: item.partNumber,
                 name: item.name ?? "",
                 category: item.category,
-                cost: Double(item.costPrice),
-                price: Double(item.sellingPrice),
+                cost: item.cost.doubleValue,
+                price: item.price.doubleValue,
                 quantity: Int(item.quantity),
                 minQuantity: Int(item.minQuantity),
                 isActive: item.isActive,
@@ -322,7 +322,7 @@ class InventorySyncer: ObservableObject {
         
         // Mark all as synced
         for item in items {
-            // Note: cloudSyncStatus doesn't exist on InventoryItem model
+            item.cloudSyncStatus = "synced"
             item.updatedAt = Date()
         }
         

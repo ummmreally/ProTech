@@ -115,18 +115,17 @@ struct TicketDetailView: View {
                 
                 // Device Info
                 Section("Device") {
-                    if let deviceType = ticket.deviceType {
-                        LabeledContent("Type") {
-                            HStack {
-                                Image(systemName: deviceIcon(deviceType))
-                                Text(deviceType)
-                            }
-                        }
+                    if let device = ticket.deviceType {
+                        LabeledContent("Type", value: device)
+                    }
+                    if let model = ticket.deviceModel {
+                        LabeledContent("Model", value: model)
                     }
                     
-                    if let model = ticket.deviceModel {
-                        LabeledContent("Model") {
-                            Text(model)
+                    // Sync status
+                    if let syncStatus = ticket.cloudSyncStatus {
+                        LabeledContent("Sync Status") {
+                            syncStatusBadge(for: syncStatus)
                         }
                     }
                 }
@@ -373,6 +372,7 @@ struct TicketDetailView: View {
     private func updateStatus(_ newStatus: String) {
         ticket.status = newStatus
         ticket.updatedAt = Date()
+        ticket.cloudSyncStatus = "pending"
         
         if newStatus == "in_progress" && ticket.startedAt == nil {
             ticket.startedAt = Date()
@@ -387,6 +387,20 @@ struct TicketDetailView: View {
         }
         
         CoreDataManager.shared.save()
+        
+        // Sync to Supabase in background
+        Task { @MainActor in
+            do {
+                let syncer = TicketSyncer()
+                try await syncer.upload(ticket)
+                ticket.cloudSyncStatus = "synced"
+                try? CoreDataManager.shared.viewContext.save()
+            } catch {
+                ticket.cloudSyncStatus = "failed"
+                try? CoreDataManager.shared.viewContext.save()
+                print("⚠️ Ticket sync failed: \(error.localizedDescription)")
+            }
+        }
     }
     
     private func saveNotes() {
@@ -445,6 +459,54 @@ struct TicketDetailView: View {
         CoreDataManager.shared.viewContext.delete(ticket)
         CoreDataManager.shared.save()
         dismiss()
+    }
+    
+    private func syncStatusBadge(for status: String) -> some View {
+        HStack(spacing: 4) {
+            switch status {
+            case "synced":
+                Image(systemName: "checkmark.icloud.fill")
+                    .foregroundColor(.green)
+                Text("Synced")
+                    .foregroundColor(.green)
+            case "pending":
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .foregroundColor(.orange)
+                Text("Syncing...")
+                    .foregroundColor(.orange)
+            case "failed":
+                Image(systemName: "exclamationmark.icloud.fill")
+                    .foregroundColor(.red)
+                Text("Sync Failed")
+                    .foregroundColor(.red)
+                Button("Retry") {
+                    retrySyncTicket()
+                }
+                .buttonStyle(.link)
+                .font(.caption)
+            default:
+                EmptyView()
+            }
+        }
+        .font(.caption)
+    }
+    
+    private func retrySyncTicket() {
+        ticket.cloudSyncStatus = "pending"
+        CoreDataManager.shared.save()
+        
+        Task { @MainActor in
+            do {
+                let syncer = TicketSyncer()
+                try await syncer.upload(ticket)
+                ticket.cloudSyncStatus = "synced"
+                try? CoreDataManager.shared.viewContext.save()
+            } catch {
+                ticket.cloudSyncStatus = "failed"
+                try? CoreDataManager.shared.viewContext.save()
+                print("⚠️ Ticket sync retry failed: \(error.localizedDescription)")
+            }
+        }
     }
     
     // MARK: - SMS Functions

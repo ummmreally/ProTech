@@ -56,10 +56,16 @@ struct CustomerDetailView: View {
                         Text("\(customer.firstName ?? "") \(customer.lastName ?? "")")
                             .font(.title)
                             .bold()
-                        if let createdAt = customer.createdAt {
-                            Text("Customer since \(createdAt, format: .dateTime.month().day().year())")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                        HStack(spacing: 8) {
+                            if let createdAt = customer.createdAt {
+                                Text("Customer since \(createdAt, format: .dateTime.month().day().year())")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            // Sync status
+                            if let syncStatus = customer.cloudSyncStatus {
+                                syncStatusBadge(for: syncStatus)
+                            }
                         }
                     }
                     
@@ -234,6 +240,35 @@ struct CustomerDetailView: View {
         let first = customer.firstName?.prefix(1).uppercased() ?? ""
         let last = customer.lastName?.prefix(1).uppercased() ?? ""
         return first + last
+    }
+    
+    private func syncStatusBadge(for status: String) -> some View {
+        HStack(spacing: 4) {
+            switch status {
+            case "synced":
+                Image(systemName: "checkmark.icloud.fill")
+                    .foregroundColor(.green)
+                Text("Synced")
+                    .foregroundColor(.green)
+            case "pending":
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .foregroundColor(.orange)
+                Text("Syncing...")
+                    .foregroundColor(.orange)
+            case "failed":
+                Image(systemName: "exclamationmark.icloud.fill")
+                    .foregroundColor(.red)
+                Text("Sync Failed")
+                    .foregroundColor(.red)
+            default:
+                EmptyView()
+            }
+        }
+        .font(.caption)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(Color.gray.opacity(0.1))
+        .cornerRadius(6)
     }
 }
 

@@ -776,7 +776,7 @@ struct SyncTestView: View {
         item.sku = "SKU-\(Int.random(in: 10000...99999))"
         item.quantity = 50
         item.minQuantity = 10
-        item.sellingPrice = 29.99
+        item.price = NSDecimalNumber(value: 29.99)
         item.createdAt = Date()
         
         do {

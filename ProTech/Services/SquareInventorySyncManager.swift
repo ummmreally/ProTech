@@ -11,6 +11,9 @@ import Combine
 
 @MainActor
 class SquareInventorySyncManager: ObservableObject {
+    // Shared singleton instance for better performance
+    static let shared = SquareInventorySyncManager()
+    
     @Published var syncStatus: SyncManagerStatus = .idle
     @Published var syncProgress: Double = 0.0
     @Published var lastSyncDate: Date?
@@ -21,6 +24,11 @@ class SquareInventorySyncManager: ObservableObject {
     private let context: NSManagedObjectContext
     private var syncTimer: Timer?
     private var cancellables = Set<AnyCancellable>()
+    
+    // Cache for locations to avoid repeated API calls
+    private var cachedLocations: [SquareLocation]?
+    private var locationsCacheTime: Date?
+    private let locationsCacheDuration: TimeInterval = 300 // 5 minutes
     
     init(context: NSManagedObjectContext = CoreDataManager.shared.viewContext, apiService: SquareAPIService = .shared) {
         self.context = context
@@ -266,6 +274,8 @@ class SquareInventorySyncManager: ObservableObject {
         mapping.lastSyncedAt = Date()
         mapping.syncStatus = .synced
         mapping.version = 1
+        mapping.createdAt = Date()
+        mapping.updatedAt = Date()
         
         try context.save()
         
@@ -513,11 +523,11 @@ class SquareInventorySyncManager: ObservableObject {
         newItem.name = itemData.name
         newItem.sku = itemData.variations?.first?.itemVariationData.sku ?? ""
         newItem.category = itemData.categoryId ?? ""
+        newItem.categoryName = itemData.categoryId ?? ""
         newItem.quantity = 0
-        newItem.reorderPoint = Int32(itemData.variations?.first?.itemVariationData.inventoryAlertThreshold ?? 0)
-        newItem.costPrice = 0
-        newItem.sellingPrice = Double(itemData.variations?.first?.itemVariationData.priceMoney?.amount ?? 0) / 100.0
-        newItem.notes = itemData.description
+        newItem.minQuantity = Int32(itemData.variations?.first?.itemVariationData.inventoryAlertThreshold ?? 5)
+        newItem.cost = NSDecimalNumber(value: 0)
+        newItem.price = NSDecimalNumber(value: Double(itemData.variations?.first?.itemVariationData.priceMoney?.amount ?? 0) / 100.0)
         newItem.createdAt = Date()
         newItem.updatedAt = Date()
         
@@ -540,13 +550,17 @@ class SquareInventorySyncManager: ObservableObject {
     }
     
     private func exportItemToSquare(item: InventoryItem, locationId: String) async throws {
-        guard let itemId = item.id else {
+        guard item.id != nil else {
             throw SyncError.invalidData("Item missing ID")
         }
         
+        // Generate unique temporary IDs for this API call (Square requires unique temp IDs per request)
+        let tempItemId = "#\(UUID().uuidString)"
+        let tempVariationId = "#\(UUID().uuidString)"
+        
         // Create catalog object
         let variation = CatalogItemVariation(
-            id: "#\(itemId.uuidString)",
+            id: tempVariationId,
             type: "ITEM_VARIATION",
             updatedAt: nil,
             version: nil,
@@ -557,11 +571,11 @@ class SquareInventorySyncManager: ObservableObject {
                 upc: nil,
                 ordinal: 0,
                 pricingType: "FIXED_PRICING",
-                priceMoney: Money(dollars: item.sellingPrice),
+                priceMoney: Money(dollars: item.priceDouble),
                 locationOverrides: nil,
                 trackInventory: true,
                 inventoryAlertType: "LOW_QUANTITY",
-                inventoryAlertThreshold: Int(item.reorderPoint),
+                inventoryAlertThreshold: 5, // Default threshold since reorderPoint not in schema
                 userData: nil,
                 serviceDuration: nil,
                 availableForBooking: nil,
@@ -574,7 +588,7 @@ class SquareInventorySyncManager: ObservableObject {
         
         let catalogItem = CatalogItem(
             name: item.name ?? "Unnamed Item",
-            description: item.notes,
+            description: nil, // notes attribute doesn't exist in schema
             abbreviation: nil,
             labelColor: nil,
             availableOnline: true,
@@ -590,7 +604,7 @@ class SquareInventorySyncManager: ObservableObject {
         )
         
         let catalogObject = CatalogObject(
-            id: "#\(itemId.uuidString)",
+            id: tempItemId,
             type: .item,
             updatedAt: ISO8601DateFormatter().string(from: Date()),
             version: 1,
@@ -643,7 +657,7 @@ class SquareInventorySyncManager: ObservableObject {
         if let existingItemData = catalogObject.itemData {
             let updatedItem = CatalogItem(
                 name: item.name ?? existingItemData.name,
-                description: item.notes,
+                description: nil, // notes attribute doesn't exist in schema
                 abbreviation: existingItemData.abbreviation,
                 labelColor: existingItemData.labelColor,
                 availableOnline: existingItemData.availableOnline,
@@ -665,11 +679,11 @@ class SquareInventorySyncManager: ObservableObject {
                             upc: variation.itemVariationData.upc,
                             ordinal: variation.itemVariationData.ordinal,
                             pricingType: variation.itemVariationData.pricingType,
-                            priceMoney: Money(dollars: item.sellingPrice),
+                            priceMoney: Money(dollars: item.priceDouble),
                             locationOverrides: variation.itemVariationData.locationOverrides,
                             trackInventory: variation.itemVariationData.trackInventory,
                             inventoryAlertType: variation.itemVariationData.inventoryAlertType,
-                            inventoryAlertThreshold: Int(item.reorderPoint),
+                            inventoryAlertThreshold: 5, // Default threshold since reorderPoint not in schema
                             userData: variation.itemVariationData.userData,
                             serviceDuration: variation.itemVariationData.serviceDuration,
                             availableForBooking: variation.itemVariationData.availableForBooking,
@@ -730,10 +744,9 @@ class SquareInventorySyncManager: ObservableObject {
         }
         
         item.name = itemData.name
-        item.notes = itemData.description
         item.sku = variation.itemVariationData.sku ?? item.sku
-        item.sellingPrice = Double(variation.itemVariationData.priceMoney?.amount ?? 0) / 100.0
-        item.reorderPoint = Int32(variation.itemVariationData.inventoryAlertThreshold ?? Int(item.reorderPoint))
+        item.price = NSDecimalNumber(value: Double(variation.itemVariationData.priceMoney?.amount ?? 0) / 100.0)
+        // Note: description and reorderPoint not in Core Data schema
         
         // Update inventory count
         if let variationId = variation.id,
@@ -800,7 +813,7 @@ class SquareInventorySyncManager: ObservableObject {
         }
         
         let squarePrice = Double(variation.itemVariationData.priceMoney?.amount ?? 0) / 100.0
-        if abs(proTechItem.sellingPrice - squarePrice) > 0.01 {
+        if abs(proTechItem.priceDouble - squarePrice) > 0.01 {
             conflicts.append("price")
         }
         

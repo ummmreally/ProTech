@@ -37,6 +37,7 @@ extension Employee {
     @NSManaged public var profileImageData: Data?
     @NSManaged public var createdAt: Date?
     @NSManaged public var updatedAt: Date?
+    @NSManaged public var cloudSyncStatus: String?
     
     // Convenience initializer
     convenience init(context: NSManagedObjectContext,
@@ -149,7 +150,8 @@ extension Employee {
             makeAttribute("passwordLockedUntil", type: .dateAttributeType),
             makeAttribute("profileImageData", type: .binaryDataAttributeType),
             makeAttribute("createdAt", type: .dateAttributeType, optional: false),
-            makeAttribute("updatedAt", type: .dateAttributeType, optional: false)
+            makeAttribute("updatedAt", type: .dateAttributeType, optional: false),
+            makeAttribute("cloudSyncStatus", type: .stringAttributeType)
         ]
         
         if let idAttribute = entity.properties.first(where: { $0.name == "id" }) as? NSAttributeDescription,

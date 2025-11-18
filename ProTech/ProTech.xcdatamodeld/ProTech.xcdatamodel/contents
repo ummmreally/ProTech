@@ -14,9 +14,12 @@
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <entity name="Employee" representedClassName="Employee" syncable="YES">
+        <attribute name="cloudSyncStatus" optional="YES" attributeType="String"/>
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="email" optional="YES" attributeType="String"/>
         <attribute name="employeeNumber" optional="YES" attributeType="String"/>
+        <attribute name="failedPasswordAttempts" optional="NO" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="failedPinAttempts" optional="NO" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="firstName" optional="YES" attributeType="String"/>
         <attribute name="hireDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="hourlyRate" optional="NO" attributeType="Decimal" defaultValueString="25.0"/>
@@ -24,16 +27,14 @@
         <attribute name="isActive" optional="NO" attributeType="Boolean" defaultValueString="YES" usesScalarValueType="YES"/>
         <attribute name="isAdmin" optional="NO" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="lastLoginAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastPasswordAttemptAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="lastPinAttemptAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="lastName" optional="YES" attributeType="String"/>
         <attribute name="passwordHash" optional="YES" attributeType="String"/>
+        <attribute name="passwordLockedUntil" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="phone" optional="YES" attributeType="String"/>
         <attribute name="pinCode" optional="YES" attributeType="String"/>
-        <attribute name="failedPinAttempts" optional="NO" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="lastPinAttemptAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="pinLockedUntil" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="failedPasswordAttempts" optional="NO" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
-        <attribute name="lastPasswordAttemptAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
-        <attribute name="passwordLockedUntil" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="profileImageData" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
         <attribute name="role" optional="YES" attributeType="String"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
@@ -46,6 +47,7 @@
         <attribute name="checkInAgreedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="checkInSignature" optional="YES" attributeType="Binary" allowsExternalBinaryDataStorage="YES"/>
         <attribute name="checkedInAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="cloudSyncStatus" optional="YES" attributeType="String"/>
         <attribute name="completedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="customerId" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
@@ -115,11 +117,17 @@
     </entity>
     <entity name="Appointment" representedClassName="Appointment" syncable="YES">
         <attribute name="appointmentType" optional="YES" attributeType="String"/>
+        <attribute name="cancelledAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="cancellationReason" optional="YES" attributeType="String"/>
+        <attribute name="cloudSyncStatus" optional="YES" attributeType="String"/>
+        <attribute name="completedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="confirmationSent" optional="NO" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="customerId" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="duration" optional="NO" attributeType="Integer 32" defaultValueString="30" usesScalarValueType="YES"/>
         <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="reminderSent" optional="NO" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
         <attribute name="scheduledDate" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="status" optional="YES" attributeType="String"/>
         <attribute name="ticketId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
@@ -128,6 +136,7 @@
     <entity name="InventoryItem" representedClassName="InventoryItem" syncable="YES">
         <attribute name="category" optional="YES" attributeType="String"/>
         <attribute name="categoryName" optional="YES" attributeType="String"/>
+        <attribute name="cloudSyncStatus" optional="YES" attributeType="String"/>
         <attribute name="cost" optional="NO" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>

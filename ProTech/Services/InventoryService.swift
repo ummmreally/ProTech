@@ -22,10 +22,8 @@ class InventoryService {
         category: InventoryCategory,
         quantity: Int,
         minQuantity: Int = 5,
-        costPrice: Double,
-        sellingPrice: Double,
-        supplierId: UUID? = nil,
-        location: String? = nil
+        cost: Double,
+        price: Double
     ) -> InventoryItem {
         let context = CoreDataManager.shared.viewContext
         let item = InventoryItem(context: context)
@@ -37,15 +35,9 @@ class InventoryService {
         item.category = category.rawValue
         item.quantity = Int32(quantity)
         item.minQuantity = Int32(minQuantity)
-        item.maxQuantity = Int32(minQuantity * 4)
-        item.reorderPoint = Int32(minQuantity)
-        item.costPrice = costPrice
-        item.sellingPrice = sellingPrice
-        item.supplierId = supplierId
-        item.location = location
+        item.cost = NSDecimalNumber(value: cost)
+        item.price = NSDecimalNumber(value: price)
         item.isActive = true
-        item.isDiscontinued = false
-        item.taxable = true
         item.createdAt = Date()
         item.updatedAt = Date()
         
@@ -135,12 +127,6 @@ class InventoryService {
         // Update item quantity
         item.quantity += Int32(change)
         item.updatedAt = Date()
-        
-        if change > 0 {
-            item.lastRestocked = Date()
-        } else if type == .sale || type == .usage {
-            item.lastSold = Date()
-        }
         
         CoreDataManager.shared.save()
         

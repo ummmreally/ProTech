@@ -10,6 +10,8 @@ import SwiftUI
 struct EmployeeManagementView: View {
     @StateObject private var employeeService = EmployeeService()
     @StateObject private var authService = AuthenticationService.shared
+    @StateObject private var employeeSyncer = EmployeeSyncer()
+    @StateObject private var queueManager = OfflineQueueManager.shared
     
     @State private var employees: [Employee] = []
     @State private var searchText = ""
@@ -17,6 +19,7 @@ struct EmployeeManagementView: View {
     @State private var showInactive = false
     @State private var showAddEmployee = false
     @State private var selectedEmployee: Employee?
+    @State private var isRefreshing = false
     
     var filteredEmployees: [Employee] {
         var result = employees
@@ -44,12 +47,19 @@ struct EmployeeManagementView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            // Offline Banner
+            OfflineBanner()
+            
             // Header
             HStack {
                 VStack(alignment: .leading) {
-                    Text("Employees")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
+                    HStack {
+                        Text("Employees")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                        
+                        SyncStatusBadge()
+                    }
                     
                     Text("\(filteredEmployees.count) employees")
                         .foregroundColor(.secondary)
@@ -109,6 +119,14 @@ struct EmployeeManagementView: View {
         }
         .sheet(item: $selectedEmployee) { employee in
             EmployeeDetailView(employee: employee, employeeService: employeeService, onUpdate: loadEmployees)
+        }
+        .pullToRefresh(isRefreshing: $isRefreshing) {
+            do {
+                try await employeeSyncer.download()
+                loadEmployees()
+            } catch {
+                print("⚠️ Failed to sync employees: \(error.localizedDescription)")
+            }
         }
         .onAppear(perform: loadEmployees)
     }
@@ -219,12 +237,41 @@ struct EmployeeRowView: View {
                 }
             }
             
+            // Sync status icon
+            if let syncStatus = employee.cloudSyncStatus {
+                syncStatusIcon(for: syncStatus)
+            }
+            
             Image(systemName: "chevron.right")
                 .foregroundColor(.secondary)
         }
         .padding()
         .background(Color(NSColor.controlBackgroundColor))
         .cornerRadius(12)
+    }
+    
+    private func syncStatusIcon(for status: String) -> some View {
+        Group {
+            switch status {
+            case "synced":
+                Image(systemName: "checkmark.icloud.fill")
+                    .foregroundColor(.green)
+                    .font(.caption)
+                    .help("Synced to cloud")
+            case "pending":
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .foregroundColor(.orange)
+                    .font(.caption)
+                    .help("Sync pending")
+            case "failed":
+                Image(systemName: "exclamationmark.icloud.fill")
+                    .foregroundColor(.red)
+                    .font(.caption)
+                    .help("Sync failed")
+            default:
+                EmptyView()
+            }
+        }
     }
     
     private func roleColor(_ role: EmployeeRole) -> Color {

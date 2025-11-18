@@ -317,6 +317,7 @@ struct RepairProgressView: View {
     private func updateStatus(_ newStatus: String) {
         ticket.status = newStatus
         ticket.updatedAt = Date()
+        ticket.cloudSyncStatus = "pending"
         
         if newStatus == "in_progress" && ticket.startedAt == nil {
             ticket.startedAt = Date()
@@ -327,6 +328,20 @@ struct RepairProgressView: View {
         }
         
         CoreDataManager.shared.save()
+        
+        // Sync to Supabase in background
+        Task { @MainActor in
+            do {
+                let syncer = TicketSyncer()
+                try await syncer.upload(ticket)
+                ticket.cloudSyncStatus = "synced"
+                try? CoreDataManager.shared.viewContext.save()
+            } catch {
+                ticket.cloudSyncStatus = "failed"
+                try? CoreDataManager.shared.viewContext.save()
+                print("⚠️ Ticket sync failed: \(error.localizedDescription)")
+            }
+        }
     }
     
     private func loadProgress() {

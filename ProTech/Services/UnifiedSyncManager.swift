@@ -199,7 +199,7 @@ class UnifiedSyncManager: ObservableObject {
             // Consider adding: @NSManaged public var squareItemId: String?
             
             if let price = squareItem.price {
-                item.sellingPrice = Double(price) / 100.0
+                item.price = NSDecimalNumber(value: Double(price) / 100.0)
             }
             
             if item.id == nil {
@@ -286,7 +286,7 @@ class UnifiedSyncManager: ObservableObject {
             throw SyncError.missingData
         }
         
-        let priceInCents = Int(item.sellingPrice * 100)
+        let priceInCents = Int(item.priceDouble * 100)
         
         let squareItem = try await squareService.createCatalogItem(
             name: name,

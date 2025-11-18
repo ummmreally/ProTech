@@ -10,11 +10,8 @@ struct AddInventoryItemView: View {
     @State private var sku = ""
     @State private var category = InventoryCategory.components
     @State private var quantity: Int = 0
-    @State private var reorderPoint: Int = 5
     @State private var costPrice: Double = 0.0
     @State private var sellingPrice: Double = 0.0
-    @State private var location = ""
-    @State private var notes = ""
     @State private var showError = false
     @State private var errorMessage = ""
 
@@ -41,16 +38,6 @@ struct AddInventoryItemView: View {
                             .multilineTextAlignment(.trailing)
                             .frame(width: 100)
                     }
-                    
-                    HStack {
-                        Text("Reorder Point")
-                        Spacer()
-                        TextField("", value: $reorderPoint, format: .number)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
-                    }
-                    
-                    TextField("Location", text: $location)
                 }
                 
                 Section("Pricing") {
@@ -83,10 +70,6 @@ struct AddInventoryItemView: View {
                     }
                 }
                 
-                Section("Notes") {
-                    TextEditor(text: $notes)
-                        .frame(height: 80)
-                }
             }
             .formStyle(.grouped)
             .navigationTitle("Add Inventory Item")
@@ -121,16 +104,30 @@ struct AddInventoryItemView: View {
             item.sku = sku.isEmpty ? nil : sku
             item.category = category.rawValue
             item.quantity = Int32(quantity)
-            item.reorderPoint = Int32(reorderPoint)
-            item.costPrice = costPrice
-            item.sellingPrice = sellingPrice
-            item.location = location.isEmpty ? nil : location
-            item.notes = notes.isEmpty ? nil : notes
+            item.minQuantity = 5 // Default
+            item.cost = NSDecimalNumber(value: costPrice)
+            item.price = NSDecimalNumber(value: sellingPrice)
             item.isActive = true
             item.createdAt = Date()
             item.updatedAt = Date()
+            item.cloudSyncStatus = "pending"
             
             try viewContext.save()
+            
+            // Sync to Supabase in background
+            Task { @MainActor in
+                do {
+                    let syncer = InventorySyncer()
+                    try await syncer.upload(item)
+                    item.cloudSyncStatus = "synced"
+                    try? viewContext.save()
+                } catch {
+                    item.cloudSyncStatus = "failed"
+                    try? viewContext.save()
+                    print("⚠️ Inventory sync failed: \(error.localizedDescription)")
+                }
+            }
+            
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
@@ -149,11 +146,8 @@ struct EditInventoryItemView: View {
     @State private var sku = ""
     @State private var category = InventoryCategory.components
     @State private var quantity: Int = 0
-    @State private var reorderPoint: Int = 5
     @State private var costPrice: Double = 0.0
     @State private var sellingPrice: Double = 0.0
-    @State private var location = ""
-    @State private var notes = ""
     @State private var showError = false
     @State private var errorMessage = ""
 
@@ -180,16 +174,6 @@ struct EditInventoryItemView: View {
                             .multilineTextAlignment(.trailing)
                             .frame(width: 100)
                     }
-                    
-                    HStack {
-                        Text("Reorder Point")
-                        Spacer()
-                        TextField("", value: $reorderPoint, format: .number)
-                            .multilineTextAlignment(.trailing)
-                            .frame(width: 100)
-                    }
-                    
-                    TextField("Location", text: $location)
                 }
                 
                 Section("Pricing") {
@@ -222,10 +206,6 @@ struct EditInventoryItemView: View {
                     }
                 }
                 
-                Section("Notes") {
-                    TextEditor(text: $notes)
-                        .frame(height: 80)
-                }
             }
             .formStyle(.grouped)
             .navigationTitle("Edit Item")
@@ -262,11 +242,8 @@ struct EditInventoryItemView: View {
             category = inventoryCat
         }
         quantity = Int(item.quantity)
-        reorderPoint = Int(item.reorderPoint)
-        costPrice = item.costPrice
-        sellingPrice = item.sellingPrice
-        location = item.location ?? ""
-        notes = item.notes ?? ""
+        costPrice = item.costDouble
+        sellingPrice = item.priceDouble
     }
     
     private func saveChanges() {
@@ -276,14 +253,28 @@ struct EditInventoryItemView: View {
             item.sku = sku.isEmpty ? nil : sku
             item.category = category.rawValue
             item.quantity = Int32(quantity)
-            item.reorderPoint = Int32(reorderPoint)
-            item.costPrice = costPrice
-            item.sellingPrice = sellingPrice
-            item.location = location.isEmpty ? nil : location
-            item.notes = notes.isEmpty ? nil : notes
+            item.minQuantity = 5 // Default
+            item.cost = NSDecimalNumber(value: costPrice)
+            item.price = NSDecimalNumber(value: sellingPrice)
             item.updatedAt = Date()
+            item.cloudSyncStatus = "pending"
             
             try viewContext.save()
+            
+            // Sync to Supabase in background
+            Task { @MainActor in
+                do {
+                    let syncer = InventorySyncer()
+                    try await syncer.upload(item)
+                    item.cloudSyncStatus = "synced"
+                    try? viewContext.save()
+                } catch {
+                    item.cloudSyncStatus = "failed"
+                    try? viewContext.save()
+                    print("⚠️ Inventory sync failed: \(error.localizedDescription)")
+                }
+            }
+            
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
@@ -484,6 +475,20 @@ struct StockAdjustmentSheet: View {
             reference: trimmedReference.isEmpty ? nil : trimmedReference,
             notes: trimmedNotes.isEmpty ? nil : trimmedNotes
         )
+        
+        // Sync to Supabase in background
+        Task { @MainActor in
+            item.cloudSyncStatus = "pending"
+            do {
+                let syncer = InventorySyncer()
+                try await syncer.upload(item)
+                item.cloudSyncStatus = "synced"
+            } catch {
+                item.cloudSyncStatus = "failed"
+                print("⚠️ Inventory adjustment sync failed: \(error.localizedDescription)")
+            }
+        }
+        
         onComplete?()
         dismiss()
     }

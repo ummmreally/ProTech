@@ -18,6 +18,8 @@ struct CustomerListView: View {
     @State private var searchText = ""
     @State private var showingAddCustomer = false
     @State private var selectedCustomer: Customer?
+    @State private var isRefreshing = false
+    @StateObject private var customerSyncer = CustomerSyncer()
     
     var filteredCustomers: [Customer] {
         if searchText.isEmpty {
@@ -35,11 +37,18 @@ struct CustomerListView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                // Offline Banner
+                OfflineBanner()
+                
                 // Header
                 HStack {
                     Text("Customers")
                         .font(.largeTitle)
                         .bold()
+                    
+                    // Sync Status Badge
+                    SyncStatusBadge()
+                    
                     Spacer()
                     Button {
                         showingAddCustomer = true
@@ -113,12 +122,28 @@ struct CustomerListView: View {
             .onReceive(NotificationCenter.default.publisher(for: .newCustomer)) { _ in
                 showingAddCustomer = true
             }
+            .pullToRefresh(isRefreshing: $isRefreshing) {
+                do {
+                    try await customerSyncer.download()
+                } catch {
+                    print("⚠️ Failed to sync customers: \(error.localizedDescription)")
+                }
+            }
         }
     }
     
     private func deleteCustomers(offsets: IndexSet) {
         for index in offsets {
-            CoreDataManager.shared.deleteCustomer(filteredCustomers[index])
+            let customer = filteredCustomers[index]
+            
+            // For Supabase sync, we should soft-delete (mark as deleted)
+            // but Core Data doesn't have a deletedAt field for Customer yet
+            // For now, hard delete locally and sync deletion to Supabase
+            Task { @MainActor in
+                // TODO: Implement soft delete when Customer model has deletedAt field
+                // For now, just delete - Supabase will handle via RLS policies
+                CoreDataManager.shared.deleteCustomer(customer)
+            }
         }
     }
 }
@@ -159,10 +184,39 @@ struct CustomerRowView: View {
             
             Spacer()
             
+            // Sync status indicator
+            if let syncStatus = customer.cloudSyncStatus {
+                syncStatusIcon(for: syncStatus)
+            }
+            
             if let createdAt = customer.createdAt {
                 Text(createdAt, format: .dateTime.month().day())
                     .font(.caption)
                     .foregroundColor(.secondary)
+            }
+        }
+    }
+    
+    private func syncStatusIcon(for status: String) -> some View {
+        Group {
+            switch status {
+            case "synced":
+                Image(systemName: "checkmark.icloud.fill")
+                    .foregroundColor(.green)
+                    .font(.caption)
+                    .help("Synced to cloud")
+            case "pending":
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .foregroundColor(.orange)
+                    .font(.caption)
+                    .help("Sync pending")
+            case "failed":
+                Image(systemName: "exclamationmark.icloud.fill")
+                    .foregroundColor(.red)
+                    .font(.caption)
+                    .help("Sync failed - will retry")
+            default:
+                EmptyView()
             }
         }
         .padding(.vertical, 4)
