@@ -556,9 +556,12 @@ class DymoPrintService {
             // Print operation
             let printOperation = NSPrintOperation(view: rotatedContainerView, printInfo: printInfo)
             
-            // Try to find and set Dymo printer as default
+            // Try to find and set Dymo printer as default for labels
             if let dymoPrinter = self.findDymoPrinter() {
                 printInfo.printer = dymoPrinter
+                print("🏷️ Routing label to Dymo printer: \(dymoPrinter.name)")
+            } else {
+                print("⚠️ No Dymo printer found, user must select printer manually")
             }
             
             // Always show print panel so user can verify/change printer
@@ -592,6 +595,15 @@ class DymoPrintService {
             printInfo.leftMargin = 36
             printInfo.rightMargin = 36
             printInfo.paperSize = NSSize(width: 612, height: 792)  // Letter size (8.5" x 11")
+            
+            // IMPORTANT: Set a standard paper printer (not Dymo)
+            // Try to find a non-Dymo printer for documents
+            if let standardPrinter = self.findStandardPrinter() {
+                printInfo.printer = standardPrinter
+                print("📄 Routing document '\(title)' to standard printer: \(standardPrinter.name)")
+            } else {
+                print("⚠️ No standard printer found, using default for document '\(title)'")
+            }
             
             // Create text view for printing
             let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 540, height: 720))  // Adjusted for margins
@@ -660,13 +672,43 @@ class DymoPrintService {
             let nameLowercase = printerName.lowercased()
             for pattern in dymoPatterns {
                 if nameLowercase.contains(pattern) {
-                    print("Found Dymo printer: \(printerName)")
+                    print("🏷️ Found Dymo printer: \(printerName)")
                     return NSPrinter(name: printerName)
                 }
             }
         }
         
-        print("No Dymo printer found. Available printers: \(printers.joined(separator: ", "))")
+        print("⚠️ No Dymo printer found. Available printers: \(printers.joined(separator: ", "))")
+        return nil
+    }
+    
+    /// Find a standard paper printer (excludes Dymo label printers)
+    private func findStandardPrinter() -> NSPrinter? {
+        let printers = NSPrinter.printerNames
+        
+        // Patterns to exclude (label printers)
+        let excludePatterns = ["dymo", "labelwriter", "label writer", "lw", "brother ql", "zebra"]
+        
+        // Find first printer that's NOT a label printer
+        for printerName in printers {
+            let nameLowercase = printerName.lowercased()
+            var isLabelPrinter = false
+            
+            for pattern in excludePatterns {
+                if nameLowercase.contains(pattern) {
+                    isLabelPrinter = true
+                    break
+                }
+            }
+            
+            // If not a label printer, use it
+            if !isLabelPrinter {
+                print("🖨️ Found standard printer: \(printerName)")
+                return NSPrinter(name: printerName)
+            }
+        }
+        
+        print("⚠️ No standard printer found, will use system default")
         return nil
     }
     

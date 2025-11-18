@@ -237,32 +237,50 @@ struct CheckInCustomerView: View {
                 Text("Issue with device")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
-                TextEditor(text: $issueDescription)
-                    .frame(minHeight: 90)
-                    .overlay(alignment: .topLeading) {
-                        if issueDescription.isEmpty {
-                            Text("Describe the issue... *")
-                                .foregroundColor(.secondary)
-                                .padding(8)
-                                .allowsHitTesting(false)
-                        }
+                ZStack(alignment: .topLeading) {
+                    TextEditor(text: $issueDescription)
+                        .frame(minHeight: 90)
+                        .font(.body)
+                        .scrollContentBackground(.hidden)
+                        .background(Color(nsColor: .textBackgroundColor))
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
+                    
+                    if issueDescription.isEmpty {
+                        Text("Describe the issue... *")
+                            .foregroundColor(.secondary)
+                            .padding(8)
+                            .allowsHitTesting(false)
                     }
+                }
             }
             
             VStack(alignment: .leading, spacing: 8) {
                 Text("Additional Details About Repair")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
-                TextEditor(text: $additionalDetails)
-                    .frame(minHeight: 80)
-                    .overlay(alignment: .topLeading) {
-                        if additionalDetails.isEmpty {
-                            Text("Add any extra notes or observations")
-                                .foregroundColor(.secondary)
-                                .padding(8)
-                                .allowsHitTesting(false)
-                        }
+                ZStack(alignment: .topLeading) {
+                    TextEditor(text: $additionalDetails)
+                        .frame(minHeight: 80)
+                        .font(.body)
+                        .scrollContentBackground(.hidden)
+                        .background(Color(nsColor: .textBackgroundColor))
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        )
+                    
+                    if additionalDetails.isEmpty {
+                        Text("Add any extra notes or observations")
+                            .foregroundColor(.secondary)
+                            .padding(8)
+                            .allowsHitTesting(false)
                     }
+                }
             }
             .padding(.top, 4)
         }

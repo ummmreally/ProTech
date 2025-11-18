@@ -12,7 +12,7 @@ struct ProTechApp: App {
     // Use @ObservedObject for singletons (not @StateObject which manages lifecycle)
     @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     @ObservedObject private var authService = AuthenticationService.shared
-    @StateObject private var supabaseAuth = SupabaseAuthService.shared
+    @ObservedObject private var supabaseAuth = SupabaseAuthService.shared
     @StateObject private var employeeService = EmployeeService()
     let persistenceController = CoreDataManager.shared
     

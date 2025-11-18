@@ -215,6 +215,21 @@ struct TicketDetailView: View {
                     }
                 }
                 
+                // Print Documents
+                Section("Print Documents") {
+                    Button {
+                        printCheckInAgreement()
+                    } label: {
+                        Label("Print Check-In Agreement", systemImage: "doc.text.fill")
+                    }
+                    
+                    Button {
+                        printPickupForm()
+                    } label: {
+                        Label("Print Pickup Form", systemImage: "doc.text.fill")
+                    }
+                }
+                
                 // Actions
                 Section("Actions") {
                     if ticket.status == "waiting" {
@@ -414,6 +429,11 @@ struct TicketDetailView: View {
             ticket: ticket,
             customer: customer.first
         )
+    }
+    
+    private func printCheckInAgreement() {
+        guard let customer = customer.first else { return }
+        DymoPrintService.shared.printCheckInAgreement(ticket: ticket, customer: customer)
     }
     
     private func printPickupForm() {

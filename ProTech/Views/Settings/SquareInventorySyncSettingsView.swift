@@ -91,14 +91,28 @@ struct SquareInventorySyncSettingsView: View {
             // Location Settings
             if let config = configuration {
                 Section {
-                    Picker("Primary Location", selection: $selectedLocationId) {
-                        ForEach(locations, id: \.id) { location in
-                            Text(location.name ?? location.id)
-                                .tag(location.id)
+                    if locations.isEmpty {
+                        HStack {
+                            ProgressView()
+                                .scaleEffect(0.8)
+                            Text("Loading locations...")
+                                .foregroundColor(.secondary)
                         }
-                    }
-                    .onChange(of: selectedLocationId) { _, newValue in
-                        updateLocation(newValue)
+                        .padding(.vertical, 4)
+                    } else if !selectedLocationId.isEmpty {
+                        Picker("Primary Location", selection: $selectedLocationId) {
+                            ForEach(locations, id: \.id) { location in
+                                Text(location.name ?? location.id)
+                                    .tag(location.id)
+                            }
+                        }
+                        .onChange(of: selectedLocationId) { _, newValue in
+                            updateLocation(newValue)
+                        }
+                    } else {
+                        Text("Selecting location...")
+                            .foregroundColor(.secondary)
+                            .padding(.vertical, 4)
                     }
                     
                     if !locations.isEmpty {
@@ -285,10 +299,15 @@ struct SquareInventorySyncSettingsView: View {
             manualSetupSheet
         }
         .task {
+            print("📋 SquareInventorySyncSettingsView .task started")
             loadConfiguration()
             if configuration != nil {
+                print("📋 Configuration exists, loading locations...")
                 await loadLocations()
+            } else {
+                print("⚠️ No configuration found - skipping location load")
             }
+            print("📋 SquareInventorySyncSettingsView .task completed")
         }
     }
     
@@ -672,20 +691,56 @@ struct SquareInventorySyncSettingsView: View {
     private func loadConfiguration() {
         configuration = syncManager.getConfiguration()
         if let config = configuration {
-            selectedLocationId = config.locationId ?? ""
+            // Don't set selectedLocationId yet - wait for locations to load first
+            // This prevents Picker warning about invalid selection
+            
             // CRITICAL: Set configuration in API service for sync operations
             SquareAPIService.shared.setConfiguration(config)
             print("✅ Configuration loaded: Merchant \(config.merchantId ?? "unknown"), Environment: \(config.environment.displayName)")
+            print("✅ Saved location ID: \(config.locationId ?? "none")")
         } else {
             print("⚠️ No configuration found - please enter Square credentials")
         }
     }
     
     private func loadLocations() async {
+        print("📥 loadLocations() started")
+        
         do {
             locations = try await SquareAPIService.shared.listLocations()
+            print("✅ Loaded \(locations.count) location(s) from Square")
+            
+            // Now set selectedLocationId AFTER locations are loaded
+            await MainActor.run {
+                if let config = configuration {
+                    let savedLocationId = config.locationId ?? ""
+                    print("🔍 Attempting to select saved location: \(savedLocationId)")
+                    
+                    // Check if saved location exists in fetched locations
+                    if !savedLocationId.isEmpty {
+                        if locations.contains(where: { $0.id == savedLocationId }) {
+                            selectedLocationId = savedLocationId
+                            print("✅ Selected saved location: \(savedLocationId)")
+                        } else {
+                            print("⚠️ Saved location \(savedLocationId) not found in Square account")
+                            // Use first available location
+                            if let firstLocation = locations.first {
+                                selectedLocationId = firstLocation.id
+                                updateLocation(firstLocation.id)
+                                print("✅ Auto-selected first location: \(firstLocation.id)")
+                            }
+                        }
+                    } else if let firstLocation = locations.first {
+                        // No saved location, use first one
+                        selectedLocationId = firstLocation.id
+                        updateLocation(firstLocation.id)
+                        print("✅ Auto-selected first location: \(firstLocation.id)")
+                    }
+                }
+            }
         } catch {
-            errorMessage = "Failed to load locations: \(error.localizedDescription)"
+            print("❌ loadLocations() failed: \(error)")
+            errorMessage = "Failed to load locations: \(error.localizedDescription)\n\nPlease verify your access token has the correct permissions."
             showError = true
         }
     }

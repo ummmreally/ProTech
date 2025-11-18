@@ -433,6 +433,14 @@ struct SignaturePadView: View {
         NSColor.white.setFill()
         NSRect(origin: .zero, size: size).fill()
         
+        // Save graphics state
+        let context = NSGraphicsContext.current?.cgContext
+        context?.saveGState()
+        
+        // Flip coordinate system to match SwiftUI's top-left origin
+        context?.translateBy(x: 0, y: size.height)
+        context?.scaleBy(x: 1.0, y: -1.0)
+        
         // Draw paths
         NSColor.black.setStroke()
         for path in paths {
@@ -456,6 +464,9 @@ struct SignaturePadView: View {
             nsPath.lineWidth = 2
             nsPath.stroke()
         }
+        
+        // Restore graphics state
+        context?.restoreGState()
         
         image.unlockFocus()
         

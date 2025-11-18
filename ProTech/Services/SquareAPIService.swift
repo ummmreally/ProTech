@@ -346,18 +346,45 @@ class SquareAPIService {
     // MARK: - Locations
     
     func listLocations() async throws -> [Location] {
+        print("🔍 listLocations() called")
+        
         guard let config = configuration else {
+            print("❌ listLocations failed: No configuration")
             throw SquareAPIError.notConfigured
         }
         
+        print("📍 Config: Environment=\(config.environment.displayName), Merchant=\(config.merchantId ?? "none")")
+        print("📍 Base URL: \(config.baseURL)")
+        
         let url = URL(string: "\(config.baseURL)/v2/locations")!
+        print("🌐 Fetching from: \(url.absoluteString)")
+        
         let request = try createAuthenticatedRequest(url: url, method: "GET")
+        print("🔑 Request created with auth header")
         
-        let (data, response) = try await session.data(for: request)
-        try validateResponse(response, data: data)
-        
-        let locationResponse = try JSONDecoder().decode(LocationListResponse.self, from: data)
-        return locationResponse.locations ?? []
+        do {
+            let (data, response) = try await session.data(for: request)
+            print("📡 Response received: \((response as? HTTPURLResponse)?.statusCode ?? -1)")
+            
+            try validateResponse(response, data: data)
+            print("✅ Response validated successfully")
+            
+            let locationResponse = try JSONDecoder().decode(LocationListResponse.self, from: data)
+            let locations = locationResponse.locations ?? []
+            print("✅ Successfully decoded \(locations.count) location(s)")
+            
+            for (index, location) in locations.enumerated() {
+                print("   Location \(index + 1): ID=\(location.id), Name=\(location.name ?? "Unnamed")")
+            }
+            
+            return locations
+        } catch {
+            print("❌ listLocations error: \(error)")
+            if let apiError = error as? SquareAPIError {
+                print("   API Error details: \(apiError)")
+            }
+            throw error
+        }
     }
     
     // MARK: - Helper Methods
