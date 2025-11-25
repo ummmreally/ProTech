@@ -60,13 +60,19 @@ struct SettingsView: View {
                     Label("Developer", systemImage: "hammer.fill")
                 }
                 .tag(SettingsTab.developer)
+            
+            APISettingsView()
+                .tabItem {
+                    Label("API Config", systemImage: "network")
+                }
+                .tag(SettingsTab.apiConfig)
         }
         .frame(minWidth: 600, minHeight: 500)
     }
 }
 
 enum SettingsTab {
-    case general, sms, square, socialMedia, forms, kiosk, subscription, developer
+    case general, sms, square, socialMedia, forms, kiosk, subscription, developer, apiConfig
 }
 
 // MARK: - General Settings

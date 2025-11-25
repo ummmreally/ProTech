@@ -74,6 +74,7 @@
     </entity>
     <entity name="Payment" representedClassName="Payment" syncable="YES">
         <attribute name="amount" optional="NO" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="cloudSyncStatus" optional="YES" attributeType="String"/>
         <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="customerId" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
@@ -81,8 +82,10 @@
         <attribute name="notes" optional="YES" attributeType="String"/>
         <attribute name="paymentDate" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="paymentMethod" optional="YES" attributeType="String"/>
-        <attribute name="receiptNumber" optional="YES" attributeType="String"/>
-        <attribute name="transactionId" optional="YES" attributeType="String"/>
+        <attribute name="paymentNumber" optional="YES" attributeType="String"/>
+        <attribute name="receiptGenerated" optional="NO" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="referenceNumber" optional="YES" attributeType="String"/>
+        <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <entity name="Invoice" representedClassName="Invoice" syncable="YES">
         <attribute name="balance" optional="NO" attributeType="Decimal" defaultValueString="0.0"/>

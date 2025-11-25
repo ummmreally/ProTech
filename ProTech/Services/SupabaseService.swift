@@ -13,7 +13,7 @@ import Auth
 class SupabaseService: ObservableObject {
     static let shared = SupabaseService()
     
-    let client: SupabaseClient
+    var client: SupabaseClient
     
     @Published var isInitialized = false
     @Published var syncStatus: SupabaseSyncStatus = .idle
@@ -79,6 +79,34 @@ class SupabaseService: ObservableObject {
     
     func signOut() async throws {
         try await client.auth.signOut()
+    }
+    
+    // MARK: - Configuration
+    
+    func reconfigure(url: String, key: String) async {
+        guard let supabaseURL = URL(string: url) else {
+            print("❌ Invalid Supabase URL: \(url)")
+            return
+        }
+        
+        print("🔄 Reconfiguring Supabase client...")
+        print("   URL: \(url)")
+        
+        let authOptions = SupabaseClientOptions.AuthOptions(emitLocalSessionAsInitialSession: true)
+        let clientOptions = SupabaseClientOptions(auth: authOptions)
+        
+        self.client = SupabaseClient(
+            supabaseURL: supabaseURL,
+            supabaseKey: key,
+            options: clientOptions
+        )
+        
+        // Re-setup listener for the new client
+        Task {
+            await setupAuthListener()
+        }
+        
+        print("✅ Supabase client reconfigured successfully")
     }
 }
 

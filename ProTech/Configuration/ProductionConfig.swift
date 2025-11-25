@@ -19,11 +19,9 @@ enum AppEnvironment: String, CaseIterable, Codable {
         case .development:
             return "https://sztwxxwnhupwmvxhbzyo.supabase.co"
         case .staging:
-            // Replace with staging project URL
             return "https://staging-project.supabase.co"
         case .production:
-            // Replace with production project URL
-            return "https://production-project.supabase.co"
+            return UserDefaults.standard.string(forKey: "production_supabase_url") ?? ""
         }
     }
     
@@ -32,11 +30,34 @@ enum AppEnvironment: String, CaseIterable, Codable {
         case .development:
             return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6dHd4eHduaHVwd212eGhienlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY5NzMxMjEsImV4cCI6MjA1MjU0OTEyMX0.JQSjAC_-GByJfj-AqpqBylPLdmK9MZy8V-f8vQsCaHc"
         case .staging:
-            // Replace with staging anon key
             return "staging-anon-key"
         case .production:
-            // Replace with production anon key  
-            return "production-anon-key"
+            return UserDefaults.standard.string(forKey: "production_supabase_key") ?? ""
+        }
+    }
+    
+    var squareCredentials: (appId: String, accessToken: String, clientSecret: String)? {
+        switch self {
+        case .development:
+            return ("YOUR_SANDBOX_APP_ID", "YOUR_SANDBOX_ACCESS_TOKEN", "YOUR_SANDBOX_CLIENT_SECRET")
+        case .staging:
+            return ("YOUR_STAGING_APP_ID", "YOUR_STAGING_ACCESS_TOKEN", "YOUR_STAGING_CLIENT_SECRET")
+        case .production:
+            let appId = UserDefaults.standard.string(forKey: "production_square_app_id") ?? ""
+            let token = UserDefaults.standard.string(forKey: "production_square_token") ?? ""
+            let secret = UserDefaults.standard.string(forKey: "production_square_secret") ?? ""
+            return (appId, token, secret)
+        }
+    }
+    
+    var socialMediaCredentials: (facebookPageId: String, linkedInUserId: String)? {
+        switch self {
+        case .development, .staging:
+             return ("YOUR_PAGE_ID", "YOUR_USER_ID")
+        case .production:
+            let fbPageId = UserDefaults.standard.string(forKey: "production_facebook_page_id") ?? ""
+            let linkedInId = UserDefaults.standard.string(forKey: "production_linkedin_user_id") ?? ""
+            return (fbPageId, linkedInId)
         }
     }
     
@@ -456,11 +477,4 @@ enum ConfigurationIssue {
 
 // MARK: - Supabase Service Extension
 
-extension SupabaseService {
-    @MainActor
-    func reconfigure(url: String, key: String) async {
-        // Reconfigure Supabase client with new credentials
-        // This would reinitialize the client with new settings
-        print("Reconfiguring Supabase with URL: \(url)")
-    }
-}
+

@@ -130,11 +130,3 @@ port = 54327
 [experimental]
 # Configures Postgres storage engine to use OrioleDB (experimental)
 orioledb_version = ""
-# Configures S3 storage engine to use Supabase/S3 (experimental)
-s3_backend = "None"
-# Configures S3 storage engine to use Supabase/S3 (experimental)
-s3_region = ""
-# Configures S3 storage engine to use Supabase/S3 (experimental)
-s3_access_key = ""
-# Configures S3 storage engine to use Supabase/S3 (experimental)
-s3_secret_key = ""

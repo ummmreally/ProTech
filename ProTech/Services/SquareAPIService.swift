@@ -15,8 +15,13 @@ class SquareAPIService {
     private let session: URLSession
     
     // OAuth Configuration
-    private let clientId = "YOUR_SQUARE_APPLICATION_ID" // Replace with actual app ID
-    private let clientSecret = "YOUR_SQUARE_APPLICATION_SECRET" // Store in Keychain
+    // OAuth Configuration
+    private var clientId: String {
+        ConfigurationManager.shared.currentEnvironment.squareCredentials?.appId ?? ""
+    }
+    private var clientSecret: String {
+        ConfigurationManager.shared.currentEnvironment.squareCredentials?.clientSecret ?? ""
+    }
     private let redirectUri = "protech://square-oauth-callback"
     private let scopes = ["ITEMS_READ", "ITEMS_WRITE", "INVENTORY_READ", "INVENTORY_WRITE", "MERCHANT_PROFILE_READ"]
     

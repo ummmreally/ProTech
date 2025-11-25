@@ -21,6 +21,7 @@ extension Payment {
     @NSManaged public var receiptGenerated: Bool
     @NSManaged public var createdAt: Date?
     @NSManaged public var updatedAt: Date?
+    @NSManaged public var cloudSyncStatus: String? // "local", "pending", "synced", "failed"
 }
 
 extension Payment: Identifiable {}
