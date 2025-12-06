@@ -82,13 +82,13 @@ struct InvoiceListView: View {
     
     private var headerView: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text("Invoices")
-                    .font(.title)
+                    .font(AppTheme.Typography.largeTitle)
                     .fontWeight(.bold)
                 
                 Text("\(filteredInvoices.count) invoice\(filteredInvoices.count == 1 ? "" : "s")")
-                    .font(.subheadline)
+                    .font(AppTheme.Typography.body)
                     .foregroundColor(.secondary)
             }
             
@@ -101,15 +101,17 @@ struct InvoiceListView: View {
             
             Button(action: { showingNewInvoice = true }) {
                 Label("New Invoice", systemImage: "plus.circle.fill")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(PremiumButtonStyle(variant: .primary))
         }
-        .padding()
+        .padding(AppTheme.Spacing.xl)
     }
     
+
+    
     private var statisticsView: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: AppTheme.Spacing.md) {
             InvoiceStatCard(
                 title: "Total Revenue",
                 value: formatCurrency(invoiceService.getTotalRevenue()),
@@ -149,9 +151,9 @@ struct InvoiceListView: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(8)
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(8)
+            .padding(AppTheme.Spacing.sm)
+            .background(AppTheme.Colors.cardBackground.opacity(0.5))
+            .cornerRadius(AppTheme.cardCornerRadius)
             .frame(maxWidth: 300)
             
             Spacer()
@@ -177,14 +179,17 @@ struct InvoiceListView: View {
                 loadInvoices()
             }
         }
-        .padding()
+
+        .padding(AppTheme.Spacing.md)
+        .glassCard()
+        .padding(.horizontal, AppTheme.Spacing.lg)
     }
     
     // MARK: - Invoice List
     
     private var invoiceListContent: some View {
         ScrollView {
-            LazyVStack(spacing: 1) {
+            LazyVStack(spacing: AppTheme.Spacing.md) {
                 ForEach(filteredInvoices) { invoice in
                     InvoiceRowView(invoice: invoice)
                         .contentShape(Rectangle())
@@ -196,19 +201,20 @@ struct InvoiceListView: View {
                         }
                 }
             }
+            .padding(AppTheme.Spacing.lg)
         }
     }
     
     // MARK: - Empty State
     
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: AppTheme.Spacing.xl) {
             Image(systemName: "doc.text")
                 .font(.system(size: 60))
                 .foregroundColor(.secondary)
             
             Text("No Invoices")
-                .font(.title2)
+                .font(AppTheme.Typography.title2)
                 .fontWeight(.semibold)
             
             Text("Create your first invoice to get started")
@@ -217,7 +223,7 @@ struct InvoiceListView: View {
             Button(action: { showingNewInvoice = true }) {
                 Label("Create Invoice", systemImage: "plus.circle.fill")
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(PremiumButtonStyle(variant: .primary))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -377,10 +383,9 @@ struct InvoiceRowView: View {
                 .cornerRadius(4)
                 .frame(width: 80)
         }
-        .padding()
-        .background(Color.gray.opacity(0.05))
-        .cornerRadius(8)
-        .padding(.horizontal)
+
+        .padding(AppTheme.Spacing.md)
+        .glassCard()
     }
     
     private var statusColor: Color {
@@ -417,19 +422,18 @@ struct InvoiceStatCard: View {
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
             Text(title)
-                .font(.caption)
+                .font(AppTheme.Typography.caption)
                 .foregroundColor(.secondary)
             
             Text(value)
-                .font(.title3)
+                .font(AppTheme.Typography.title3)
                 .fontWeight(.bold)
                 .foregroundColor(color)
         }
-        .padding(12)
-        .background(color.opacity(0.1))
-        .cornerRadius(8)
+        .padding(AppTheme.Spacing.md)
+        .glassCard()
     }
 }
 

@@ -33,7 +33,7 @@ struct AddEmployeeView: View {
             // Header
             HStack {
                 Text("Add Employee")
-                    .font(.title)
+                    .font(AppTheme.Typography.largeTitle)
                     .fontWeight(.bold)
                 
                 Spacer()
@@ -41,8 +41,9 @@ struct AddEmployeeView: View {
                 Button("Cancel") {
                     dismiss()
                 }
+                .buttonStyle(PremiumButtonStyle(variant: .secondary))
             }
-            .padding()
+            .padding(AppTheme.Spacing.lg)
             
             Divider()
             
@@ -146,15 +147,16 @@ struct AddEmployeeView: View {
                     dismiss()
                 }
                 .keyboardShortcut(.cancelAction)
+                .buttonStyle(PremiumButtonStyle(variant: .secondary))
                 
                 Button("Add Employee") {
                     saveEmployee()
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(PremiumButtonStyle(variant: .primary))
                 .keyboardShortcut(.defaultAction)
                 .disabled(!isFormValid)
             }
-            .padding()
+            .padding(AppTheme.Spacing.lg)
         }
         .frame(width: 600, height: 700)
     }

@@ -12,10 +12,25 @@ struct SidebarView: View {
     @EnvironmentObject var subscriptionManager: SubscriptionManager
     @EnvironmentObject var authService: AuthenticationService
     
+    // Fixed sidebar dimensions for consistency
+    private let sidebarMinWidth: CGFloat = 220
+    
     var body: some View {
         VStack(spacing: 0) {
             List(selection: $selectedTab) {
-                Section("Core") {
+                Section {
+                    Text("CORE")
+                        .font(AppTheme.Typography.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.leading, 8)
+                        .padding(.top, 8)
+                } header: {
+                    EmptyView()
+                }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                
+                Section {
                     ForEach([Tab.dashboard, Tab.queue, Tab.repairs, Tab.customers, Tab.calendar], id: \.self) { tab in
                         NavigationLink(value: tab) {
                             Label(tab.rawValue, systemImage: tab.icon)
@@ -31,7 +46,19 @@ struct SidebarView: View {
                     }
                 }
                 
-                Section("Business") {
+                Section {
+                    Text("BUSINESS")
+                        .font(AppTheme.Typography.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.leading, 8)
+                        .padding(.top, AppTheme.Spacing.sm)
+                } header: {
+                    EmptyView()
+                }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                
+                Section {
                     NavigationLink(value: Tab.inventory) {
                         Label(Tab.inventory.rawValue, systemImage: Tab.inventory.icon)
                     }
@@ -49,7 +76,19 @@ struct SidebarView: View {
                     }
                 }
                 
-                Section("Pro Features") {
+                Section {
+                    Text("PRO FEATURES")
+                        .font(AppTheme.Typography.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.leading, 8)
+                        .padding(.top, AppTheme.Spacing.sm)
+                } header: {
+                    EmptyView()
+                }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                
+                Section {
                     ForEach([Tab.forms, Tab.sms, Tab.marketing, Tab.employees, Tab.attendance, Tab.reports], id: \.self) { tab in
                         NavigationLink(value: tab) {
                             HStack {
@@ -74,32 +113,37 @@ struct SidebarView: View {
             .navigationTitle(Configuration.appName)
             .listStyle(.sidebar)
             
-            // User info and logout
+            // User info and logout - fixed height footer
             Divider()
             
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: AppTheme.Spacing.md) {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                     Text(authService.currentEmployeeName)
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                         .fontWeight(.medium)
+                        .lineLimit(1)
                     Text(authService.currentEmployeeRole.rawValue)
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
+                        .lineLimit(1)
                 }
-                
-                Spacer()
+                .frame(minWidth: 0, maxWidth: .infinity, alignment: .leading)
                 
                 Button(action: {
                     authService.logout()
                 }) {
                     Image(systemName: "rectangle.portrait.and.arrow.right")
                         .foregroundColor(.red)
+                        .font(.title3)
                 }
                 .buttonStyle(.plain)
                 .help("Logout")
             }
-            .padding()
-            .background(Color(NSColor.controlBackgroundColor))
+            .padding(AppTheme.Spacing.lg)
+            .frame(height: 60) // Fixed footer height
+            .frame(minWidth: sidebarMinWidth)
+            .background(.ultraThinMaterial)
         }
+        .frame(minWidth: sidebarMinWidth)
     }
 }

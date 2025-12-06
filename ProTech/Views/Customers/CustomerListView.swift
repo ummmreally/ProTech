@@ -43,7 +43,7 @@ struct CustomerListView: View {
                 // Header
                 HStack {
                     Text("Customers")
-                        .font(.largeTitle)
+                        .font(AppTheme.Typography.largeTitle)
                         .bold()
                     
                     // Sync Status Badge
@@ -51,13 +51,13 @@ struct CustomerListView: View {
                     
                     Spacer()
                     Button {
-                        showingAddCustomer = true
+                       showingAddCustomer = true
                     } label: {
                         Label("Add Customer", systemImage: "plus")
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(PremiumButtonStyle(variant: .primary))
                 }
-                .padding()
+                .padding(AppTheme.Spacing.xl)
                 
                 // Search bar
                 HStack {
@@ -75,9 +75,9 @@ struct CustomerListView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(8)
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(8)
+                .padding(AppTheme.Spacing.sm)
+                .background(AppTheme.Colors.cardBackground.opacity(0.5))
+                .cornerRadius(AppTheme.cardCornerRadius)
                 .padding(.horizontal)
                 
                 Divider()
@@ -85,12 +85,12 @@ struct CustomerListView: View {
                 
                 // Customer list
                 if filteredCustomers.isEmpty {
-                    VStack(spacing: 20) {
+                    VStack(spacing: AppTheme.Spacing.xl) {
                         Image(systemName: "person.3")
                             .font(.system(size: 60))
                             .foregroundColor(.secondary)
                         Text(searchText.isEmpty ? "No customers yet" : "No customers found")
-                            .font(.title2)
+                            .font(AppTheme.Typography.title2)
                             .foregroundColor(.secondary)
                         if searchText.isEmpty {
                             Button {
@@ -98,7 +98,7 @@ struct CustomerListView: View {
                             } label: {
                                 Label("Add Your First Customer", systemImage: "plus")
                             }
-                            .buttonStyle(.borderedProminent)
+                            .buttonStyle(PremiumButtonStyle(variant: .primary))
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -154,30 +154,30 @@ struct CustomerRowView: View {
     let customer: Customer
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: AppTheme.Spacing.md) {
             // Avatar circle with initials
             Circle()
                 .fill(Color.blue.gradient)
                 .frame(width: 40, height: 40)
                 .overlay {
                     Text(initials)
-                        .font(.headline)
+                        .font(AppTheme.Typography.headline)
                         .foregroundColor(.white)
                 }
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text("\(customer.firstName ?? "") \(customer.lastName ?? "")")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
                 
                 if let phone = customer.phone {
                     Text(phone)
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
                 }
                 
                 if let email = customer.email {
                     Text(email)
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
                 }
             }
@@ -191,7 +191,7 @@ struct CustomerRowView: View {
             
             if let createdAt = customer.createdAt {
                 Text(createdAt, format: .dateTime.month().day())
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .foregroundColor(.secondary)
             }
         }
@@ -203,17 +203,17 @@ struct CustomerRowView: View {
             case "synced":
                 Image(systemName: "checkmark.icloud.fill")
                     .foregroundColor(.green)
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .help("Synced to cloud")
             case "pending":
                 Image(systemName: "arrow.triangle.2.circlepath")
                     .foregroundColor(.orange)
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .help("Sync pending")
             case "failed":
                 Image(systemName: "exclamationmark.icloud.fill")
                     .foregroundColor(.red)
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .help("Sync failed - will retry")
             default:
                 EmptyView()

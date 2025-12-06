@@ -97,19 +97,19 @@ struct ProductivityReportView: View {
     
     private var headerView: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text("Productivity Report")
-                    .font(.title)
+                    .font(AppTheme.Typography.largeTitle)
                     .fontWeight(.bold)
                 
                 Text(dateRangeText)
-                    .font(.subheadline)
+                    .font(AppTheme.Typography.body)
                     .foregroundColor(.secondary)
             }
             
             Spacer()
         }
-        .padding()
+        .padding(AppTheme.Spacing.lg)
     }
     
     private var dateRangeText: String {
@@ -132,21 +132,21 @@ struct ProductivityReportView: View {
             
             Spacer()
         }
-        .padding()
+        .padding(AppTheme.Spacing.md)
     }
     
     // MARK: - Key Metrics
     
     private func keyMetricsView(stats: ProductivityStats) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Overview")
-                .font(.headline)
+                .font(AppTheme.Typography.headline)
             
             LazyVGrid(columns: [
                 GridItem(.flexible()),
                 GridItem(.flexible()),
                 GridItem(.flexible())
-            ], spacing: 16) {
+            ], spacing: AppTheme.Spacing.md) {
                 MetricCard(
                     title: "Total Hours",
                     value: String(format: "%.1f", stats.totalHours),
@@ -201,16 +201,16 @@ struct ProductivityReportView: View {
     // MARK: - Daily Breakdown Chart
     
     private var dailyBreakdownChart: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Daily Breakdown")
-                .font(.headline)
+                .font(AppTheme.Typography.headline)
             
             Chart(dailyData) { data in
                 BarMark(
                     x: .value("Date", data.date, unit: .day),
                     y: .value("Hours", data.hours)
                 )
-                .foregroundStyle(Color.blue)
+                .foregroundStyle(AppTheme.Colors.primary)
                 
                 BarMark(
                     x: .value("Date", data.date, unit: .day),
@@ -229,24 +229,26 @@ struct ProductivityReportView: View {
             // Legend
             HStack(spacing: 24) {
                 Label("Total Hours", systemImage: "square.fill")
-                    .foregroundColor(.blue)
-                    .font(.caption)
+                    .foregroundColor(AppTheme.Colors.primary)
+                    .font(AppTheme.Typography.caption)
                 
                 Label("Billable Hours", systemImage: "square.fill")
                     .foregroundColor(.green)
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
             }
         }
+        .padding(AppTheme.Spacing.lg)
+        .glassCard()
     }
     
     // MARK: - Insights
     
     private func insightsView(stats: ProductivityStats) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Insights")
-                .font(.headline)
+                .font(AppTheme.Typography.headline)
             
-            VStack(spacing: 12) {
+            VStack(spacing: AppTheme.Spacing.md) {
                 if stats.billablePercentage >= 80 {
                     InsightCard(
                         icon: "checkmark.circle.fill",
@@ -339,7 +341,7 @@ struct MetricCard: View {
     let icon: String
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
             HStack {
                 Image(systemName: icon)
                     .font(.title2)
@@ -348,24 +350,23 @@ struct MetricCard: View {
                 Spacer()
             }
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .foregroundColor(.secondary)
                 
                 Text(value)
-                    .font(.title)
+                    .font(AppTheme.Typography.title2)
                     .fontWeight(.bold)
                     .foregroundColor(color)
                 
                 Text(subtitle)
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption2)
                     .foregroundColor(.secondary)
             }
         }
-        .padding()
-        .background(color.opacity(0.1))
-        .cornerRadius(12)
+        .padding(AppTheme.Spacing.md)
+        .glassCard()
     }
 }
 
@@ -378,26 +379,25 @@ struct InsightCard: View {
     let message: String
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: AppTheme.Spacing.md) {
             Image(systemName: icon)
                 .font(.title2)
                 .foregroundColor(color)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.subheadline)
+                    .font(AppTheme.Typography.subheadline)
                     .fontWeight(.semibold)
                 
                 Text(message)
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .foregroundColor(.secondary)
             }
             
             Spacer()
         }
-        .padding()
-        .background(color.opacity(0.1))
-        .cornerRadius(12)
+        .padding(AppTheme.Spacing.md)
+        .glassCard()
     }
 }
 

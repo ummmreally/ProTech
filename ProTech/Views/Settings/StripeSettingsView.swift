@@ -20,33 +20,33 @@ struct StripeSettingsView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                     Text("Stripe Integration")
-                        .font(.title2)
+                        .font(AppTheme.Typography.title2)
                         .fontWeight(.bold)
                     
                     Text("Configure payment processing")
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                         .foregroundColor(.secondary)
                 }
                 
                 Spacer()
                 
                 // Status indicator
-                HStack(spacing: 8) {
+                HStack(spacing: AppTheme.Spacing.sm) {
                     Circle()
                         .fill(isConfigured ? Color.green : Color.red)
                         .frame(width: 10, height: 10)
                     Text(isConfigured ? "Connected" : "Not Connected")
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                         .foregroundColor(isConfigured ? .green : .red)
                 }
-                .padding(.horizontal, 12)
+                .padding(.horizontal, AppTheme.Spacing.md)
                 .padding(.vertical, 6)
                 .background(Color.gray.opacity(0.1))
                 .cornerRadius(16)
             }
-            .padding()
+            .padding(AppTheme.Spacing.xl)
             
             Divider()
             
@@ -103,7 +103,7 @@ struct StripeSettingsView: View {
                             Label("Save Configuration", systemImage: "checkmark.circle.fill")
                                 .frame(maxWidth: .infinity)
                         }
-                        .buttonStyle(.borderedProminent)
+                        .buttonStyle(PremiumButtonStyle(variant: .primary))
                         .disabled(apiKey.isEmpty)
                     }
                     .padding()

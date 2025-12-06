@@ -22,40 +22,40 @@ struct TodayScheduleWidget: View {
     }()
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             // Header
             HStack {
                 Image(systemName: "calendar.circle.fill")
                     .font(.title2)
                     .foregroundColor(.purple)
                 Text("Today's Schedule")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
                 
                 Spacer()
                 
                 Text(Date(), style: .date)
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .foregroundColor(.secondary)
             }
             
             if appointments.isEmpty && todayPickups.isEmpty {
                 // Empty State
-                VStack(spacing: 12) {
+                VStack(spacing: AppTheme.Spacing.md) {
                     Image(systemName: "calendar.badge.checkmark")
                         .font(.system(size: 40))
                         .foregroundColor(.gray)
                     Text("No Scheduled Items")
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                         .foregroundColor(.secondary)
                     Text("All clear for today!")
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
             } else {
                 ScrollView {
-                    VStack(spacing: 8) {
+                    VStack(spacing: AppTheme.Spacing.sm) {
                         // Appointments
                         ForEach(appointments) { appointment in
                             AppointmentScheduleRow(appointment: appointment, dateFormatter: dateFormatter)
@@ -86,9 +86,7 @@ struct TodayScheduleWidget: View {
                 .frame(maxHeight: 300)
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.05))
-        .cornerRadius(12)
+        .glassCard()
         .task {
             await loadSchedule()
         }
@@ -116,11 +114,11 @@ struct AppointmentScheduleRow: View {
     }
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: AppTheme.Spacing.md) {
             // Time
             if let scheduledDate = appointment.scheduledDate {
                 Text(dateFormatter.string(from: scheduledDate))
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .bold()
                     .frame(width: 60, alignment: .leading)
             }
@@ -131,13 +129,13 @@ struct AppointmentScheduleRow: View {
                 .frame(width: 24)
             
             // Details
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text(appointment.typeDisplayName)
-                    .font(.subheadline)
+                    .font(AppTheme.Typography.subheadline)
                     .bold()
                 if let customer = customer {
                     Text(customer.displayName)
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
                 }
             }
@@ -147,22 +145,22 @@ struct AppointmentScheduleRow: View {
             // Status Badge
             statusBadge
         }
-        .padding(12)
-        .background(Color.white.opacity(0.5))
-        .cornerRadius(8)
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Colors.cardBackground.opacity(0.5))
+        .cornerRadius(AppTheme.cardCornerRadius)
     }
     
     @ViewBuilder
     private var statusBadge: some View {
         if let status = appointment.status {
             Text(status.capitalized)
-                .font(.caption2)
+                .font(AppTheme.Typography.caption2)
                 .bold()
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(statusColor.opacity(0.2))
+                .background(statusColor.opacity(0.15))
                 .foregroundColor(statusColor)
-                .cornerRadius(4)
+                .cornerRadius(6)
         }
     }
     
@@ -189,23 +187,23 @@ struct PickupScheduleRow: View {
     }
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: AppTheme.Spacing.md) {
             Image(systemName: "checkmark.circle.fill")
                 .foregroundColor(.green)
                 .frame(width: 24)
             
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text("Repair #\(ticket.ticketNumber)")
-                    .font(.subheadline)
+                    .font(AppTheme.Typography.subheadline)
                     .bold()
                 if let customer = customer {
                     Text(customer.displayName)
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
                 }
                 if let device = ticket.deviceType {
                     Text(device)
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
                 }
             }
@@ -213,17 +211,17 @@ struct PickupScheduleRow: View {
             Spacer()
             
             Text("Ready")
-                .font(.caption2)
+                .font(AppTheme.Typography.caption2)
                 .bold()
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(Color.green.opacity(0.2))
+                .background(Color.green.opacity(0.15))
                 .foregroundColor(.green)
-                .cornerRadius(4)
+                .cornerRadius(6)
         }
-        .padding(12)
-        .background(Color.white.opacity(0.5))
-        .cornerRadius(8)
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Colors.cardBackground.opacity(0.5))
+        .cornerRadius(AppTheme.cardCornerRadius)
     }
 }
 

@@ -90,13 +90,13 @@ struct TimeEntriesView: View {
     
     private var headerView: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text("Time Entries")
-                    .font(.title)
+                    .font(AppTheme.Typography.largeTitle)
                     .fontWeight(.bold)
                 
                 Text("\(filteredEntries.count) entr\(filteredEntries.count == 1 ? "y" : "ies")")
-                    .font(.subheadline)
+                    .font(AppTheme.Typography.body)
                     .foregroundColor(.secondary)
             }
             
@@ -111,11 +111,11 @@ struct TimeEntriesView: View {
                 showingManualEntry = true
             } label: {
                 Label("Add Entry", systemImage: "plus.circle.fill")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(PremiumButtonStyle(variant: .primary))
         }
-        .padding()
+        .padding(AppTheme.Spacing.lg)
     }
     
     private var statisticsView: some View {
@@ -123,7 +123,7 @@ struct TimeEntriesView: View {
         let billableHours = filteredEntries.filter { $0.isBillable }.reduce(0.0) { $0 + $1.duration / 3600.0 }
         let totalRevenue = filteredEntries.reduce(Decimal.zero) { $0 + $1.billableAmount }
         
-        return HStack(spacing: 20) {
+        return HStack(spacing: AppTheme.Spacing.md) {
             TimeTrackingStatCard(
                 title: "Total Hours",
                 value: String(format: "%.1fh", totalHours),
@@ -156,7 +156,7 @@ struct TimeEntriesView: View {
                     .textFieldStyle(.plain)
             }
             .padding(8)
-            .background(Color.gray.opacity(0.1))
+            .background(Color.white.opacity(0.1))
             .cornerRadius(8)
             .frame(maxWidth: 400)
             
@@ -171,14 +171,16 @@ struct TimeEntriesView: View {
             .pickerStyle(.segmented)
             .frame(width: 400)
         }
-        .padding()
+        .padding(AppTheme.Spacing.md)
+        .glassCard()
+        .padding(.horizontal, AppTheme.Spacing.lg)
     }
     
     // MARK: - Time Entries List
     
     private var timeEntriesListView: some View {
         ScrollView {
-            LazyVStack(spacing: 12) {
+            LazyVStack(spacing: AppTheme.Spacing.md) {
                 ForEach(filteredEntries, id: \.id) { entry in
                     TimeEntryRow(entry: entry)
                         .contentShape(Rectangle())
@@ -190,7 +192,7 @@ struct TimeEntriesView: View {
                         }
                 }
             }
-            .padding()
+            .padding(AppTheme.Spacing.lg)
         }
     }
     
@@ -213,9 +215,9 @@ struct TimeEntriesView: View {
                 showingManualEntry = true
             } label: {
                 Label("Add Manual Entry", systemImage: "plus.circle.fill")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(PremiumButtonStyle(variant: .primary))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -286,7 +288,7 @@ struct TimeEntryRow: View {
     @StateObject private var timeTrackingService = TimeTrackingService.shared
     
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: AppTheme.Spacing.md) {
             // Status indicator
             Image(systemName: statusIcon)
                 .font(.title2)
@@ -297,24 +299,24 @@ struct TimeEntryRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
                     Text(entry.isRunning ? entry.formattedDuration : entry.formattedDurationHoursMinutes)
-                        .font(.headline)
+                        .font(AppTheme.Typography.headline)
                     
                     if entry.isBillable {
                         Text("• \(entry.formattedBillableAmount)")
-                            .font(.subheadline)
+                            .font(AppTheme.Typography.subheadline)
                             .foregroundColor(.green)
                     }
                 }
                 
                 if let startTime = entry.startTime {
                     Text(startTime.formatted(date: .abbreviated, time: .shortened))
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                         .foregroundColor(.secondary)
                 }
                 
                 if let notes = entry.notes, !notes.isEmpty {
                     Text(notes)
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
                         .lineLimit(1)
                 }
@@ -326,7 +328,7 @@ struct TimeEntryRow: View {
             VStack(alignment: .trailing, spacing: 4) {
                 if entry.isRunning {
                     Text(entry.statusDisplay)
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .fontWeight(.semibold)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
@@ -337,7 +339,7 @@ struct TimeEntryRow: View {
                 
                 if entry.isBillable {
                     Text("BILLABLE")
-                        .font(.caption2)
+                        .font(AppTheme.Typography.caption2)
                         .fontWeight(.bold)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
@@ -347,9 +349,8 @@ struct TimeEntryRow: View {
                 }
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.05))
-        .cornerRadius(12)
+        .padding(AppTheme.Spacing.md)
+        .glassCard()
     }
     
     private var statusIcon: String {
@@ -375,17 +376,16 @@ struct TimeTrackingStatCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(title)
-                .font(.caption)
+                .font(AppTheme.Typography.caption)
                 .foregroundColor(.secondary)
 
             Text(value)
-                .font(.title3)
+                .font(AppTheme.Typography.title3)
                 .fontWeight(.bold)
                 .foregroundColor(color)
         }
         .padding(12)
-        .background(color.opacity(0.1))
-        .cornerRadius(8)
+        .glassCard()
     }
 }
 

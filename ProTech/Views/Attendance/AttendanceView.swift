@@ -81,13 +81,13 @@ struct PINClockView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            VStack(spacing: 8) {
+            VStack(spacing: AppTheme.Spacing.sm) {
                 Text("Time Clock")
-                    .font(.largeTitle)
+                    .font(AppTheme.Typography.largeTitle)
                     .fontWeight(.bold)
                 
                 Text(currentTime, style: .time)
-                    .font(.system(size: 48, weight: .medium))
+                    .font(.system(size: 48, weight: .medium, design: .rounded))
                     .monospacedDigit()
                     .onReceive(timer) { _ in
                         currentTime = Date()
@@ -98,11 +98,11 @@ struct PINClockView: View {
                     }
                 
                 Text(currentTime.formatted(date: .complete, time: .omitted))
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
                     .foregroundColor(.secondary)
             }
-            .padding(.top, 30)
-            .padding(.bottom, 20)
+            .padding(.top, AppTheme.Spacing.xl)
+            .padding(.bottom, AppTheme.Spacing.lg)
             
             Divider()
             
@@ -137,7 +137,7 @@ struct PINClockView: View {
     // MARK: - Active Status Card
     
     private func activeStatusCard(employee: Employee, entry: TimeClockEntry) -> some View {
-        VStack(spacing: 16) {
+        VStack(spacing: AppTheme.Spacing.lg) {
             Circle()
                 .fill(entry.onBreak ? Color.orange.gradient : Color.green.gradient)
                 .frame(width: 80, height: 80)
@@ -146,63 +146,62 @@ struct PINClockView: View {
                         .font(.system(size: 40))
                         .foregroundColor(.white)
                 }
+                .shadow(color: (entry.onBreak ? Color.orange : Color.green).opacity(0.3), radius: 8)
             
             Text(employee.fullName)
-                .font(.title2)
+                .font(AppTheme.Typography.title2)
                 .fontWeight(.bold)
             
             Text(entry.onBreak ? "ON BREAK" : "CLOCKED IN")
-                .font(.headline)
+                .font(AppTheme.Typography.headline)
                 .foregroundColor(entry.onBreak ? .orange : .green)
             
             Text(entry.formattedDuration)
-                .font(.system(size: 36, weight: .semibold))
+                .font(.system(size: 36, weight: .semibold, design: .rounded))
                 .monospacedDigit()
             
             Text("Started at \(formatTime(entry.clockInTime))")
-                .font(.subheadline)
+                .font(AppTheme.Typography.subheadline)
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
-        .padding(24)
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(16)
+        .padding(AppTheme.Spacing.xl)
+        .glassCard()
     }
     
     // MARK: - Ready to Clock In Card
     
     private var readyToClockInCard: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: AppTheme.Spacing.lg) {
             Image(systemName: "clock.badge.checkmark")
                 .font(.system(size: 60))
-                .foregroundColor(.blue)
+                .foregroundStyle(AppTheme.Colors.primaryGradient)
             
             Text("Ready to Clock In")
-                .font(.title2)
+                .font(AppTheme.Typography.title2)
                 .fontWeight(.semibold)
             
             Text("Enter your PIN below")
-                .font(.subheadline)
+                .font(AppTheme.Typography.subheadline)
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
-        .padding(30)
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(16)
+        .padding(AppTheme.Spacing.xl)
+        .glassCard()
     }
     
     // MARK: - PIN Entry Section
     
     private var pinEntrySection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: AppTheme.Spacing.lg) {
             Text("Enter Your PIN")
-                .font(.headline)
+                .font(AppTheme.Typography.headline)
             
             // PIN Display
             HStack(spacing: 12) {
                 ForEach(0..<6, id: \.self) { index in
                     Circle()
-                        .fill(index < pinEntry.count ? Color.blue : Color.gray.opacity(0.3))
+                        .fill(index < pinEntry.count ? AppTheme.Colors.primary : Color.gray.opacity(0.3))
                         .frame(width: 16, height: 16)
                 }
             }
@@ -221,8 +220,9 @@ struct PINClockView: View {
                                     .font(.title)
                                     .fontWeight(.semibold)
                                     .frame(width: 70, height: 70)
-                                    .background(Color(NSColor.controlBackgroundColor))
+                                    .background(Color.white)
                                     .cornerRadius(12)
+                                    .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
                             }
                             .buttonStyle(.plain)
                         }
@@ -249,8 +249,9 @@ struct PINClockView: View {
                             .font(.title)
                             .fontWeight(.semibold)
                             .frame(width: 70, height: 70)
-                            .background(Color(NSColor.controlBackgroundColor))
+                            .background(Color.white)
                             .cornerRadius(12)
+                            .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
                     }
                     .buttonStyle(.plain)
                     
@@ -268,55 +269,42 @@ struct PINClockView: View {
                 }
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.05))
-        .cornerRadius(16)
+        .padding(AppTheme.Spacing.xl)
+        .glassCard()
     }
     
     // MARK: - Quick Actions Section
     
     private func quickActionsSection(employee: Employee, entry: TimeClockEntry) -> some View {
-        VStack(spacing: 12) {
+        VStack(spacing: AppTheme.Spacing.md) {
             if entry.onBreak {
                 Button {
                     endBreak(employee: employee)
                 } label: {
                     Label("End Break", systemImage: "play.fill")
-                        .font(.headline)
+                        .font(AppTheme.Typography.headline)
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.green)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PremiumButtonStyle(variant: .success))
             } else {
                 Button {
                     startBreak(employee: employee)
                 } label: {
                     Label("Start Break", systemImage: "pause.fill")
-                        .font(.headline)
+                        .font(AppTheme.Typography.headline)
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.orange)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PremiumButtonStyle(variant: .warning))
             }
             
             Button {
                 clockOut(employee: employee)
             } label: {
                 Label("Clock Out", systemImage: "xmark.circle.fill")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
                     .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.red)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(PremiumButtonStyle(variant: .destructive))
         }
     }
     
@@ -651,43 +639,43 @@ struct TimeCardRow: View {
     
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 4) {
                 if let employeeName = entry.employeeName {
                     Text(employeeName)
-                        .font(.headline)
+                        .font(AppTheme.Typography.headline)
                 }
                 
                 Text(entry.formattedShiftDate)
-                    .font(.subheadline)
+                    .font(AppTheme.Typography.subheadline)
                     .foregroundColor(.secondary)
                 
                 HStack(spacing: 8) {
                     Label(entry.formattedClockIn, systemImage: "arrow.right.circle")
                     Label(entry.formattedClockOut, systemImage: "arrow.left.circle")
                 }
-                .font(.caption)
+                .font(AppTheme.Typography.caption)
                 .foregroundColor(.secondary)
             }
             
             Spacer()
             
-            VStack(alignment: .trailing, spacing: 6) {
+            VStack(alignment: .trailing, spacing: 4) {
                 Text(entry.formattedDuration)
-                    .font(.title3)
+                    .font(AppTheme.Typography.title3)
                     .fontWeight(.semibold)
                 
                 if entry.wasEdited {
                     Label("Edited", systemImage: "pencil.circle.fill")
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.orange)
                 }
                 
                 if entry.isActive {
                     Text(entry.statusDisplay)
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(Color.green.opacity(0.2))
+                        .background(Color.green.opacity(0.1))
                         .foregroundColor(.green)
                         .cornerRadius(6)
                 }
@@ -702,9 +690,8 @@ struct TimeCardRow: View {
             }
             .buttonStyle(.plain)
         }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(12)
+        .padding(AppTheme.Spacing.md)
+        .glassCard()
     }
 }
 

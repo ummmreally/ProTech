@@ -86,153 +86,228 @@ struct CustomerPortalLoginView: View {
     }
     
     private var loginScreen: some View {
-        VStack(spacing: 0) {
-            // Header
-            VStack(spacing: 16) {
-                Image(systemName: "person.circle.fill")
-                    .font(.system(size: 80))
-                    .foregroundColor(.blue)
-                
-                Text(kioskManager.isKioskModeEnabled ? kioskManager.kioskTitle : "Customer Portal")
-                    .font(.largeTitle)
-                    .bold()
-                
-                Text(kioskManager.isKioskModeEnabled ? kioskManager.kioskWelcomeMessage : "Access your repair status, invoices, and estimates")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
-            }
-            .padding(.top, 60)
-            .padding(.bottom, 40)
+        ZStack {
+            // Subtle background gradient
+            LinearGradient(
+                colors: [
+                    Color(hex: "f8f9fa"),
+                    Color(hex: "e9ecef")
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
             
-            // Login Form
-            VStack(spacing: 24) {
-                // Login Method Picker
-                Picker("Login Method", selection: $loginMethod) {
-                    Text("Email").tag(LoginMethod.email)
-                    Text("Phone").tag(LoginMethod.phone)
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal, 40)
+            VStack(spacing: 0) {
+                Spacer()
                 
-                // Input Field
-                VStack(alignment: .leading, spacing: 8) {
-                    if loginMethod == .email {
-                        Text("Email Address")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                // Header with gradient icon
+                VStack(spacing: AppTheme.Spacing.xl) {
+                    // Gradient circle icon
+                    ZStack {
+                        Circle()
+                            .fill(AppTheme.Colors.portalWelcome)
+                            .frame(width: 120, height: 120)
+                            .shadow(color: Color(hex: "a855f7").opacity(0.3), radius: 20, x: 0, y: 10)
                         
-                        TextField("your.email@example.com", text: $emailInput)
-                            .textFieldStyle(.roundedBorder)
-                            .textContentType(.emailAddress)
-                    } else {
-                        Text("Phone Number")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        TextField("(555) 123-4567", text: $phoneInput)
-                            .textFieldStyle(.roundedBorder)
-                            .textContentType(.telephoneNumber)
+                        Image(systemName: "hand.wave.fill")
+                            .font(.system(size: 50))
+                            .foregroundColor(.white)
                     }
-                }
-                .padding(.horizontal, 40)
-                
-                // Error Message or Self-Registration Option
-                if customerNotFound {
-                    VStack(spacing: 12) {
-                        Text("No account found")
-                            .font(.subheadline)
-                            .foregroundColor(.orange)
+                    
+                    VStack(spacing: AppTheme.Spacing.sm) {
+                        Text(kioskManager.isKioskModeEnabled ? kioskManager.kioskTitle : "Welcome!")
+                            .font(.system(.largeTitle, design: .rounded))
+                            .fontWeight(.bold)
+                            .foregroundStyle(AppTheme.Colors.portalWelcome)
                         
-                        Text("This is your first visit. Would you like to create a profile?")
-                            .font(.caption)
+                        Text(kioskManager.isKioskModeEnabled ? kioskManager.kioskWelcomeMessage : "Let's check on your repairs")
+                            .font(AppTheme.Typography.title3)
                             .foregroundColor(.secondary)
                             .multilineTextAlignment(.center)
-                        
-                        Button {
-                            showingSelfRegistration = true
-                        } label: {
-                            Text("Create New Profile")
-                                .font(.subheadline)
-                                .bold()
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(8)
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.horizontal, 40)
+                            .padding(.horizontal)
                     }
-                    .padding(.horizontal, 40)
-                } else if let error = errorMessage {
-                    Text(error)
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 40)
                 }
+                .padding(.bottom, AppTheme.Spacing.xxl)
                 
-                // Login Button
-                Button {
-                    Task {
-                        await login()
+                // Login Form Card
+                VStack(spacing: AppTheme.Spacing.xl) {
+                    // Login Method Picker
+                    Picker("Login Method", selection: $loginMethod) {
+                        Label("Email", systemImage: "envelope.fill").tag(LoginMethod.email)
+                        Label("Phone", systemImage: "phone.fill").tag(LoginMethod.phone)
                     }
-                } label: {
-                    HStack {
-                        if isLoading {
-                            ProgressView()
-                                .controlSize(.small)
-                                .tint(.white)
+                    .pickerStyle(.segmented)
+                    
+                    // Input Field
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
+                        if loginMethod == .email {
+                            Text("Email Address")
+                                .font(AppTheme.Typography.caption)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.secondary)
+                            
+                            TextField("your.email@example.com", text: $emailInput)
+                                .textFieldStyle(.plain)
+                                .textContentType(.emailAddress)
+                                .padding(AppTheme.Spacing.lg)
+                                .background(Color.white)
+                                .cornerRadius(AppTheme.cardCornerRadius)
+                                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
                         } else {
-                            Text("Access Portal")
-                                .bold()
+                            Text("Phone Number")
+                                .font(AppTheme.Typography.caption)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.secondary)
+                            
+                            TextField("(555) 123-4567", text: $phoneInput)
+                                .textFieldStyle(.plain)
+                                .textContentType(.telephoneNumber)
+                                .padding(AppTheme.Spacing.lg)
+                                .background(Color.white)
+                                .cornerRadius(AppTheme.cardCornerRadius)
+                                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
                         }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(canLogin ? Color.blue : Color.gray)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                }
-                .buttonStyle(.plain)
-                .disabled(!canLogin || isLoading)
-                .padding(.horizontal, 40)
-                
-                // Help Text
-                if !customerNotFound {
-                    VStack(spacing: 8) {
-                        Text("First time here?")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        Text("Use the email or phone number you provided when dropping off your device.")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
+                    
+                    // Error Message or Self-Registration Option
+                    if customerNotFound {
+                        VStack(spacing: AppTheme.Spacing.md) {
+                            HStack(spacing: AppTheme.Spacing.sm) {
+                                Image(systemName: "sparkles")
+                                    .foregroundColor(Color(hex: "10b981"))
+                                Text("New here? Let's get you set up!")
+                                    .font(AppTheme.Typography.subheadline)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(Color(hex: "10b981"))
+                            }
+                            
+                            Text("Create your profile to track repairs and manage payments")
+                                .font(AppTheme.Typography.caption)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                            
+                            Button {
+                                showingSelfRegistration = true
+                            } label: {
+                                HStack {
+                                    Image(systemName: "person.badge.plus")
+                                    Text("Create Profile")
+                                        .fontWeight(.semibold)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(AppTheme.Spacing.lg)
+                                .background(AppTheme.Colors.portalSuccess)
+                                .foregroundColor(.white)
+                                .cornerRadius(AppTheme.cardCornerRadius)
+                                .shadow(color: Color(hex: "10b981").opacity(0.3), radius: 8, x: 0, y: 4)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        .padding(AppTheme.Spacing.lg)
+                        .background(Color(hex: "d1fae5").opacity(0.3))
+                        .cornerRadius(AppTheme.cardCornerRadius)
+                    } else if let error = errorMessage {
+                        HStack(spacing: AppTheme.Spacing.sm) {
+                            Image(systemName: "exclamationmark.circle.fill")
+                                .foregroundColor(.red)
+                            Text(error)
+                                .font(AppTheme.Typography.caption)
+                                .foregroundColor(.red)
+                        }
+                        .padding(AppTheme.Spacing.md)
+                        .frame(maxWidth: .infinity)
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(AppTheme.cardCornerRadius)
                     }
-                    .padding(.horizontal, 40)
-                    .padding(.top, 8)
+                    
+                    // Login Button
+                    Button {
+                        Task {
+                            await login()
+                        }
+                    } label: {
+                        HStack(spacing: AppTheme.Spacing.sm) {
+                            if isLoading {
+                                ProgressView()
+                                    .controlSize(.small)
+                                    .tint(.white)
+                            } else {
+                                Image(systemName: "arrow.right.circle.fill")
+                                    .font(.title3)
+                                Text("Welcome In")
+                                    .font(.system(.headline, design: .rounded))
+                                    .fontWeight(.semibold)
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(20)
+                        .background(
+                            canLogin ? AppTheme.Colors.portalWelcome : LinearGradient(
+                                colors: [Color.gray.opacity(0.6), Color.gray.opacity(0.4)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .foregroundColor(.white)
+                        .cornerRadius(AppTheme.cardCornerRadius)
+                        .shadow(color: canLogin ? Color(hex: "a855f7").opacity(0.3) : Color.clear, radius: 12, x: 0, y: 6)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(!canLogin || isLoading)
+                    .scaleEffect(canLogin ? 1.0 : 0.98)
+                    .animation(.easeInOut(duration: 0.2), value: canLogin)
+                    
+                    // Help Text
+                    if !customerNotFound {
+                        VStack(spacing: AppTheme.Spacing.xs) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "info.circle.fill")
+                                    .font(.caption)
+                                    .foregroundColor(Color(hex: "6b7280"))
+                                Text("First time here?")
+                                    .font(AppTheme.Typography.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Text("Use the email or phone you provided when dropping off your device")
+                                .font(AppTheme.Typography.caption2)
+                                .foregroundColor(.secondary)
+                                .multilineTextAlignment(.center)
+                        }
+                        .padding(.top, AppTheme.Spacing.sm)
+                    }
                 }
-            }
-            
-            Spacer()
-            
-            // Footer
-            VStack(spacing: 8) {
-                Text("ProTech Repair Management")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                .padding(AppTheme.Spacing.xxl)
+                .background(
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(Color.white)
+                        .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: 10)
+                )
+                .padding(.horizontal, 32)
                 
-                Text("Secure customer portal")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
+                Spacer()
+                
+                // Footer
+                VStack(spacing: AppTheme.Spacing.xs) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "lock.shield.fill")
+                            .font(.caption)
+                            .foregroundColor(Color(hex: "10b981"))
+                        Text("Secure Portal")
+                            .font(AppTheme.Typography.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Text("ProTech Repair Management")
+                        .font(AppTheme.Typography.caption2)
+                        .foregroundColor(.secondary)
+                }
+                .padding(.bottom, AppTheme.Spacing.xl)
             }
-            .padding(.bottom, 20)
+            .frame(maxWidth: 540)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(maxWidth: 500)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.windowBackgroundColor))
     }
     
     private var canLogin: Bool {

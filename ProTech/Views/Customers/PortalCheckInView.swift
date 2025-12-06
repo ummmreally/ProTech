@@ -20,124 +20,162 @@ struct PortalCheckInView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 24) {
-                // Header
-                VStack(spacing: 12) {
-                    Image(systemName: "hand.raised.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(.blue)
+            VStack(spacing: AppTheme.Spacing.xxl) {
+                // Header with gradient
+                VStack(spacing: AppTheme.Spacing.lg) {
+                    ZStack {
+                        Circle()
+                            .fill(AppTheme.Colors.portalWelcome)
+                            .frame(width: 80, height: 80)
+                            .shadow(color: Color(hex: "a855f7").opacity(0.3), radius: 12, x: 0, y: 6)
+                        
+                        Image(systemName: "hand.raised.fill")
+                            .font(.system(size: 36))
+                            .foregroundColor(.white)
+                    }
                     
                     Text("Check In for Service")
-                        .font(.largeTitle)
-                        .bold()
+                        .font(.system(.largeTitle, design: .rounded))
+                        .fontWeight(.bold)
+                        .foregroundStyle(AppTheme.Colors.portalWelcome)
                     
-                    Text("Please provide your device information and we'll call you shortly")
-                        .font(.body)
+                    Text("Fill in your details and we'll call you shortly")
+                        .font(AppTheme.Typography.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                 }
-                .padding()
                 
-                // Form
-                VStack(alignment: .leading, spacing: 20) {
-                    VStack(alignment: .leading, spacing: 8) {
+                // Form Card
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xl) {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
                         Text("Device Type")
-                            .font(.headline)
+                            .font(AppTheme.Typography.headline)
                         
                         TextField("e.g., iPhone, iPad, MacBook", text: $deviceType)
-                            .textFieldStyle(.roundedBorder)
+                            .textFieldStyle(.plain)
+                            .padding(AppTheme.Spacing.lg)
+                            .background(Color(hex: "f9fafb"))
+                            .cornerRadius(AppTheme.cardCornerRadius)
                     }
                     
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
                         Text("Device Model")
-                            .font(.headline)
+                            .font(AppTheme.Typography.headline)
                         
                         TextField("e.g., iPhone 14 Pro, iPad Air", text: $deviceModel)
-                            .textFieldStyle(.roundedBorder)
+                            .textFieldStyle(.plain)
+                            .padding(AppTheme.Spacing.lg)
+                            .background(Color(hex: "f9fafb"))
+                            .cornerRadius(AppTheme.cardCornerRadius)
                     }
                     
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
                         Text("What's the issue?")
-                            .font(.headline)
+                            .font(AppTheme.Typography.headline)
                         
                         TextField("Describe the problem...", text: $issueDescription, axis: .vertical)
-                            .textFieldStyle(.roundedBorder)
+                            .textFieldStyle(.plain)
                             .lineLimit(4...8)
+                            .padding(AppTheme.Spacing.lg)
+                            .background(Color(hex: "f9fafb"))
+                            .cornerRadius(AppTheme.cardCornerRadius)
                     }
                 }
-                .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(12)
+                .padding(AppTheme.Spacing.xxl)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.white)
+                        .shadow(color: .black.opacity(0.08), radius: 16, x: 0, y: 8)
+                )
                 .padding(.horizontal)
                 
                 // Submit Button
                 Button {
                     checkIn()
                 } label: {
-                    HStack {
+                    HStack(spacing: AppTheme.Spacing.sm) {
                         if isSubmitting {
                             ProgressView()
                                 .controlSize(.small)
                                 .tint(.white)
                         } else {
                             Image(systemName: "checkmark.circle.fill")
+                                .font(.title3)
                             Text("Check In Now")
-                                .bold()
+                                .font(.system(.headline, design: .rounded))
+                                .fontWeight(.semibold)
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(canSubmit ? Color.blue : Color.gray)
+                    .padding(20)
+                    .background(
+                        canSubmit ? AppTheme.Colors.portalSuccess : LinearGradient(
+                            colors: [Color.gray.opacity(0.6), Color.gray.opacity(0.4)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
                     .foregroundColor(.white)
-                    .cornerRadius(12)
+                    .cornerRadius(AppTheme.cardCornerRadius)
+                    .shadow(color: canSubmit ? Color(hex: "10b981").opacity(0.3) : Color.clear, radius: 12, x: 0, y: 6)
                 }
                 .buttonStyle(.plain)
                 .disabled(!canSubmit || isSubmitting)
                 .padding(.horizontal)
                 
-                // Info
-                VStack(spacing: 12) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "info.circle.fill")
-                            .foregroundColor(.blue)
-                        Text("Your information")
-                            .font(.headline)
+                // Info Card
+                VStack(spacing: AppTheme.Spacing.md) {
+                    HStack(spacing: AppTheme.Spacing.sm) {
+                        Image(systemName: "person.circle.fill")
+                            .font(.title3)
+                            .foregroundStyle(AppTheme.Colors.portalWelcome)
+                        Text("Your Information")
+                            .font(AppTheme.Typography.headline)
                         Spacer()
                     }
                     
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
                         HStack {
                             Text("Name:")
+                                .font(AppTheme.Typography.subheadline)
                                 .foregroundColor(.secondary)
                             Spacer()
                             Text(customer.displayName)
-                                .bold()
+                                .font(AppTheme.Typography.subheadline)
+                                .fontWeight(.semibold)
                         }
                         
                         if let email = customer.email {
                             HStack {
                                 Text("Email:")
+                                    .font(AppTheme.Typography.subheadline)
                                     .foregroundColor(.secondary)
                                 Spacer()
                                 Text(email)
-                                    .bold()
+                                    .font(AppTheme.Typography.subheadline)
+                                    .fontWeight(.semibold)
                             }
                         }
                         
                         if let phone = customer.phone {
                             HStack {
                                 Text("Phone:")
+                                    .font(AppTheme.Typography.subheadline)
                                     .foregroundColor(.secondary)
                                 Spacer()
                                 Text(phone)
-                                    .bold()
+                                    .font(AppTheme.Typography.subheadline)
+                                    .fontWeight(.semibold)
                             }
                         }
                     }
                 }
-                .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(12)
+                .padding(AppTheme.Spacing.xxl)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.white)
+                        .shadow(color: .black.opacity(0.08), radius: 16, x: 0, y: 8)
+                )
                 .padding(.horizontal)
             }
             .padding(.vertical)
@@ -199,24 +237,35 @@ struct CheckInSuccessView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: AppTheme.Spacing.xxl) {
             Spacer()
             
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 100))
-                .foregroundColor(.green)
+            ZStack {
+                Circle()
+                    .fill(AppTheme.Colors.portalSuccess)
+                    .frame(width: 120, height: 120)
+                    .shadow(color: Color(hex: "10b981").opacity(0.3), radius: 20, x: 0, y: 10)
+                
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 60))
+                    .foregroundColor(.white)
+            }
             
-            Text("You're Checked In!")
-                .font(.largeTitle)
-                .bold()
-            
-            Text("Please have a seat")
-                .font(.title2)
-                .foregroundColor(.secondary)
-            
-            Text("A team member will call you shortly")
-                .font(.body)
-                .foregroundColor(.secondary)
+            VStack(spacing: AppTheme.Spacing.md) {
+                Text("You're Checked In!")
+                    .font(.system(.largeTitle, design: .rounded))
+                    .fontWeight(.bold)
+                    .foregroundStyle(AppTheme.Colors.portalSuccess)
+                
+                Text("Please have a seat")
+                    .font(AppTheme.Typography.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                
+                Text("A team member will call you shortly")
+                    .font(AppTheme.Typography.body)
+                    .foregroundColor(.secondary)
+            }
             
             Spacer()
             
@@ -224,19 +273,30 @@ struct CheckInSuccessView: View {
                 dismiss()
             } label: {
                 Text("Close")
-                    .bold()
-                    .frame(maxWidth: 200)
-                    .padding()
-                    .background(Color.blue)
+                    .font(.system(.headline, design: .rounded))
+                    .fontWeight(.semibold)
+                    .frame(maxWidth: 300)
+                    .padding(20)
+                    .background(AppTheme.Colors.portalWelcome)
                     .foregroundColor(.white)
-                    .cornerRadius(12)
+                    .cornerRadius(AppTheme.cardCornerRadius)
+                    .shadow(color: Color(hex: "a855f7").opacity(0.3), radius: 12, x: 0, y: 6)
             }
             .buttonStyle(.plain)
         }
-        .padding()
-        .frame(minWidth: 400, minHeight: 300)
+        .padding(AppTheme.Spacing.xxl)
+        .frame(minWidth: 500, minHeight: 400)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.windowBackgroundColor))
+        .background(
+            LinearGradient(
+                colors: [
+                    Color(hex: "f8f9fa"),
+                    Color(hex: "e9ecef")
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
     }
 }
 

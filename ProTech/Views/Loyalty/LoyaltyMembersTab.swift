@@ -33,19 +33,19 @@ struct LoyaltyMembersTab: View {
                 TextField("Search members...", text: $searchText)
                     .textFieldStyle(.plain)
             }
-            .padding()
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(8)
-            .padding()
+            .padding(AppTheme.Spacing.sm)
+            .background(AppTheme.Colors.cardBackground.opacity(0.5))
+            .cornerRadius(AppTheme.cardCornerRadius)
+            .padding(AppTheme.Spacing.xl)
             
             // Members list
             if filteredMembers.isEmpty {
-                VStack(spacing: 16) {
+                VStack(spacing: AppTheme.Spacing.lg) {
                     Image(systemName: "person.3")
                         .font(.system(size: 50))
                         .foregroundColor(.secondary)
                     Text("No members yet")
-                        .font(.headline)
+                        .font(AppTheme.Typography.headline)
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -344,24 +344,24 @@ struct MemberStatCard: View {
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             HStack {
                 Image(systemName: icon)
-                    .font(.title2)
+                    .font(AppTheme.Typography.title2)
                     .foregroundColor(color)
                 Spacer()
             }
             
             Text(value)
-                .font(.title)
+                .font(AppTheme.Typography.title)
                 .bold()
             
             Text(title)
-                .font(.caption)
+                .font(AppTheme.Typography.caption)
                 .foregroundColor(.secondary)
         }
-        .padding()
+        .padding(AppTheme.Spacing.lg)
         .background(Color.gray.opacity(0.05))
-        .cornerRadius(12)
+        .cornerRadius(AppTheme.cardCornerRadius)
     }
 }

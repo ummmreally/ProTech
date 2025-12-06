@@ -102,13 +102,13 @@ struct PaymentHistoryView: View {
     
     private var headerView: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text("Payment History")
-                    .font(.title)
+                    .font(AppTheme.Typography.title)
                     .fontWeight(.bold)
                 
                 Text("\(filteredPayments.count) payment\(filteredPayments.count == 1 ? "" : "s")")
-                    .font(.subheadline)
+                    .font(AppTheme.Typography.subheadline)
                     .foregroundColor(.secondary)
             }
             
@@ -121,11 +121,11 @@ struct PaymentHistoryView: View {
             
             Button(action: { showingNewPayment = true }) {
                 Label("Record Payment", systemImage: "plus.circle.fill")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(PremiumButtonStyle(variant: .primary))
         }
-        .padding()
+        .padding(AppTheme.Spacing.xl)
     }
     
     private var statisticsView: some View {
@@ -169,9 +169,9 @@ struct PaymentHistoryView: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(8)
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(8)
+            .padding(AppTheme.Spacing.sm)
+            .background(AppTheme.Colors.cardBackground.opacity(0.5))
+            .cornerRadius(AppTheme.cardCornerRadius)
             .frame(maxWidth: 300)
             
             Spacer()
@@ -234,13 +234,13 @@ struct PaymentHistoryView: View {
     // MARK: - Empty State
     
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: AppTheme.Spacing.xl) {
             Image(systemName: "dollarsign.circle")
                 .font(.system(size: 60))
                 .foregroundColor(.secondary)
             
             Text("No Payments")
-                .font(.title2)
+                .font(AppTheme.Typography.title2)
                 .fontWeight(.semibold)
             
             Text("Record your first payment to get started")
@@ -249,7 +249,7 @@ struct PaymentHistoryView: View {
             Button(action: { showingNewPayment = true }) {
                 Label("Record Payment", systemImage: "plus.circle.fill")
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(PremiumButtonStyle(variant: .primary))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -735,19 +735,19 @@ struct PaymentStatCard: View {
     let color: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
             Text(title)
-                .font(.caption)
+                .font(AppTheme.Typography.caption)
                 .foregroundColor(.secondary)
 
             Text(value)
-                .font(.title3)
+                .font(AppTheme.Typography.title3)
                 .fontWeight(.bold)
                 .foregroundColor(color)
         }
-        .padding(12)
+        .padding(AppTheme.Spacing.md)
         .background(color.opacity(0.1))
-        .cornerRadius(8)
+        .cornerRadius(AppTheme.cardCornerRadius)
     }
 }
 

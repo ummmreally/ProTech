@@ -38,7 +38,7 @@ struct FormsSettingsView: View {
                 } label: {
                     Label("Manage Form Templates", systemImage: "doc.text")
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(OutlinedButtonStyle())
             }
             
             Section {

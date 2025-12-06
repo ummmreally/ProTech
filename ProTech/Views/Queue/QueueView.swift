@@ -41,12 +41,12 @@ struct QueueView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                     Text("Service Queue")
-                        .font(.largeTitle)
+                        .font(AppTheme.Typography.largeTitle)
                         .bold()
                     Text("\(filteredTickets.count) customer\(filteredTickets.count == 1 ? "" : "s") waiting")
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                         .foregroundColor(.secondary)
                 }
                 
@@ -57,9 +57,9 @@ struct QueueView: View {
                 } label: {
                     Label("Check In Customer", systemImage: "person.badge.plus")
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(PremiumButtonStyle(variant: .primary))
             }
-            .padding()
+            .padding(AppTheme.Spacing.xl)
             
             // Filter with counts
             Picker("Filter", selection: $filterStatus) {
@@ -80,15 +80,15 @@ struct QueueView: View {
             
             // Queue List
             if filteredTickets.isEmpty {
-                VStack(spacing: 20) {
+                VStack(spacing: AppTheme.Spacing.xl) {
                     Image(systemName: "checkmark.circle")
                         .font(.system(size: 60))
                         .foregroundColor(.green)
                     Text("All caught up!")
-                        .font(.title2)
+                        .font(AppTheme.Typography.title2)
                         .foregroundColor(.secondary)
                     Text("No customers in queue")
-                        .font(.body)
+                        .font(AppTheme.Typography.body)
                         .foregroundColor(.secondary)
                     
                     Button {
@@ -96,12 +96,12 @@ struct QueueView: View {
                     } label: {
                         Label("Check In Customer", systemImage: "person.badge.plus")
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(PremiumButtonStyle(variant: .primary))
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 12) {
+                    LazyVStack(spacing: AppTheme.Spacing.md) {
                         ForEach(filteredTickets) { ticket in
                             QueueTicketCard(
                                 ticket: ticket,
@@ -111,7 +111,7 @@ struct QueueView: View {
                             )
                         }
                     }
-                    .padding()
+                    .padding(AppTheme.Spacing.xl)
                 }
             }
         }
@@ -182,9 +182,9 @@ struct QueueTicketCard: View {
     
     var body: some View {
         NavigationLink(destination: RepairDetailView(ticket: ticket)) {
-            HStack(spacing: 16) {
+            HStack(spacing: AppTheme.Spacing.lg) {
                 // Status indicator
-                VStack {
+                VStack(spacing: AppTheme.Spacing.xs) {
                     Circle()
                         .fill(statusColor.gradient)
                         .frame(width: 50, height: 50)
@@ -195,34 +195,34 @@ struct QueueTicketCard: View {
                         }
                     
                     Text(ticketNumber)
-                        .font(.caption2)
+                        .font(AppTheme.Typography.caption2)
                         .bold()
                         .foregroundColor(.secondary)
                 }
                 
                 // Customer info
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
                     if let customer = customer.first {
                         Text("\(customer.firstName ?? "") \(customer.lastName ?? "")")
-                            .font(.headline)
+                            .font(AppTheme.Typography.headline)
                     } else {
                         Text("Unknown Customer")
-                            .font(.headline)
+                            .font(AppTheme.Typography.headline)
                             .foregroundColor(.secondary)
                     }
                     
                     if let device = ticket.deviceType {
-                        HStack(spacing: 4) {
+                        HStack(spacing: AppTheme.Spacing.xs) {
                             Image(systemName: deviceIcon(device))
                             Text(device)
                         }
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                         .foregroundColor(.secondary)
                     }
                     
                     if let issue = ticket.issueDescription {
                         Text(issue)
-                            .font(.caption)
+                            .font(AppTheme.Typography.caption)
                             .foregroundColor(.secondary)
                             .lineLimit(2)
                     }
@@ -231,14 +231,14 @@ struct QueueTicketCard: View {
                 Spacer()
                 
                 // Time info and Quick View button
-                VStack(alignment: .trailing, spacing: 4) {
+                VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
                     if let checkedIn = ticket.checkedInAt {
                         Text(timeAgo(checkedIn))
-                            .font(.caption)
+                            .font(AppTheme.Typography.caption)
                             .foregroundColor(.secondary)
                         
                         Text(checkedIn, format: .dateTime.hour().minute())
-                            .font(.caption2)
+                            .font(AppTheme.Typography.caption2)
                             .foregroundColor(.secondary)
                     }
                     
@@ -249,20 +249,21 @@ struct QueueTicketCard: View {
                         onQuickView()
                     } label: {
                         Label("Quick View", systemImage: "eye")
-                            .font(.caption)
+                            .font(AppTheme.Typography.caption)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                     }
-                    .buttonStyle(.bordered)
+                    .buttonStyle(OutlinedButtonStyle(color: statusColor))
                     .controlSize(.small)
                 }
             }
-            .padding()
-            .background(Color.gray.opacity(0.05))
-            .cornerRadius(12)
+            .padding(AppTheme.Spacing.lg)
+            .background(AppTheme.Colors.cardBackground)
+            .cornerRadius(AppTheme.cardCornerRadius)
+            .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(statusColor.opacity(0.3), lineWidth: 2)
+                RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
+                    .stroke(statusColor.opacity(0.2), lineWidth: 1.5)
             )
         }
         .buttonStyle(.plain)
@@ -317,12 +318,12 @@ extension QueueView {
         
         var body: some View {
             Text(status.replacingOccurrences(of: "_", with: " ").uppercased())
-                .font(.caption2)
+                .font(AppTheme.Typography.caption2)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
                 .background(backgroundColor)
                 .foregroundColor(.white)
-                .cornerRadius(4)
+                .cornerRadius(6)
         }
         
         var backgroundColor: Color {

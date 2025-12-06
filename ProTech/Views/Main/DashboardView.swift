@@ -102,7 +102,7 @@ struct DashboardView: View {
                         .bold()
                         .padding(.horizontal)
                     
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: AppTheme.Spacing.md) {
                         DashboardStatCard(
                             title: "Total Customers",
                             value: "\(totalCustomers)",
@@ -142,7 +142,7 @@ struct DashboardView: View {
                         .font(.title2)
                         .bold()
                     
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: AppTheme.Spacing.sm) {
                         QuickActionButton(
                             title: "Check In Repair",
                             icon: "wrench.and.screwdriver.fill",
@@ -234,33 +234,39 @@ struct DashboardView: View {
     }
     
     private var upgradePromoBanner: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             HStack {
                 Image(systemName: "star.fill")
                     .font(.title2)
                     .foregroundColor(.orange)
                 Text("Unlock Pro Features")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
                 Spacer()
             }
             
             Text("Get SMS messaging, custom forms, cloud sync, and more for just $19.99/month")
-                .font(.body)
+                .font(AppTheme.Typography.body)
                 .foregroundColor(.secondary)
             
             Button {
                 showingUpgrade = true
             } label: {
                 Text("Try Free for 7 Days")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(PremiumButtonStyle(variant: .primary))
         }
-        .padding()
-        .background(Color.orange.opacity(0.1))
-        .cornerRadius(12)
+        .padding(AppTheme.Spacing.xl)
+        .background(
+            AppTheme.Colors.warningGradient.opacity(0.2)
+        )
+        .cornerRadius(AppTheme.cornerRadius)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.cornerRadius)
+                .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+        )
         .padding(.horizontal)
         .sheet(isPresented: $showingUpgrade) {
             SubscriptionView()
@@ -344,25 +350,35 @@ struct DashboardStatCard: View {
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             HStack {
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundColor(color)
+                ZStack {
+                    Circle()
+                        .fill(color.opacity(0.15))
+                        .frame(width: 40, height: 40)
+                    Image(systemName: icon)
+                        .font(.title3)
+                        .foregroundColor(color)
+                }
                 Spacer()
             }
             
             Text(value)
-                .font(.system(size: 32, weight: .bold))
+                .font(.system(size: 32, weight: .bold, design: .rounded))
             
             Text(title)
-                .font(.subheadline)
+                .font(AppTheme.Typography.subheadline)
                 .foregroundColor(.secondary)
         }
-        .padding()
+        .padding(AppTheme.Spacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(12)
+        .background(AppTheme.Colors.cardBackground)
+        .cornerRadius(AppTheme.cardCornerRadius)
+        .shadow(color: .black.opacity(0.06), radius: 4, x: 0, y: 2)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
+                .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+        )
     }
 }
 
@@ -373,28 +389,46 @@ struct QuickActionButton: View {
     let icon: String
     let color: Color
     let action: () -> Void
+    @State private var isHovered = false
     
     var body: some View {
         Button(action: action) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.title3)
-                    .foregroundColor(color)
-                    .frame(width: 30)
+            HStack(spacing: AppTheme.Spacing.md) {
+                ZStack {
+                    Circle()
+                        .fill(color.opacity(isHovered ? 0.2 : 0.15))
+                        .frame(width: 36, height: 36)
+                    Image(systemName: icon)
+                        .font(.system(size: 16))
+                        .foregroundColor(color)
+                }
                 
                 Text(title)
-                    .font(.body)
+                    .font(AppTheme.Typography.body)
                 
                 Spacer()
                 
                 Image(systemName: "chevron.right")
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .foregroundColor(.secondary)
+                    .opacity(isHovered ? 1.0 : 0.6)
             }
-            .padding()
-            .background(Color.gray.opacity(0.05))
-            .cornerRadius(8)
+            .padding(AppTheme.Spacing.md)
+            .background(
+                AppTheme.Colors.cardBackground
+            )
+            .cornerRadius(AppTheme.cardCornerRadius)
+            .overlay(
+                RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
+                    .stroke(isHovered ? color.opacity(0.3) : Color.primary.opacity(0.05), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(isHovered ? 0.08 : 0.04), radius: isHovered ? 6 : 3, x: 0, y: 2)
+            .scaleEffect(isHovered ? 1.02 : 1.0)
+            .animation(AppTheme.Animation.quick, value: isHovered)
         }
         .buttonStyle(.plain)
+        .onHover { hovering in
+            isHovered = hovering
+        }
     }
 }

@@ -19,18 +19,6 @@ struct SettingsView: View {
                 }
                 .tag(SettingsTab.general)
             
-            TwilioSettingsView()
-                .tabItem {
-                    Label("SMS", systemImage: "message")
-                }
-                .tag(SettingsTab.sms)
-            
-            SquareInventorySyncSettingsView()
-                .tabItem {
-                    Label("Square", systemImage: "cart")
-                }
-                .tag(SettingsTab.square)
-            
             SocialMediaPlatformSettingsView()
                 .tabItem {
                     Label("Social Media", systemImage: "bubble.left.and.bubble.right")
@@ -60,19 +48,13 @@ struct SettingsView: View {
                     Label("Developer", systemImage: "hammer.fill")
                 }
                 .tag(SettingsTab.developer)
-            
-            APISettingsView()
-                .tabItem {
-                    Label("API Config", systemImage: "network")
-                }
-                .tag(SettingsTab.apiConfig)
         }
         .frame(minWidth: 600, minHeight: 500)
     }
 }
 
 enum SettingsTab {
-    case general, sms, square, socialMedia, forms, kiosk, subscription, developer, apiConfig
+    case general, socialMedia, forms, kiosk, subscription, developer
 }
 
 // MARK: - General Settings

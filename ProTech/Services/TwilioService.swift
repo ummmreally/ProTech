@@ -3,6 +3,7 @@
 //  TechStorePro
 //
 //  SMS integration with Twilio API
+//  Credentials are hardcoded in SupabaseConfig.swift (TwilioConfig)
 //
 
 import Foundation
@@ -12,35 +13,35 @@ class TwilioService {
     
     private init() {}
     
-    // MARK: - Configuration
+    // MARK: - Configuration (using hardcoded values from TwilioConfig)
     
     var isConfigured: Bool {
-        return accountSID != nil && authToken != nil && phoneNumber != nil
+        return TwilioConfig.isConfigured
     }
     
-    private var accountSID: String? {
-        SecureStorage.retrieve(key: SecureStorage.Keys.twilioAccountSID)
+    private var accountSID: String {
+        TwilioConfig.accountSID
     }
     
-    private var authToken: String? {
-        SecureStorage.retrieve(key: SecureStorage.Keys.twilioAuthToken)
+    private var authToken: String {
+        TwilioConfig.authToken
     }
     
-    private var phoneNumber: String? {
-        SecureStorage.retrieve(key: SecureStorage.Keys.twilioPhoneNumber)
+    private var phoneNumber: String {
+        TwilioConfig.phoneNumber
     }
     
     // MARK: - Send SMS
     
     func sendSMS(to: String, body: String) async throws -> SMSResult {
-        guard let accountSID = accountSID,
-              let authToken = authToken,
-              let from = phoneNumber else {
+        guard isConfigured else {
             throw TwilioError.notConfigured
         }
         
+        let from = phoneNumber
+        
         // Twilio API endpoint
-        let urlString = "\(Configuration.twilioAPIBaseURL)/Accounts/\(accountSID)/Messages.json"
+        let urlString = "\(TwilioConfig.apiBaseURL)/Accounts/\(accountSID)/Messages.json"
         guard let url = URL(string: urlString) else {
             throw TwilioError.invalidURL
         }
@@ -112,12 +113,11 @@ class TwilioService {
     // MARK: - Get Message History
     
     func getMessageHistory(limit: Int = 50) async throws -> [SMSResult] {
-        guard let accountSID = accountSID,
-              let authToken = authToken else {
+        guard isConfigured else {
             throw TwilioError.notConfigured
         }
         
-        let urlString = "\(Configuration.twilioAPIBaseURL)/Accounts/\(accountSID)/Messages.json?PageSize=\(limit)"
+        let urlString = "\(TwilioConfig.apiBaseURL)/Accounts/\(accountSID)/Messages.json?PageSize=\(limit)"
         guard let url = URL(string: urlString) else {
             throw TwilioError.invalidURL
         }
@@ -154,14 +154,14 @@ class TwilioService {
     // MARK: - Test Connection
     
     func testConnection() async -> Result<String, TwilioError> {
+        guard isConfigured else {
+            return .failure(.notConfigured)
+        }
+        
         do {
-            guard let phoneNumber = phoneNumber else {
-                return .failure(.notConfigured)
-            }
-            
             let result = try await sendSMS(
                 to: phoneNumber,
-                body: "✅ TechStore Pro test message. Setup successful!"
+                body: "✅ ProTech test message. Setup successful!"
             )
             
             return .success("Test message sent successfully! Message SID: \(result.sid)")
@@ -170,22 +170,6 @@ class TwilioService {
         } catch {
             return .failure(.unknown(error.localizedDescription))
         }
-    }
-    
-    // MARK: - Configuration Methods
-    
-    func saveCredentials(accountSID: String, authToken: String, phoneNumber: String) -> Bool {
-        let sidSaved = SecureStorage.save(key: SecureStorage.Keys.twilioAccountSID, value: accountSID)
-        let tokenSaved = SecureStorage.save(key: SecureStorage.Keys.twilioAuthToken, value: authToken)
-        let phoneSaved = SecureStorage.save(key: SecureStorage.Keys.twilioPhoneNumber, value: phoneNumber)
-        
-        return sidSaved && tokenSaved && phoneSaved
-    }
-    
-    func clearCredentials() {
-        _ = SecureStorage.delete(key: SecureStorage.Keys.twilioAccountSID)
-        _ = SecureStorage.delete(key: SecureStorage.Keys.twilioAuthToken)
-        _ = SecureStorage.delete(key: SecureStorage.Keys.twilioPhoneNumber)
     }
 }
 

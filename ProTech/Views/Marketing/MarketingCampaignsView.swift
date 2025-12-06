@@ -79,13 +79,13 @@ struct MarketingCampaignsView: View {
     
     private var headerView: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text("Marketing Campaigns")
-                    .font(.title)
+                    .font(AppTheme.Typography.title)
                     .fontWeight(.bold)
                 
                 Text("\(filteredCampaigns.count) campaign\(filteredCampaigns.count == 1 ? "" : "s")")
-                    .font(.subheadline)
+                    .font(AppTheme.Typography.subheadline)
                     .foregroundColor(.secondary)
             }
             
@@ -102,7 +102,7 @@ struct MarketingCampaignsView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
                     .background(Color(hex: "00C853"))
-                    .cornerRadius(8)
+                    .cornerRadius(AppTheme.buttonCornerRadius)
             }
             .buttonStyle(.plain)
             
@@ -110,11 +110,11 @@ struct MarketingCampaignsView: View {
                 showingNewCampaign = true
             } label: {
                 Label("New Campaign", systemImage: "plus.circle.fill")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(PremiumButtonStyle(variant: .primary))
         }
-        .padding()
+        .padding(AppTheme.Spacing.xl)
     }
     
     private var statisticsView: some View {
@@ -154,9 +154,9 @@ struct MarketingCampaignsView: View {
                 TextField("Search campaigns...", text: $searchText)
                     .textFieldStyle(.plain)
             }
-            .padding(8)
-            .background(Color.gray.opacity(0.1))
-            .cornerRadius(8)
+            .padding(AppTheme.Spacing.sm)
+            .background(AppTheme.Colors.cardBackground.opacity(0.5))
+            .cornerRadius(AppTheme.cardCornerRadius)
             .frame(maxWidth: 400)
             
             Spacer()
@@ -199,13 +199,13 @@ struct MarketingCampaignsView: View {
     // MARK: - Empty State
     
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: AppTheme.Spacing.xl) {
             Image(systemName: "envelope.badge")
                 .font(.system(size: 60))
                 .foregroundColor(.secondary)
             
             Text("No Campaigns")
-                .font(.title2)
+                .font(AppTheme.Typography.title2)
                 .fontWeight(.semibold)
             
             Text("Create automated email campaigns to engage customers")
@@ -216,9 +216,9 @@ struct MarketingCampaignsView: View {
                 showingNewCampaign = true
             } label: {
                 Label("Create Campaign", systemImage: "plus.circle.fill")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(PremiumButtonStyle(variant: .primary))
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -364,19 +364,19 @@ struct MarketingStatCard: View {
     let color: Color
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
             Text(title)
-                .font(.caption)
+                .font(AppTheme.Typography.caption)
                 .foregroundColor(.secondary)
 
             Text(value)
-                .font(.title3)
+                .font(AppTheme.Typography.title3)
                 .fontWeight(.bold)
                 .foregroundColor(color)
         }
-        .padding(12)
+        .padding(AppTheme.Spacing.md)
         .background(color.opacity(0.1))
-        .cornerRadius(8)
+        .cornerRadius(AppTheme.cardCornerRadius)
     }
 }
 

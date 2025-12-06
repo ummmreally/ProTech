@@ -135,16 +135,24 @@ struct PortalOverviewView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 // Welcome Header
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Welcome back, \(customer.firstName ?? "Customer")!")
-                        .font(.largeTitle)
-                        .bold()
+                VStack(alignment: .center, spacing: AppTheme.Spacing.md) {
+                    HStack(spacing: AppTheme.Spacing.sm) {
+                        Image(systemName: "hand.wave.fill")
+                            .font(.title)
+                            .foregroundStyle(AppTheme.Colors.portalWelcome)
+                        
+                        Text("Welcome back, \(customer.firstName ?? "Customer")!")
+                            .font(.system(.largeTitle, design: .rounded))
+                            .fontWeight(.bold)
+                            .foregroundStyle(AppTheme.Colors.portalWelcome)
+                    }
                     
-                    Text("Here's your account overview")
-                        .font(.title3)
+                    Text("Here's what's happening with your repairs")
+                        .font(AppTheme.Typography.title3)
                         .foregroundColor(.secondary)
                 }
-                .padding()
+                .frame(maxWidth: .infinity)
+                .padding(AppTheme.Spacing.xxl)
                 
                 if let alerts = stats?.alerts, !alerts.isEmpty {
                     GroupBox {
@@ -419,12 +427,25 @@ struct QuickActionRow: View {
     let action: PortalQuickAction
     
     var body: some View {
-        HStack {
-            Image(systemName: action.icon)
-                .foregroundColor(action.tint)
-                .frame(width: 24)
+        HStack(spacing: AppTheme.Spacing.md) {
+            // Gradient icon circle
+            ZStack {
+                Circle()
+                    .fill(LinearGradient(
+                        colors: [action.tint, action.tint.opacity(0.6)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
+                    .frame(width: 40, height: 40)
+                
+                Image(systemName: action.icon)
+                    .font(.body)
+                    .foregroundColor(.white)
+            }
             
             Text(action.title)
+                .font(AppTheme.Typography.subheadline)
+                .fontWeight(.medium)
                 .foregroundColor(.primary)
             
             Spacer()
@@ -433,9 +454,12 @@ struct QuickActionRow: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
-        .padding()
-        .background(Color.gray.opacity(0.05))
-        .cornerRadius(8)
+        .padding(AppTheme.Spacing.lg)
+        .background(
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
+        )
     }
 }
 
@@ -676,12 +700,18 @@ struct PortalInvoicesView: View {
                     Text("You don't have any invoices yet.")
                 }
             } else {
-                List(invoices) { invoice in
-                    Button {
-                        selectedInvoice = invoice
-                    } label: {
-                        PortalInvoiceRow(invoice: invoice)
+                ScrollView {
+                    LazyVStack(spacing: AppTheme.Spacing.md) {
+                        ForEach(invoices) { invoice in
+                            Button {
+                                selectedInvoice = invoice
+                            } label: {
+                                PortalInvoiceRow(invoice: invoice)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
+                    .padding()
                 }
             }
         }
@@ -713,12 +743,18 @@ struct PortalEstimatesView: View {
                     Text("You don't have any estimates yet.")
                 }
             } else {
-                List(estimates) { estimate in
-                    Button {
-                        selectedEstimate = estimate
-                    } label: {
-                        PortalEstimateRow(estimate: estimate)
+                ScrollView {
+                    LazyVStack(spacing: AppTheme.Spacing.md) {
+                        ForEach(estimates) { estimate in
+                            Button {
+                                selectedEstimate = estimate
+                            } label: {
+                                PortalEstimateRow(estimate: estimate)
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
+                    .padding()
                 }
             }
         }
@@ -759,8 +795,13 @@ struct PortalPaymentsView: View {
                     Text("You don't have any payment history yet.")
                 }
             } else {
-                List(payments) { payment in
-                    PortalPaymentRow(payment: payment)
+                ScrollView {
+                    LazyVStack(spacing: AppTheme.Spacing.md) {
+                        ForEach(payments) { payment in
+                            PortalPaymentRow(payment: payment)
+                        }
+                    }
+                    .padding()
                 }
             }
         }
@@ -780,28 +821,41 @@ private struct PortalStatCard: View {
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
+            // Gradient circle icon
+            ZStack {
+                Circle()
+                    .fill(LinearGradient(
+                        colors: [color, color.opacity(0.6)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
+                    .frame(width: 56, height: 56)
+                    .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
+                
                 Image(systemName: icon)
                     .font(.title2)
-                    .foregroundColor(color)
-                Spacer()
+                    .foregroundColor(.white)
             }
             
             Text(value)
-                .font(.system(.title, design: .rounded))
-                .bold()
+                .font(.system(size: 32, weight: .bold, design: .rounded))
+                .foregroundColor(.primary)
             
             Text(title)
-                .font(.subheadline)
+                .font(AppTheme.Typography.subheadline)
                 .foregroundColor(.secondary)
         }
-        .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(12)
+        .padding(AppTheme.Spacing.xl)
+        .background(
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.05), radius: 12, x: 0, y: 6)
+        )
     }
 }
+
 // MARK: - Notification Extension
 
 extension Notification.Name {

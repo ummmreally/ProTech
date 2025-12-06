@@ -23,9 +23,9 @@ struct ContentView: View {
                     .background(Color(.windowBackgroundColor))
             } else {
                 // Normal Mode - Full App Access
-                NavigationSplitView {
+                NavigationSplitView(columnVisibility: .constant(.all)) {
                     SidebarView(selectedTab: $selectedTab)
-                        .frame(minWidth: 200)
+                        .navigationSplitViewColumnWidth(min: 220, ideal: 240, max: 280)
                         .toolbar {
                             ToolbarItem(placement: .automatic) {
                                 if !subscriptionManager.isProSubscriber {
@@ -40,7 +40,9 @@ struct ContentView: View {
                         }
                 } detail: {
                     DetailView(selectedTab: selectedTab)
+                        .frame(minWidth: 600)
                 }
+                .navigationSplitViewStyle(.balanced)
                 .sheet(isPresented: $showingUpgrade) {
                     SubscriptionView()
                         .frame(width: 600, height: 700)

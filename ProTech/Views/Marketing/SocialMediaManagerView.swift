@@ -374,8 +374,8 @@ struct SocialMediaManagerView: View {
     private func postToSocialMedia() {
         isPosting = true
         
-        // Capture image on MainActor to avoid Sendable warnings
-        nonisolated(unsafe) let imageToPost = selectedImage
+        // Capture image safely without unnecessary nonisolated
+        let imageToPost = selectedImage
         
         Task {
             var successCount = 0

@@ -18,107 +18,152 @@ struct TimeClockView: View {
     
     private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
     
+    // Fixed layout constants for consistency
+    private let contentMaxWidth: CGFloat = 900
+    private let cardSpacing: CGFloat = 20
+    
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            HStack {
-                VStack(alignment: .leading) {
-                    Text("Time Clock")
-                        .font(.largeTitle)
-                        .fontWeight(.bold)
-                    
-                    if let employee = authService.currentEmployee {
-                        Text(employee.fullName)
-                            .foregroundColor(.secondary)
-                    }
-                }
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                // Header - fixed height for consistency
+                headerView
+                    .frame(height: 80)
+                    .frame(maxWidth: .infinity)
+                    .background(Color(.windowBackgroundColor).opacity(0.5))
                 
-                Spacer()
+                Divider()
                 
-                // Current time
-                Text(currentTime, style: .time)
-                    .font(.title)
-                    .fontWeight(.medium)
-                    .onReceive(timer) { _ in
-                        currentTime = Date()
+                // Main content
+                if let employee = authService.currentEmployee, let employeeId = employee.id {
+                    ScrollView {
+                        mainContentGrid(employeeId: employeeId, containerWidth: geometry.size.width)
+                            .frame(maxWidth: contentMaxWidth)
+                            .frame(maxWidth: .infinity) // Center within container
+                            .padding(.horizontal, AppTheme.Spacing.lg)
+                            .padding(.vertical, cardSpacing)
                     }
-            }
-            .padding()
-            
-            Divider()
-            
-            // Main content
-            if let employee = authService.currentEmployee, let employeeId = employee.id {
-                ScrollView {
-                    VStack(spacing: 20) {
-                        // Clock status card
-                        clockStatusCard(employeeId: employeeId)
-                        
-                        // Quick actions
-                        clockActionsCard(employeeId: employeeId)
-                        
-                        // Today's summary
-                        todaysSummaryCard(employeeId: employeeId)
-                        
-                        // Recent entries
-                        recentEntriesCard(employeeId: employeeId)
-                    }
-                    .padding()
+                } else {
+                    notLoggedInView
                 }
-            } else {
-                notLoggedInView
             }
         }
+        .frame(minWidth: 500, minHeight: 400)
         .onAppear {
             loadCurrentEntry()
+        }
+    }
+    
+    // MARK: - Header View
+    
+    private var headerView: some View {
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
+                Text("Time Clock")
+                    .font(AppTheme.Typography.largeTitle)
+                    .fontWeight(.bold)
+                
+                if let employee = authService.currentEmployee {
+                    Text(employee.fullName)
+                        .font(AppTheme.Typography.body)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Spacer()
+            
+            // Current time - fixed width to prevent layout shifts
+            Text(currentTime, style: .time)
+                .font(.system(size: 32, weight: .medium, design: .rounded))
+                .monospacedDigit()
+                .frame(minWidth: 140, alignment: .trailing)
+                .onReceive(timer) { _ in
+                    currentTime = Date()
+                }
+        }
+        .padding(.horizontal, AppTheme.Spacing.lg)
+    }
+    
+    // MARK: - Main Content Grid
+    
+    private func mainContentGrid(employeeId: UUID, containerWidth: CGFloat) -> some View {
+        let useWideLayout = containerWidth > 700
+        
+        return VStack(spacing: cardSpacing) {
+            // Top row: Clock status (always full width at top)
+            clockStatusCard(employeeId: employeeId)
+            
+            // Actions row
+            clockActionsCard(employeeId: employeeId)
+            
+            // Bottom row: Summary and Recent entries side by side on wide screens
+            if useWideLayout {
+                HStack(alignment: .top, spacing: cardSpacing) {
+                    todaysSummaryCard(employeeId: employeeId)
+                        .frame(minWidth: 0, maxWidth: .infinity)
+                    
+                    recentEntriesCard(employeeId: employeeId)
+                        .frame(minWidth: 0, maxWidth: .infinity)
+                }
+            } else {
+                // Stack vertically on narrow screens
+                todaysSummaryCard(employeeId: employeeId)
+                recentEntriesCard(employeeId: employeeId)
+            }
         }
     }
     
     // MARK: - Clock Status Card
     
     private func clockStatusCard(employeeId: UUID) -> some View {
-        VStack(spacing: 20) {
+        VStack(spacing: AppTheme.Spacing.lg) {
             if let entry = currentEntry, entry.isActive {
                 // Currently clocked in
-                VStack(spacing: 10) {
+                VStack(spacing: AppTheme.Spacing.md) {
                     HStack {
                         Circle()
                             .fill(entry.onBreak ? Color.orange : Color.green)
                             .frame(width: 12, height: 12)
+                            .shadow(color: (entry.onBreak ? Color.orange : Color.green).opacity(0.5), radius: 4)
                         
                         Text(entry.statusDisplay)
-                            .font(.headline)
+                            .font(AppTheme.Typography.headline)
                     }
                     
                     Text(entry.formattedDuration)
-                        .font(.system(size: 48, weight: .bold))
+                        .font(.system(size: 64, weight: .bold, design: .rounded))
                         .monospacedDigit()
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: entry.onBreak ? [.orange, .red] : [.green, .blue],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
                     
                     Text("Started at \(formatTime(entry.clockInTime))")
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                         .foregroundColor(.secondary)
                 }
             } else {
                 // Not clocked in
-                VStack(spacing: 10) {
-                    Image(systemName: "clock")
-                        .font(.system(size: 50))
-                        .foregroundColor(.gray)
+                VStack(spacing: AppTheme.Spacing.md) {
+                    Image(systemName: "clock.circle.fill")
+                        .font(.system(size: 64))
+                        .foregroundStyle(LinearGradient(colors: [.blue, .purple], startPoint: .topLeading, endPoint: .bottomTrailing))
                     
                     Text("Not Clocked In")
-                        .font(.title2)
+                        .font(AppTheme.Typography.title2)
                         .fontWeight(.semibold)
                     
                     Text("Start your shift to begin tracking time")
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.body)
                         .foregroundColor(.secondary)
                 }
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(30)
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(16)
+        .padding(AppTheme.Spacing.xxl)
+        .glassCard()
         .onReceive(timer) { _ in
             if currentEntry?.isActive == true {
                 // Force view update for live timer
@@ -130,50 +175,38 @@ struct TimeClockView: View {
     // MARK: - Clock Actions Card
     
     private func clockActionsCard(employeeId: UUID) -> some View {
-        VStack(spacing: 15) {
+        VStack(spacing: AppTheme.Spacing.md) {
             if let entry = currentEntry, entry.isActive {
                 // Clocked in actions
-                HStack(spacing: 15) {
+                HStack(spacing: AppTheme.Spacing.md) {
                     if entry.onBreak {
                         Button(action: { endBreak(employeeId: employeeId) }) {
                             Label("End Break", systemImage: "play.fill")
                                 .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
                         }
+                        .buttonStyle(PremiumButtonStyle(variant: .success))
                     } else {
                         Button(action: { startBreak(employeeId: employeeId) }) {
                             Label("Start Break", systemImage: "pause.fill")
                                 .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.orange)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
                         }
+                        .buttonStyle(PremiumButtonStyle(variant: .warning))
                     }
                     
                     Button(action: { clockOut(employeeId: employeeId) }) {
                         Label("Clock Out", systemImage: "stop.fill")
                             .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.red)
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
                     }
+                    .buttonStyle(PremiumButtonStyle(variant: .destructive))
                 }
             } else {
                 // Clock in action
                 Button(action: { clockIn(employeeId: employeeId) }) {
                     Label("Clock In", systemImage: "play.fill")
-                        .font(.headline)
+                        .font(AppTheme.Typography.headline)
                         .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
                 }
+                .buttonStyle(PremiumButtonStyle(variant: .primary))
             }
         }
     }
@@ -181,62 +214,66 @@ struct TimeClockView: View {
     // MARK: - Today's Summary
     
     private func todaysSummaryCard(employeeId: UUID) -> some View {
-        VStack(alignment: .leading, spacing: 15) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Today's Summary")
-                .font(.headline)
+                .font(AppTheme.Typography.headline)
             
             let todaysEntries = timeClockService.fetchTodaysEntries(for: employeeId)
             let totalHours = todaysEntries.reduce(0.0) { $0 + $1.currentDuration }
             
             HStack {
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Total Hours")
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
                     Text(formatHours(totalHours))
-                        .font(.title3)
+                        .font(AppTheme.Typography.title3)
                         .fontWeight(.semibold)
                 }
                 
                 Spacer()
                 
                 if let employee = authService.currentEmployee {
-                    VStack(alignment: .trailing) {
+                    VStack(alignment: .trailing, spacing: 4) {
                         Text("Estimated Pay")
-                            .font(.caption)
+                            .font(AppTheme.Typography.caption)
                             .foregroundColor(.secondary)
                         Text(formatCurrency(Decimal(totalHours / 3600.0) * employee.hourlyRate.decimalValue))
-                            .font(.title3)
+                            .font(AppTheme.Typography.title3)
                             .fontWeight(.semibold)
+                            .foregroundColor(.green)
                     }
                 }
             }
-            .padding()
-            .background(Color.blue.opacity(0.1))
-            .cornerRadius(10)
+            .padding(AppTheme.Spacing.lg)
+            .background(Color.blue.opacity(0.05))
+            .cornerRadius(AppTheme.cardCornerRadius)
         }
+        .glassCard()
     }
     
     // MARK: - Recent Entries
     
     private func recentEntriesCard(employeeId: UUID) -> some View {
-        VStack(alignment: .leading, spacing: 15) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Recent Entries")
-                .font(.headline)
+                .font(AppTheme.Typography.headline)
             
             let entries = timeClockService.fetchEntriesForEmployee(employeeId).prefix(7)
             
             if entries.isEmpty {
                 Text("No time clock entries yet")
+                    .font(AppTheme.Typography.body)
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity)
-                    .padding()
+                    .padding(AppTheme.Spacing.xl)
             } else {
                 ForEach(Array(entries)) { entry in
                     TimeClockEntryRow(entry: entry)
                 }
             }
         }
+        .glassCard()
     }
     
     // MARK: - Not Logged In View
@@ -336,11 +373,11 @@ struct TimeClockEntryRow: View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 Text(entry.formattedShiftDate)
-                    .font(.subheadline)
+                    .font(AppTheme.Typography.subheadline)
                     .fontWeight(.medium)
                 
                 Text("\(entry.formattedClockIn) - \(entry.formattedClockOut)")
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .foregroundColor(.secondary)
             }
             
@@ -348,19 +385,24 @@ struct TimeClockEntryRow: View {
             
             VStack(alignment: .trailing, spacing: 4) {
                 Text(entry.formattedDuration)
-                    .font(.subheadline)
+                    .font(AppTheme.Typography.subheadline)
                     .fontWeight(.semibold)
                 
                 if entry.isActive {
                     Text(entry.statusDisplay)
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption2)
+                        .fontWeight(.bold)
                         .foregroundColor(.green)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .background(Color.green.opacity(0.1))
+                        .cornerRadius(4)
                 }
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(8)
+        .padding(AppTheme.Spacing.md)
+        .background(Color.white.opacity(0.5))
+        .cornerRadius(AppTheme.cardCornerRadius)
     }
 }
 

@@ -64,18 +64,18 @@ struct LoyaltyManagementView: View {
     }
     
     private var emptyState: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: AppTheme.Spacing.xl) {
             Image(systemName: "star.circle.fill")
                 .font(.system(size: 80))
                 .foregroundStyle(.linearGradient(colors: [.purple, .pink], startPoint: .topLeading, endPoint: .bottomTrailing))
             
-            VStack(spacing: 8) {
+            VStack(spacing: AppTheme.Spacing.sm) {
                 Text("No Loyalty Program Yet")
-                    .font(.title)
+                    .font(AppTheme.Typography.title)
                     .bold()
                 
                 Text("Create a loyalty program to reward your customers and increase repeat business")
-                    .font(.subheadline)
+                    .font(AppTheme.Typography.subheadline)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: 400)
@@ -85,10 +85,10 @@ struct LoyaltyManagementView: View {
                 createProgram()
             } label: {
                 Label("Create Loyalty Program", systemImage: "plus.circle.fill")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
                     .padding()
             }
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(PremiumButtonStyle(variant: .primary))
             .controlSize(.large)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -200,26 +200,26 @@ struct LoyaltyStatCard: View {
     let color: Color
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             HStack {
                 Image(systemName: icon)
-                    .font(.title2)
+                    .font(AppTheme.Typography.title2)
                     .foregroundColor(color)
                 Spacer()
             }
             
             Text(value)
-                .font(.title)
+                .font(AppTheme.Typography.title)
                 .bold()
             
             Text(title)
-                .font(.caption)
+                .font(AppTheme.Typography.caption)
                 .foregroundColor(.secondary)
         }
-        .padding()
+        .padding(AppTheme.Spacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(color.opacity(0.1))
-        .cornerRadius(12)
+        .cornerRadius(AppTheme.cardCornerRadius)
     }
 }
 

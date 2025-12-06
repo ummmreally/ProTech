@@ -34,10 +34,11 @@ struct EmployeeDetailView: View {
             HStack {
                 VStack(alignment: .leading) {
                     Text(employee.fullName)
-                        .font(.title)
+                        .font(AppTheme.Typography.largeTitle)
                         .fontWeight(.bold)
                     
                     Text(employee.displayRole)
+                        .font(AppTheme.Typography.body)
                         .foregroundColor(.secondary)
                 }
                 
@@ -48,13 +49,15 @@ struct EmployeeDetailView: View {
                         startEditing()
                     }
                     .disabled(!AuthenticationService.shared.hasPermission(.manageEmployees))
+                    .buttonStyle(PremiumButtonStyle(variant: .secondary))
                 }
                 
                 Button("Close") {
                     dismiss()
                 }
+                .buttonStyle(PremiumButtonStyle(variant: .secondary))
             }
-            .padding()
+            .padding(AppTheme.Spacing.lg)
             
             Divider()
             
@@ -74,26 +77,20 @@ struct EmployeeDetailView: View {
     
     private var detailView: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
                 // Profile section
                 profileSection
-                
-                Divider()
                 
                 // Employment info
                 employmentSection
                 
-                Divider()
-                
                 // Time clock summary
                 timeClockSection
-                
-                Divider()
                 
                 // Actions
                 actionsSection
             }
-            .padding()
+            .padding(AppTheme.Spacing.lg)
             .onAppear {
                 loadTimeClockEntries()
             }
@@ -101,9 +98,9 @@ struct EmployeeDetailView: View {
     }
     
     private var profileSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Profile Information")
-                .font(.headline)
+                .font(AppTheme.Typography.headline)
             
             InfoRow(label: "Name", value: employee.fullName)
             InfoRow(label: "Email", value: employee.email ?? "N/A")
@@ -112,23 +109,27 @@ struct EmployeeDetailView: View {
             
             HStack {
                 Text("Status:")
+                    .font(AppTheme.Typography.body)
                     .foregroundColor(.secondary)
                 Spacer()
                 HStack {
                     Circle()
-                        .fill(employee.isActive ? Color.green : Color.red)
+                    .fill(employee.isActive ? AppTheme.Colors.success : AppTheme.Colors.error)
                         .frame(width: 8, height: 8)
                     Text(employee.isActive ? "Active" : "Inactive")
+                        .font(AppTheme.Typography.body)
                         .fontWeight(.medium)
                 }
             }
         }
+        .padding(AppTheme.Spacing.lg)
+        .glassCard()
     }
     
     private var employmentSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Employment Details")
-                .font(.headline)
+                .font(AppTheme.Typography.headline)
             
             InfoRow(label: "Role", value: employee.displayRole)
             InfoRow(label: "Hourly Rate", value: employee.formattedHourlyRate)
@@ -143,6 +144,7 @@ struct EmployeeDetailView: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 Text("Permissions:")
+                    .font(AppTheme.Typography.body)
                     .foregroundColor(.secondary)
                 
                 ForEach(employee.roleType.permissions, id: \.self) { permission in
@@ -151,17 +153,19 @@ struct EmployeeDetailView: View {
                             .foregroundColor(.green)
                             .font(.caption)
                         Text(permission.rawValue)
-                            .font(.caption)
+                            .font(AppTheme.Typography.caption)
                     }
                 }
             }
         }
+        .padding(AppTheme.Spacing.lg)
+        .glassCard()
     }
     
     private var timeClockSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Time Clock Summary")
-                .font(.headline)
+                .font(AppTheme.Typography.headline)
             
             if let employeeId = employee.id {
                 let thisWeekHours = timeClockService.getTotalHoursThisWeek(for: employeeId)
@@ -173,7 +177,7 @@ struct EmployeeDetailView: View {
                 // Recent entries
                 if !timeClockEntries.isEmpty {
                     Text("Recent Clock Entries")
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                         .foregroundColor(.secondary)
                         .padding(.top, 8)
                     
@@ -181,46 +185,48 @@ struct EmployeeDetailView: View {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(entry.formattedShiftDate)
-                                    .font(.caption)
+                                    .font(AppTheme.Typography.caption)
                                 Text("\(entry.formattedClockIn) - \(entry.formattedClockOut)")
-                                    .font(.caption)
+                                    .font(AppTheme.Typography.caption)
                                     .foregroundColor(.secondary)
                             }
                             Spacer()
                             Text(entry.formattedDuration)
-                                .font(.caption)
+                                .font(AppTheme.Typography.caption)
                                 .fontWeight(.medium)
                         }
                         .padding(8)
-                        .background(Color.gray.opacity(0.1))
+                        .background(Color.white.opacity(0.1))
                         .cornerRadius(6)
                     }
                 }
             }
         }
+        .padding(AppTheme.Spacing.lg)
+        .glassCard()
     }
     
     private var actionsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Actions")
-                .font(.headline)
+                .font(AppTheme.Typography.headline)
             
             HStack {
                 if employee.isActive {
                     Button("Deactivate Employee") {
                         showDeactivateAlert = true
                     }
-                    .buttonStyle(.bordered)
-                    .foregroundColor(.red)
+                    .buttonStyle(PremiumButtonStyle(variant: .destructive))
                 } else {
                     Button("Activate Employee") {
                         activateEmployee()
                     }
-                    .buttonStyle(.bordered)
-                    .foregroundColor(.green)
+                    .buttonStyle(PremiumButtonStyle(variant: .success))
                 }
             }
         }
+        .padding(AppTheme.Spacing.lg)
+        .glassCard()
         .alert("Deactivate Employee", isPresented: $showDeactivateAlert) {
             Button("Cancel", role: .cancel) {}
             Button("Deactivate", role: .destructive) {
@@ -267,13 +273,14 @@ struct EmployeeDetailView: View {
                 Button("Cancel") {
                     isEditing = false
                 }
+                .buttonStyle(PremiumButtonStyle(variant: .secondary))
                 
                 Button("Save Changes") {
                     saveChanges()
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(PremiumButtonStyle(variant: .primary))
             }
-            .padding()
+            .padding(AppTheme.Spacing.lg)
         }
     }
     
@@ -286,9 +293,11 @@ struct EmployeeDetailView: View {
         var body: some View {
             HStack {
                 Text(label + ":")
+                    .font(AppTheme.Typography.body)
                     .foregroundColor(.secondary)
                 Spacer()
                 Text(value)
+                    .font(AppTheme.Typography.body)
                     .fontWeight(.medium)
             }
         }

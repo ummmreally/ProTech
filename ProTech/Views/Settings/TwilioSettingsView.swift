@@ -8,9 +8,6 @@
 import SwiftUI
 
 struct TwilioSettingsView: View {
-    @State private var accountSID = ""
-    @State private var authToken = ""
-    @State private var phoneNumber = ""
     @State private var isTesting = false
     @State private var testResult = ""
     @State private var showTestResult = false
@@ -42,51 +39,68 @@ struct TwilioSettingsView: View {
                 }
             }
             
-            Section("Twilio Credentials") {
-                TextField("Account SID", text: $accountSID)
-                    .textContentType(.username)
-                    .font(.system(.body, design: .monospaced))
-                    .help("Starts with 'AC' - found in Twilio Console")
-                
-                SecureField("Auth Token", text: $authToken)
-                    .textContentType(.password)
-                    .font(.system(.body, design: .monospaced))
-                    .help("Click the eye icon in Twilio Console to reveal")
-                
-                TextField("Phone Number", text: $phoneNumber, prompt: Text("+15551234567"))
-                    .textContentType(.telephoneNumber)
-                    .font(.system(.body, design: .monospaced))
-                    .help("Use E.164 format: +1XXXXXXXXXX")
-            }
-            
-            Section {
-                HStack {
-                    Button("Save Credentials") {
-                        saveCredentials()
-                    }
-                    .disabled(accountSID.isEmpty || authToken.isEmpty || phoneNumber.isEmpty)
+            Section("Integration Status") {
+                HStack(spacing: AppTheme.Spacing.md) {
+                    Image(systemName: TwilioConfig.isConfigured ? "checkmark.shield.fill" : "xmark.shield.fill")
+                        .foregroundColor(TwilioConfig.isConfigured ? .green : .red)
+                        .font(.largeTitle)
                     
-                    Spacer()
-                    
-                    if isTesting {
-                        ProgressView()
-                            .controlSize(.small)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(TwilioConfig.isConfigured ? "Twilio Connected" : "Twilio Not Configured")
+                            .font(.headline)
+                        Text("Credentials are bundled directly with the app build.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                     }
-                    
-                    Button("Test Connection") {
-                        testConnection()
-                    }
-                    .disabled(!TwilioService.shared.isConfigured || isTesting)
                 }
             }
             
-            if showTestResult {
-                Section {
+            Section("Configured Credentials") {
+                LabeledContent("Account SID") {
+                    Text(maskedValue(TwilioConfig.accountSID))
+                        .font(.system(.body, design: .monospaced))
+                }
+                LabeledContent("Auth Token") {
+                    Text(maskedValue(TwilioConfig.authToken))
+                        .font(.system(.body, design: .monospaced))
+                }
+                LabeledContent("Phone Number") {
+                    Text(TwilioConfig.phoneNumber)
+                        .font(.system(.body, design: .monospaced))
+                }
+                Text("To update these credentials, change them in SupabaseConfig.swift and rebuild the app.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.top, AppTheme.Spacing.xs)
+            }
+            
+            Section("Diagnostics") {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
                     HStack {
-                        Image(systemName: isTestSuccess ? "checkmark.circle.fill" : "xmark.circle.fill")
-                            .foregroundColor(isTestSuccess ? .green : .red)
-                        Text(testResult)
-                            .font(.body)
+                        Button {
+                            testConnection()
+                        } label: {
+                            HStack {
+                                if isTesting {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                }
+                                Text(isTesting ? "Testing..." : "Send Test SMS")
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(!TwilioService.shared.isConfigured || isTesting)
+                    }
+                    
+                    if showTestResult {
+                        HStack(spacing: AppTheme.Spacing.sm) {
+                            Image(systemName: isTestSuccess ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                .foregroundColor(isTestSuccess ? .green : .red)
+                            Text(testResult)
+                                .font(.body)
+                        }
+                        .padding(.top, AppTheme.Spacing.xs)
                     }
                 }
             }
@@ -94,9 +108,9 @@ struct TwilioSettingsView: View {
             Section("How It Works") {
                 VStack(alignment: .leading, spacing: 8) {
                     InfoRow(number: "1", text: "Create a Twilio account and get a phone number")
-                    InfoRow(number: "2", text: "Copy your Account SID and Auth Token")
-                    InfoRow(number: "3", text: "Paste credentials here and save")
-                    InfoRow(number: "4", text: "Send unlimited SMS to your customers!")
+                    InfoRow(number: "2", text: "Add your Account SID, Auth Token, and phone number in SupabaseConfig.swift")
+                    InfoRow(number: "3", text: "Rebuild the app to bundle updated credentials securely")
+                    InfoRow(number: "4", text: "Use the test button above to confirm connectivity")
                 }
             }
             
@@ -111,36 +125,16 @@ struct TwilioSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .onAppear {
-            loadCredentials()
-        }
         .sheet(isPresented: $showTutorial) {
             TwilioTutorialView()
         }
     }
     
-    private func loadCredentials() {
-        accountSID = SecureStorage.retrieve(key: SecureStorage.Keys.twilioAccountSID) ?? ""
-        authToken = SecureStorage.retrieve(key: SecureStorage.Keys.twilioAuthToken) ?? ""
-        phoneNumber = SecureStorage.retrieve(key: SecureStorage.Keys.twilioPhoneNumber) ?? ""
-    }
-    
-    private func saveCredentials() {
-        let success = TwilioService.shared.saveCredentials(
-            accountSID: accountSID,
-            authToken: authToken,
-            phoneNumber: phoneNumber
-        )
-        
-        if success {
-            testResult = "✅ Credentials saved successfully!"
-            isTestSuccess = true
-            showTestResult = true
-        } else {
-            testResult = "❌ Failed to save credentials"
-            isTestSuccess = false
-            showTestResult = true
-        }
+    private func maskedValue(_ value: String) -> String {
+        guard value.count > 6 else { return value }
+        let prefix = value.prefix(4)
+        let suffix = value.suffix(4)
+        return "\(prefix)…\(suffix)"
     }
     
     private func testConnection() {

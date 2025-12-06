@@ -18,19 +18,19 @@ struct FinancialOverviewWidget: View {
     private let metricsService = DashboardMetricsService.shared
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
             // Header
             HStack {
                 Image(systemName: "dollarsign.circle.fill")
                     .font(.title2)
                     .foregroundColor(.green)
                 Text("Financial Overview")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
                 Spacer()
             }
             
             // Revenue Grid
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: AppTheme.Spacing.md) {
                 FinancialMetricCard(
                     title: "Today",
                     value: formatCurrency(todayRevenue),
@@ -64,12 +64,12 @@ struct FinancialOverviewWidget: View {
             
             // Average Ticket Value
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                     Text("Average Ticket Value")
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
                     Text(formatCurrency(averageTicketValue))
-                        .font(.title3)
+                        .font(AppTheme.Typography.title3)
                         .bold()
                 }
                 Spacer()
@@ -78,12 +78,10 @@ struct FinancialOverviewWidget: View {
                     .foregroundColor(.blue)
             }
             .padding()
-            .background(Color.blue.opacity(0.1))
-            .cornerRadius(8)
+            .background(AppTheme.Colors.info.opacity(0.1))
+            .cornerRadius(AppTheme.cardCornerRadius)
         }
-        .padding()
-        .background(Color.gray.opacity(0.05))
-        .cornerRadius(12)
+        .glassCard()
         .task {
             await loadData()
         }
@@ -123,34 +121,51 @@ struct FinancialMetricCard: View {
     var badgeColor: Color = .green
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
             HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
+                // Icon with gradient background
+                ZStack {
+                    Circle()
+                        .fill(color.opacity(0.15))
+                        .frame(width: 36, height: 36)
+                    Image(systemName: icon)
+                        .font(.system(size: 16))
+                        .foregroundColor(color)
+                }
+                
                 Spacer()
+                
                 if let badge = badge {
-                    Text(badge)
-                        .font(.caption2)
-                        .bold()
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(badgeColor.opacity(0.2))
-                        .foregroundColor(badgeColor)
-                        .cornerRadius(4)
+                    HStack(spacing: 2) {
+                        Image(systemName: badgeColor == .green ? "arrow.up.right" : "arrow.down.right")
+                            .font(.caption2)
+                        Text(badge)
+                            .font(AppTheme.Typography.caption2)
+                            .bold()
+                    }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(badgeColor.opacity(0.15))
+                    .foregroundColor(badgeColor)
+                    .cornerRadius(6)
                 }
             }
             
             Text(value)
-                .font(.title2)
+                .font(AppTheme.Typography.title2)
                 .bold()
             
             Text(title)
-                .font(.caption)
+                .font(AppTheme.Typography.caption)
                 .foregroundColor(.secondary)
         }
-        .padding()
+        .padding(AppTheme.Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.gray.opacity(0.05))
-        .cornerRadius(8)
+        .background(AppTheme.Colors.cardBackground)
+        .cornerRadius(AppTheme.cardCornerRadius)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
+                .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+        )
     }
 }

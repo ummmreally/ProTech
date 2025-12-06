@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import UserNotifications
+@preconcurrency import UserNotifications
 
 // MARK: - Low Stock Alert View
 
@@ -308,8 +308,7 @@ struct ReorderSheet: View {
             await MainActor.run {
                 // Show success notification using modern UserNotifications
                 if #available(macOS 10.14, *) {
-                    let center = UNUserNotificationCenter.current()
-                    center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
+                    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, _ in
                         guard granted else { return }
                         
                         let content = UNMutableNotificationContent()
@@ -323,7 +322,7 @@ struct ReorderSheet: View {
                             trigger: nil
                         )
                         
-                        center.add(request) { error in
+                        UNUserNotificationCenter.current().add(request) { error in
                             if let error = error {
                                 print("Notification error: \(error)")
                             }
@@ -673,15 +672,14 @@ class InventoryMonitor: ObservableObject {
     
     private func sendOutOfStockNotification(for item: LowStockItem) {
         guard #available(macOS 11.0, *) else { return }
-        let center = UNUserNotificationCenter.current()
-        center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, _ in
             guard granted else { return }
             let content = UNMutableNotificationContent()
             content.title = "⚠️ Out of Stock"
             content.body = "\(item.name) is now out of stock"
             content.sound = .default
             let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)
-            center.add(request, withCompletionHandler: nil)
+            UNUserNotificationCenter.current().add(request, withCompletionHandler: nil)
         }
     }
 }

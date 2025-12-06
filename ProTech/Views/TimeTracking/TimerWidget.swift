@@ -72,9 +72,7 @@ struct TimerWidget: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
             }
-            .background(Color(NSColor.controlBackgroundColor))
-            .cornerRadius(12)
-            .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 4)
+            .glassCard()
             .padding()
         }
     }
@@ -135,7 +133,7 @@ struct CompactTimerWidget: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
-            .background(Color.blue.opacity(0.1))
+            .background(AppTheme.Colors.primary.opacity(0.1))
             .cornerRadius(8)
         }
     }
@@ -234,7 +232,7 @@ struct TimerControlPanel: View {
                     Label("Start Timer", systemImage: "timer")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(PremiumButtonStyle(variant: .primary))
             }
             
             // Time summary
@@ -270,8 +268,7 @@ struct TimerControlPanel: View {
                     }
                 }
                 .padding()
-                .background(Color.gray.opacity(0.05))
-                .cornerRadius(8)
+                .glassCard()
             }
         }
         .sheet(isPresented: $showingManualEntry) {

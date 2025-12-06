@@ -224,11 +224,18 @@ class NotificationService {
     
     /// Send SMS via Twilio
     private func sendSMS(to recipient: String, body: String, log: NotificationLog) {
+        let logURI = log.objectID.uriRepresentation()
+        
         Task {
             do {
                 _ = try await twilioService.sendSMS(to: recipient, body: body)
                 await MainActor.run {
-                    self.markNotificationSent(log)
+                    guard
+                        let objectID = self.context.persistentStoreCoordinator?.managedObjectID(forURIRepresentation: logURI),
+                        let resolvedLog = try? self.context.existingObject(with: objectID) as? NotificationLog
+                    else { return }
+                    
+                    self.markNotificationSent(resolvedLog)
                 }
             } catch {
                 let reason: String
@@ -238,7 +245,12 @@ class NotificationService {
                     reason = error.localizedDescription
                 }
                 await MainActor.run {
-                    self.markNotificationFailed(log, reason: reason)
+                    guard
+                        let objectID = self.context.persistentStoreCoordinator?.managedObjectID(forURIRepresentation: logURI),
+                        let resolvedLog = try? self.context.existingObject(with: objectID) as? NotificationLog
+                    else { return }
+                    
+                    self.markNotificationFailed(resolvedLog, reason: reason)
                 }
             }
         }

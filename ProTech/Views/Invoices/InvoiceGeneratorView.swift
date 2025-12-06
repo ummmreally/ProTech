@@ -79,6 +79,7 @@ struct InvoiceGeneratorView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .buttonStyle(PremiumButtonStyle(variant: .secondary))
                 }
                 
                 ToolbarItem(placement: .confirmationAction) {
@@ -86,6 +87,7 @@ struct InvoiceGeneratorView: View {
                         saveInvoice()
                     }
                     .disabled(selectedCustomer == nil || lineItems.isEmpty)
+                    .buttonStyle(PremiumButtonStyle(variant: .primary))
                 }
             }
         }
@@ -127,26 +129,26 @@ struct InvoiceGeneratorView: View {
     // MARK: - Customer Section
     
     private var customerSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Customer")
-                .font(.headline)
+                .font(AppTheme.Typography.headline)
             
             if let customer = selectedCustomer {
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("\(customer.firstName ?? "") \(customer.lastName ?? "")")
-                            .font(.title3)
+                            .font(AppTheme.Typography.title3)
                             .fontWeight(.semibold)
                         
                         if let email = customer.email {
                             Text(email)
-                                .font(.subheadline)
+                                .font(AppTheme.Typography.subheadline)
                                 .foregroundColor(.secondary)
                         }
                         
                         if let phone = customer.phone {
                             Text(phone)
-                                .font(.subheadline)
+                                .font(AppTheme.Typography.subheadline)
                                 .foregroundColor(.secondary)
                         }
                     }
@@ -156,10 +158,10 @@ struct InvoiceGeneratorView: View {
                     Button("Change") {
                         showingCustomerPicker = true
                     }
+                    .buttonStyle(PremiumButtonStyle(variant: .secondary))
                 }
-                .padding()
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(8)
+                .padding(AppTheme.Spacing.lg)
+                .glassCard()
             } else {
                 Button(action: { showingCustomerPicker = true }) {
                     HStack {
@@ -167,11 +169,8 @@ struct InvoiceGeneratorView: View {
                         Text("Select Customer")
                     }
                     .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(8)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PremiumButtonStyle(variant: .primary))
             }
         }
     }

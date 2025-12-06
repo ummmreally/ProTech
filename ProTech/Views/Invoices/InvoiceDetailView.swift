@@ -78,6 +78,7 @@ struct InvoiceDetailView: View {
                     Button("Close") {
                         dismiss()
                     }
+                    .buttonStyle(PremiumButtonStyle(variant: .secondary))
                 }
                 
                 ToolbarItem(placement: .primaryAction) {
@@ -171,10 +172,10 @@ struct InvoiceDetailView: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Total Amount")
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
                     Text(formatCurrency(invoice.total))
-                        .font(.title)
+                        .font(AppTheme.Typography.largeTitle)
                         .fontWeight(.bold)
                 }
                 
@@ -183,10 +184,10 @@ struct InvoiceDetailView: View {
                 if invoice.amountPaid > 0 {
                     VStack(alignment: .trailing, spacing: 4) {
                         Text("Amount Paid")
-                            .font(.caption)
+                            .font(AppTheme.Typography.caption)
                             .foregroundColor(.secondary)
                         Text(formatCurrency(invoice.amountPaid))
-                            .font(.title3)
+                            .font(AppTheme.Typography.title3)
                             .foregroundColor(.green)
                     }
                 }
@@ -194,17 +195,16 @@ struct InvoiceDetailView: View {
                 if invoice.balance > 0 {
                     VStack(alignment: .trailing, spacing: 4) {
                         Text("Balance Due")
-                            .font(.caption)
+                            .font(AppTheme.Typography.caption)
                             .foregroundColor(.secondary)
                         Text(formatCurrency(invoice.balance))
-                            .font(.title3)
+                            .font(AppTheme.Typography.title3)
                             .foregroundColor(.orange)
                     }
                 }
             }
-            .padding()
-            .background(Color.gray.opacity(0.05))
-            .cornerRadius(12)
+            .padding(AppTheme.Spacing.lg)
+            .glassCard()
         }
     }
     
@@ -236,15 +236,15 @@ struct InvoiceDetailView: View {
     // MARK: - Customer Section
     
     private var customerSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             Text("Bill To")
-                .font(.headline)
+                .font(AppTheme.Typography.headline)
                 .foregroundColor(.secondary)
             
             if let customer = customer {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("\(customer.firstName ?? "") \(customer.lastName ?? "")")
-                        .font(.title3)
+                        .font(AppTheme.Typography.title3)
                         .fontWeight(.semibold)
                     
                     if let email = customer.email {
@@ -253,7 +253,7 @@ struct InvoiceDetailView: View {
                                 .foregroundColor(.secondary)
                             Text(email)
                         }
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                     }
                     
                     if let phone = customer.phone {
@@ -262,7 +262,7 @@ struct InvoiceDetailView: View {
                                 .foregroundColor(.secondary)
                             Text(phone)
                         }
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                     }
                     
                     if let address = customer.address {
@@ -271,12 +271,13 @@ struct InvoiceDetailView: View {
                                 .foregroundColor(.secondary)
                             Text(address)
                         }
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                     }
                 }
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(AppTheme.Spacing.lg)
+        .glassCard()
     }
     
     // MARK: - Ticket Section
@@ -382,13 +383,11 @@ struct InvoiceDetailView: View {
                     }
                 }
             }
-            .background(Color.white)
+            .background(Color.white.opacity(0.5))
             .cornerRadius(8)
-            .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
-            )
         }
+        .padding(AppTheme.Spacing.lg)
+        .glassCard()
     }
     
     // MARK: - Totals Section
@@ -423,9 +422,9 @@ struct InvoiceDetailView: View {
                     .fontWeight(.bold)
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.05))
-        .cornerRadius(8)
+
+        .padding(AppTheme.Spacing.lg)
+        .glassCard()
     }
     
     // MARK: - Notes Section
@@ -459,31 +458,31 @@ struct InvoiceDetailView: View {
     // MARK: - Actions Section
     
     private var actionsSection: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: AppTheme.Spacing.md) {
             Button(action: exportPDF) {
                 Label("Export PDF", systemImage: "arrow.down.doc")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(PremiumButtonStyle(variant: .secondary))
             
             Button(action: printInvoice) {
                 Label("Print", systemImage: "printer")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(PremiumButtonStyle(variant: .secondary))
             
             Button(action: { showingEmailSheet = true }) {
                 Label("Email", systemImage: "envelope")
                     .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.bordered)
+            .buttonStyle(PremiumButtonStyle(variant: .secondary))
             
             if invoice.status != "paid" && invoice.status != "cancelled" {
                 Button(action: { showingPaymentView = true }) {
                     Label("Record Payment", systemImage: "dollarsign.circle")
                         .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(PremiumButtonStyle(variant: .primary))
             }
         }
     }

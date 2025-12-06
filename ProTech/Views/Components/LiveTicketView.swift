@@ -7,7 +7,7 @@
 
 import SwiftUI
 import Combine
-import UserNotifications
+@preconcurrency import UserNotifications
 
 struct LiveTicketView: View {
     let ticket: Ticket
@@ -167,9 +167,9 @@ class TicketLiveUpdater: ObservableObject {
     
     private func sendStatusNotification(status: String) {
         guard #available(macOS 11.0, *) else { return }
-        let center = UNUserNotificationCenter.current()
-        center.requestAuthorization(options: [.alert, .sound]) { granted, _ in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, _ in
             guard granted else { return }
+            let center = UNUserNotificationCenter.current()
             let content = UNMutableNotificationContent()
             content.title = "Ticket Status Update"
             content.body = "Ticket is now \(status)"

@@ -13,18 +13,18 @@ struct AlertsWidget: View {
     private let metricsService = DashboardMetricsService.shared
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             // Header
             HStack {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.title2)
                     .foregroundColor(.orange)
                 Text("Requires Attention")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
                 
                 if !alerts.isEmpty {
                     Text("(\(alerts.count))")
-                        .font(.headline)
+                        .font(AppTheme.Typography.headline)
                         .foregroundColor(.secondary)
                 }
                 
@@ -33,31 +33,29 @@ struct AlertsWidget: View {
             
             if alerts.isEmpty {
                 // Empty State
-                VStack(spacing: 12) {
+                VStack(spacing: AppTheme.Spacing.md) {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 40))
                         .foregroundColor(.green)
                     Text("All Clear!")
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                         .foregroundColor(.secondary)
                     Text("No action items require attention")
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 20)
             } else {
                 // Alert List
-                VStack(spacing: 8) {
+                VStack(spacing: AppTheme.Spacing.sm) {
                     ForEach(alerts) { alert in
                         AlertRow(alert: alert)
                     }
                 }
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.05))
-        .cornerRadius(12)
+        .glassCard()
         .task {
             await loadAlerts()
         }
@@ -74,7 +72,7 @@ struct AlertRow: View {
     let alert: DashboardAlert
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: AppTheme.Spacing.md) {
             // Severity Indicator
             Circle()
                 .fill(alert.severity.iconColor)
@@ -86,12 +84,12 @@ struct AlertRow: View {
                 .frame(width: 24)
             
             // Alert Content
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text(alert.title)
-                    .font(.subheadline)
+                    .font(AppTheme.Typography.subheadline)
                     .bold()
                 Text(alert.description)
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .foregroundColor(.secondary)
             }
             
@@ -99,14 +97,14 @@ struct AlertRow: View {
             
             // Action Button
             Image(systemName: "chevron.right")
-                .font(.caption)
+                .font(AppTheme.Typography.caption)
                 .foregroundColor(.secondary)
         }
-        .padding(12)
-        .background(alert.severity.color.opacity(0.05))
-        .cornerRadius(8)
+        .padding(AppTheme.Spacing.md)
+        .background(alert.severity.color.opacity(0.06))
+        .cornerRadius(AppTheme.cardCornerRadius)
         .overlay(
-            RoundedRectangle(cornerRadius: 8)
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
                 .stroke(alert.severity.color.opacity(0.2), lineWidth: 1)
         )
     }

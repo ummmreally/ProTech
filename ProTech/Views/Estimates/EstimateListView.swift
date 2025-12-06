@@ -55,9 +55,9 @@ struct EstimateListView: View {
                     TextField("Search estimates...", text: $searchText)
                         .textFieldStyle(.plain)
                 }
-                .padding(10)
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(8)
+                .padding(AppTheme.Spacing.sm)
+                .background(AppTheme.Colors.cardBackground.opacity(0.5))
+                .cornerRadius(AppTheme.cardCornerRadius)
                 
                 Picker("Status", selection: $filterStatus) {
                     Text("All").tag(String?.none)
@@ -69,9 +69,10 @@ struct EstimateListView: View {
                 .frame(width: 150)
                 
                 Text("\(filteredEstimates.count) estimates")
+                    .font(AppTheme.Typography.caption)
                     .foregroundColor(.secondary)
             }
-            .padding()
+            .padding(AppTheme.Spacing.xl)
             
             Divider()
             
@@ -158,12 +159,12 @@ struct EstimateListView: View {
     }
     
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: AppTheme.Spacing.xl) {
             Image(systemName: searchText.isEmpty ? "doc.text" : "magnifyingglass")
                 .font(.system(size: 60))
                 .foregroundColor(.secondary)
             Text(searchText.isEmpty ? "No Estimates" : "No Results Found")
-                .font(.title2)
+                .font(AppTheme.Typography.title2)
                 .foregroundColor(.secondary)
             if searchText.isEmpty {
                 Button {
@@ -171,7 +172,7 @@ struct EstimateListView: View {
                 } label: {
                     Label("Create First Estimate", systemImage: "plus")
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(PremiumButtonStyle(variant: .primary))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -262,20 +263,20 @@ struct EstimateRow: View {
     }
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: AppTheme.Spacing.md) {
             // Status Indicator
             Circle()
                 .fill(statusColor)
                 .frame(width: 12, height: 12)
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 HStack {
                     Text(estimate.estimateNumber ?? "EST-000")
-                        .font(.headline)
+                        .font(AppTheme.Typography.headline)
                     
                     if estimate.isExpired {
                         Text("EXPIRED")
-                            .font(.caption2)
+                            .font(AppTheme.Typography.caption2)
                             .bold()
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
@@ -287,14 +288,14 @@ struct EstimateRow: View {
                 
                 if let customer = customer {
                     Text("\(customer.firstName ?? "") \(customer.lastName ?? "")")
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                         .foregroundColor(.secondary)
                 }
                 
-                HStack(spacing: 8) {
+                HStack(spacing: AppTheme.Spacing.sm) {
                     if let created = estimate.createdAt {
                         Text(created.formatted(date: .abbreviated, time: .omitted))
-                            .font(.caption)
+                            .font(AppTheme.Typography.caption)
                             .foregroundColor(.secondary)
                     }
                     
@@ -302,7 +303,7 @@ struct EstimateRow: View {
                         Text("•")
                             .foregroundColor(.secondary)
                         Text("Valid until \(validUntil.formatted(date: .abbreviated, time: .omitted))")
-                            .font(.caption)
+                            .font(AppTheme.Typography.caption)
                             .foregroundColor(.secondary)
                     }
                 }
@@ -310,12 +311,12 @@ struct EstimateRow: View {
             
             Spacer()
             
-            VStack(alignment: .trailing, spacing: 4) {
+            VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
                 Text(formatCurrency(estimate.total))
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
                 
                 Text(estimate.status?.capitalized ?? "Pending")
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background(statusColor.opacity(0.2))

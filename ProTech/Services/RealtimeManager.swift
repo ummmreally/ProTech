@@ -70,11 +70,11 @@ class RealtimeManager: ObservableObject {
     private func performSync() async {
         do {
             // Download updates for all entities
-            async let customers = customerSyncer.download()
-            async let tickets = ticketSyncer.download()
-            async let inventory = inventorySyncer.download()
-            async let employees = employeeSyncer.download()
-            async let appointments = appointmentSyncer.download()
+            async let customers: Void = customerSyncer.download()
+            async let tickets: Void = ticketSyncer.download()
+            async let inventory: Void = inventorySyncer.download()
+            async let employees: Void = employeeSyncer.download()
+            async let appointments: Void = appointmentSyncer.download()
             
             // Wait for all to complete
             _ = try await (customers, tickets, inventory, employees, appointments)

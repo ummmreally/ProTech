@@ -34,14 +34,7 @@ class SquareInventorySyncManager: ObservableObject {
         self.context = context
         self.apiService = apiService
         loadLastSyncDate()
-        
-        // Load and set configuration on initialization
-        if let config = getConfiguration() {
-            apiService.setConfiguration(config)
-            print("✅ SquareInventorySyncManager initialized with configuration")
-        } else {
-            print("⚠️ SquareInventorySyncManager initialized WITHOUT configuration - sync will fail until credentials are entered")
-        }
+        bootstrapConfiguration()
     }
     
     // MARK: - Configuration
@@ -818,6 +811,42 @@ class SquareInventorySyncManager: ObservableObject {
         }
         
         return conflicts
+    }
+    
+    private func loadLocations() async {
+        print("📥 loadLocations() started")
+    }
+    
+    private func bootstrapConfiguration() {
+        if let config = getConfiguration() {
+            apiService.setConfiguration(config)
+            print("✅ SquareInventorySyncManager initialized with saved configuration")
+            return
+        }
+        
+        guard SquareConfig.isConfigured else {
+            print("⚠️ SquareInventorySyncManager initialized WITHOUT configuration - credentials missing in SupabaseConfig.swift")
+            return
+        }
+        
+        do {
+            let config = SquareConfiguration(context: context)
+            config.id = UUID()
+            config.accessToken = SquareConfig.accessToken
+            config.merchantId = SquareConfig.applicationId // Placeholder until actual merchant fetched
+            config.locationId = SquareConfig.locationId
+            config.environment = SquareConfig.environment
+            config.syncEnabled = true
+            config.syncInterval = 3600
+            config.createdAt = Date()
+            config.updatedAt = Date()
+            
+            try saveConfiguration(config)
+            print("✅ SquareInventorySyncManager seeded configuration from SupabaseConfig.swift")
+        } catch {
+            context.rollback()
+            print("❌ Failed to seed Square configuration: \(error.localizedDescription)")
+        }
     }
     
     private func loadLastSyncDate() {

@@ -3,6 +3,7 @@
 //  ProTech
 //
 //  Service for all Square API interactions
+//  Credentials are hardcoded in SupabaseConfig.swift (SquareConfig)
 //
 
 import Foundation
@@ -14,14 +15,31 @@ class SquareAPIService {
     private var configuration: SquareConfiguration?
     private let session: URLSession
     
-    // OAuth Configuration
-    // OAuth Configuration
+    // Use hardcoded credentials from SquareConfig
     private var clientId: String {
-        ConfigurationManager.shared.currentEnvironment.squareCredentials?.appId ?? ""
+        SquareConfig.applicationId
     }
+    
+    private var accessToken: String {
+        SquareConfig.accessToken
+    }
+    
+    private var locationId: String {
+        SquareConfig.locationId
+    }
+    
+    private var baseURL: String {
+        SquareConfig.apiBaseURL
+    }
+    
+    var isConfigured: Bool {
+        SquareConfig.isConfigured
+    }
+    
     private var clientSecret: String {
-        ConfigurationManager.shared.currentEnvironment.squareCredentials?.clientSecret ?? ""
+        SquareConfig.clientSecret
     }
+    
     private let redirectUri = "protech://square-oauth-callback"
     private let scopes = ["ITEMS_READ", "ITEMS_WRITE", "INVENTORY_READ", "INVENTORY_WRITE", "MERCHANT_PROFILE_READ"]
     

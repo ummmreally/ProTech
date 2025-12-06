@@ -48,46 +48,65 @@ struct DashboardStatsCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundColor(color)
-                    .frame(width: 40, height: 40)
-                    .background(color.opacity(0.1))
-                    .cornerRadius(10)
+                // Icon with Gradient Background
+                ZStack {
+                    gradientFor(color: color)
+                        .frame(width: 44, height: 44)
+                        .cornerRadius(12)
+                    
+                    Image(systemName: icon)
+                        .font(.title3)
+                        .foregroundColor(.white)
+                }
                 
                 Spacer()
                 
                 if let trend = trend {
                     HStack(spacing: 4) {
                         Image(systemName: trend.icon)
-                            .font(.caption)
+                            .font(.caption.bold())
                         Text(trend.text)
-                            .font(.caption)
+                            .font(.caption.bold())
                     }
                     .foregroundColor(trend.color)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(trend.color.opacity(0.1))
-                    .cornerRadius(6)
+                    .background(trend.color.opacity(0.15))
+                    .cornerRadius(8)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(trend.color.opacity(0.3), lineWidth: 1)
+                    )
                 }
             }
             
-            Text(value)
-                .font(.system(size: 32, weight: .bold))
-            
-            Text(title)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(value)
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .foregroundColor(.primary)
+                
+                Text(title)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
             
             if let subtitle = subtitle {
                 Text(subtitle)
                     .font(.caption)
                     .foregroundColor(.secondary)
+                    .padding(.top, 4)
             }
         }
-        .padding()
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.gray.opacity(0.05))
-        .cornerRadius(12)
+        .glassCard()
+    }
+    
+    private func gradientFor(color: Color) -> LinearGradient {
+        // Create a matching gradient based on the input color
+        // This is a simple approximation, ideally we'd map specific colors to specific gradients
+        LinearGradient(
+            colors: [color, color.opacity(0.7)],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
     }
 }

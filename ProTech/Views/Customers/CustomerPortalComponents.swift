@@ -20,17 +20,17 @@ struct PortalTicketCard: View {
     }()
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             // Header
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Ticket #\(ticket.ticketNumber)")
-                        .font(.headline)
-                        .bold()
+                        .font(AppTheme.Typography.headline)
+                        .foregroundColor(.primary)
                     
                     if let deviceType = ticket.deviceType {
                         Text(deviceType)
-                            .font(.subheadline)
+                            .font(AppTheme.Typography.subheadline)
                             .foregroundColor(.secondary)
                     }
                 }
@@ -43,45 +43,48 @@ struct PortalTicketCard: View {
             // Issue Description
             if let issue = ticket.issueDescription, !issue.isEmpty {
                 Text(issue)
-                    .font(.body)
-                    .foregroundColor(.primary)
+                    .font(AppTheme.Typography.body)
+                    .foregroundColor(.secondary)
                     .lineLimit(2)
+                    .padding(.vertical, 4)
             }
             
             Divider()
+                .background(Color.gray.opacity(0.1))
             
             // Dates
-            HStack(spacing: 20) {
+            HStack(spacing: AppTheme.Spacing.xl) {
                 if let checkedIn = ticket.checkedInAt {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 2) {
                         Text("Checked In")
-                            .font(.caption)
+                            .font(AppTheme.Typography.caption2)
                             .foregroundColor(.secondary)
+                            .textCase(.uppercase)
                         Text(dateFormatter.string(from: checkedIn))
-                            .font(.caption)
-                            .bold()
+                            .font(AppTheme.Typography.caption)
+                            .fontWeight(.medium)
                     }
                 }
                 
                 if let estimated = ticket.estimatedCompletion {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 2) {
                         Text("Est. Completion")
-                            .font(.caption)
+                            .font(AppTheme.Typography.caption2)
                             .foregroundColor(.secondary)
+                            .textCase(.uppercase)
                         Text(dateFormatter.string(from: estimated))
-                            .font(.caption)
-                            .bold()
+                            .font(AppTheme.Typography.caption)
+                            .fontWeight(.medium)
                             .foregroundColor(estimated < Date() ? .red : .primary)
                     }
                 }
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.05))
-        .cornerRadius(12)
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+        .padding(AppTheme.Spacing.lg)
+        .background(
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 4)
         )
     }
 }
@@ -219,44 +222,44 @@ struct PortalInvoiceRow: View {
     }()
     
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 6) {
+        HStack(spacing: AppTheme.Spacing.md) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(Color.purple.opacity(0.1))
+                    .frame(width: 40, height: 40)
+                Image(systemName: "doc.text.fill")
+                    .foregroundColor(.purple)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
                 Text(invoice.formattedInvoiceNumber)
-                    .font(.headline)
-                
-                if let issueDate = invoice.issueDate {
-                    Text("Issued: \(dateFormatter.string(from: issueDate))")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                    .font(AppTheme.Typography.headline)
+                    .foregroundColor(.primary)
                 
                 if let dueDate = invoice.dueDate {
                     Text("Due: \(dateFormatter.string(from: dueDate))")
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(invoice.isOverdue ? .red : .secondary)
                 }
             }
             
             Spacer()
             
-            VStack(alignment: .trailing, spacing: 6) {
+            VStack(alignment: .trailing, spacing: 4) {
                 Text(currencyFormatter.string(from: invoice.total as NSDecimalNumber) ?? "$0.00")
-                    .font(.headline)
-                
-                if invoice.balance > 0 {
-                    Text("Balance: \(currencyFormatter.string(from: invoice.balance as NSDecimalNumber) ?? "$0.00")")
-                        .font(.caption)
-                        .foregroundColor(.red)
-                } else {
-                    Text("Paid")
-                        .font(.caption)
-                        .foregroundColor(.green)
-                }
+                    .font(AppTheme.Typography.headline)
+                    .fontWeight(.bold)
                 
                 PortalStatusBadge(status: invoice.status ?? "draft")
             }
         }
-        .padding(.vertical, 4)
+        .padding(AppTheme.Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        )
     }
 }
 
@@ -321,19 +324,21 @@ struct PortalInvoiceDetailView: View {
                     GroupBox {
                         VStack(spacing: 12) {
                             ForEach(invoice.lineItemsArray) { lineItem in
+                                let unitPriceString = currencyFormatter.string(from: lineItem.unitPrice as NSDecimalNumber) ?? "$0.00"
+                                let totalString = currencyFormatter.string(from: lineItem.total as NSDecimalNumber) ?? "$0.00"
                                 HStack {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(lineItem.itemDescription ?? "Item")
                                             .font(.body)
                                         
-                                        Text("Qty: \(lineItem.quantity) × \(currencyFormatter.string(from: lineItem.unitPrice as NSDecimalNumber) ?? "$0.00")")
+                                        Text(verbatim: "Qty: \(lineItem.quantity) × \(unitPriceString)")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                     }
                                     
                                     Spacer()
                                     
-                                    Text(currencyFormatter.string(from: lineItem.total as NSDecimalNumber) ?? "$0.00")
+                                    Text(verbatim: totalString)
                                         .font(.body)
                                         .bold()
                                 }
@@ -454,34 +459,44 @@ struct PortalEstimateRow: View {
     }()
     
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 6) {
+        HStack(spacing: AppTheme.Spacing.md) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(Color.orange.opacity(0.1))
+                    .frame(width: 40, height: 40)
+                Image(systemName: "doc.plaintext.fill")
+                    .foregroundColor(.orange)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
                 Text(estimate.formattedEstimateNumber)
-                    .font(.headline)
-                
-                if let issueDate = estimate.issueDate {
-                    Text("Issued: \(dateFormatter.string(from: issueDate))")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                    .font(AppTheme.Typography.headline)
+                    .foregroundColor(.primary)
                 
                 if let validUntil = estimate.validUntil {
-                    Text("Valid Until: \(dateFormatter.string(from: validUntil))")
-                        .font(.caption)
+                    Text("Valid until: \(dateFormatter.string(from: validUntil))")
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(estimate.isExpired ? .red : .secondary)
                 }
             }
             
             Spacer()
             
-            VStack(alignment: .trailing, spacing: 6) {
+            VStack(alignment: .trailing, spacing: 4) {
                 Text(currencyFormatter.string(from: estimate.total as NSDecimalNumber) ?? "$0.00")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
+                    .fontWeight(.bold)
                 
                 PortalStatusBadge(status: estimate.status ?? "pending")
             }
         }
-        .padding(.vertical, 4)
+        .padding(AppTheme.Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        )
     }
 }
 
@@ -598,19 +613,21 @@ struct PortalEstimateDetailView: View {
                     GroupBox {
                         VStack(spacing: 12) {
                             ForEach(estimate.lineItemsArray) { lineItem in
+                                let unitPriceString = currencyFormatter.string(from: lineItem.unitPrice as NSDecimalNumber) ?? "$0.00"
+                                let totalString = currencyFormatter.string(from: lineItem.total as NSDecimalNumber) ?? "$0.00"
                                 HStack {
                                     VStack(alignment: .leading, spacing: 4) {
                                         Text(lineItem.itemDescription ?? "Item")
                                             .font(.body)
                                         
-                                        Text("Qty: \(lineItem.quantity) × \(currencyFormatter.string(from: lineItem.unitPrice as NSDecimalNumber) ?? "$0.00")")
+                                        Text(verbatim: "Qty: \(lineItem.quantity) × \(unitPriceString)")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
                                     }
                                     
                                     Spacer()
                                     
-                                    Text(currencyFormatter.string(from: lineItem.total as NSDecimalNumber) ?? "$0.00")
+                                    Text(verbatim: totalString)
                                         .font(.body)
                                         .bold()
                                 }
@@ -745,29 +762,47 @@ struct PortalPaymentRow: View {
     }()
     
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 6) {
+        HStack(spacing: AppTheme.Spacing.md) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(Color.green.opacity(0.1))
+                    .frame(width: 40, height: 40)
+                Image(systemName: "creditcard.fill")
+                    .foregroundColor(.green)
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
                 Text(payment.formattedPaymentNumber)
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
+                    .foregroundColor(.primary)
                 
                 if let paymentDate = payment.paymentDate {
                     Text(dateFormatter.string(from: paymentDate))
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
                 }
-                
-                Label(payment.paymentMethodDisplayName, systemImage: payment.paymentMethodIcon)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
             }
             
             Spacer()
             
-            Text(payment.formattedAmount)
-                .font(.headline)
-                .foregroundColor(.green)
+            VStack(alignment: .trailing, spacing: 4) {
+                Text(payment.formattedAmount)
+                    .font(AppTheme.Typography.headline)
+                    .fontWeight(.bold)
+                    .foregroundColor(.green)
+                
+                Label(payment.paymentMethodDisplayName, systemImage: payment.paymentMethodIcon)
+                    .font(AppTheme.Typography.caption)
+                    .foregroundColor(.secondary)
+            }
         }
-        .padding(.vertical, 4)
+        .padding(AppTheme.Spacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
+                .fill(Color.white)
+                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        )
     }
 }
 
@@ -795,13 +830,17 @@ private struct PortalStatusBadge: View {
     
     var body: some View {
         Text(status.replacingOccurrences(of: "_", with: " ").capitalized)
-            .font(.caption)
-            .bold()
-            .padding(.horizontal, 10)
-            .padding(.vertical, 5)
-            .background(statusColor.opacity(0.2))
+            .font(AppTheme.Typography.caption)
+            .fontWeight(.semibold)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(statusColor.opacity(0.1))
             .foregroundColor(statusColor)
-            .cornerRadius(8)
+            .cornerRadius(20)
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(statusColor.opacity(0.2), lineWidth: 1)
+            )
     }
 }
 

@@ -13,25 +13,25 @@ struct RecentActivityWidget: View {
     private let metricsService = DashboardMetricsService.shared
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
             // Header
             HStack {
                 Image(systemName: "clock.arrow.circlepath")
                     .font(.title2)
                     .foregroundColor(.blue)
                 Text("Recent Activity")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
                 Spacer()
             }
             
             if activities.isEmpty {
                 // Empty State
-                VStack(spacing: 12) {
+                VStack(spacing: AppTheme.Spacing.md) {
                     Image(systemName: "tray")
                         .font(.system(size: 40))
                         .foregroundColor(.gray)
                     Text("No Recent Activity")
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                         .foregroundColor(.secondary)
                 }
                 .frame(maxWidth: .infinity)
@@ -48,13 +48,11 @@ struct RecentActivityWidget: View {
                         }
                     }
                 }
-                .background(Color.white.opacity(0.5))
-                .cornerRadius(8)
+                .background(AppTheme.Colors.cardBackground.opacity(0.5))
+                .cornerRadius(AppTheme.cardCornerRadius)
             }
         }
-        .padding()
-        .background(Color.gray.opacity(0.05))
-        .cornerRadius(12)
+        .glassCard()
         .task {
             await loadActivity()
         }
@@ -71,20 +69,24 @@ private struct DashboardActivityRow: View {
     let activity: ActivityItem
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: AppTheme.Spacing.md) {
             // Icon
-            Image(systemName: activity.icon)
-                .font(.title3)
-                .foregroundColor(activity.color)
-                .frame(width: 28)
+            ZStack {
+                Circle()
+                    .fill(activity.color.opacity(0.15))
+                    .frame(width: 32, height: 32)
+                Image(systemName: activity.icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(activity.color)
+            }
             
             // Content
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text(activity.title)
-                    .font(.subheadline)
+                    .font(AppTheme.Typography.subheadline)
                 if let subtitle = activity.subtitle {
                     Text(subtitle)
-                        .font(.caption)
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
                 }
             }
@@ -93,10 +95,10 @@ private struct DashboardActivityRow: View {
             
             // Timestamp
             Text(activity.timeAgo)
-                .font(.caption)
+                .font(AppTheme.Typography.caption)
                 .foregroundColor(.secondary)
         }
-        .padding(.horizontal, 12)
+        .padding(.horizontal, AppTheme.Spacing.md)
         .padding(.vertical, 10)
     }
 }

@@ -55,13 +55,14 @@ struct EmployeeManagementView: View {
                 VStack(alignment: .leading) {
                     HStack {
                         Text("Employees")
-                            .font(.largeTitle)
+                            .font(AppTheme.Typography.largeTitle)
                             .fontWeight(.bold)
                         
                         SyncStatusBadge()
                     }
                     
                     Text("\(filteredEmployees.count) employees")
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
                 }
                 
@@ -70,10 +71,10 @@ struct EmployeeManagementView: View {
                 Button(action: { showAddEmployee = true }) {
                     Label("Add Employee", systemImage: "person.badge.plus")
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(PremiumButtonStyle(variant: .primary))
                 .disabled(!authService.hasPermission(.manageEmployees))
             }
-            .padding()
+            .padding(AppTheme.Spacing.xl)
             
             Divider()
             
@@ -86,9 +87,9 @@ struct EmployeeManagementView: View {
                     TextField("Search employees...", text: $searchText)
                         .textFieldStyle(.plain)
                 }
-                .padding(8)
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(8)
+                .padding(AppTheme.Spacing.sm)
+                .background(AppTheme.Colors.cardBackground.opacity(0.5))
+                .cornerRadius(AppTheme.cardCornerRadius)
                 
                 // Role filter
                 Picker("Role", selection: $selectedRole) {
@@ -103,7 +104,7 @@ struct EmployeeManagementView: View {
                 Toggle("Show Inactive", isOn: $showInactive)
                     .toggleStyle(.switch)
             }
-            .padding()
+            .padding(AppTheme.Spacing.xl)
             
             Divider()
             
@@ -150,13 +151,13 @@ struct EmployeeManagementView: View {
     // MARK: - Empty State
     
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: AppTheme.Spacing.xl) {
             Image(systemName: "person.3.fill")
                 .font(.system(size: 60))
                 .foregroundColor(.gray)
             
             Text("No Employees Found")
-                .font(.title2)
+                .font(AppTheme.Typography.title2)
                 .fontWeight(.semibold)
             
             Text("Add your first employee to get started")
@@ -166,7 +167,7 @@ struct EmployeeManagementView: View {
                 Button("Add Employee") {
                     showAddEmployee = true
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(PremiumButtonStyle(variant: .primary))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -256,17 +257,17 @@ struct EmployeeRowView: View {
             case "synced":
                 Image(systemName: "checkmark.icloud.fill")
                     .foregroundColor(.green)
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .help("Synced to cloud")
             case "pending":
                 Image(systemName: "arrow.triangle.2.circlepath")
                     .foregroundColor(.orange)
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .help("Sync pending")
             case "failed":
                 Image(systemName: "exclamationmark.icloud.fill")
                     .foregroundColor(.red)
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .help("Sync failed")
             default:
                 EmptyView()

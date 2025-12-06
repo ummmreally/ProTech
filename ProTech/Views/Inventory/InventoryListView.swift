@@ -72,7 +72,7 @@ struct InventoryListView: View {
             // Header with Sync Badge
             HStack {
                 Text("Inventory")
-                    .font(.largeTitle)
+                    .font(AppTheme.Typography.largeTitle)
                     .bold()
                 
                 SyncStatusBadge()
@@ -80,10 +80,10 @@ struct InventoryListView: View {
                 Spacer()
             }
             .padding(.horizontal)
-            .padding(.top)
+            .padding(.top, AppTheme.Spacing.xl)
             
             // Search and Filters
-            VStack(spacing: 12) {
+            VStack(spacing: AppTheme.Spacing.md) {
                 HStack {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
@@ -99,9 +99,9 @@ struct InventoryListView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(10)
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(8)
+                .padding(AppTheme.Spacing.sm)
+                .background(AppTheme.Colors.cardBackground.opacity(0.5))
+                .cornerRadius(AppTheme.cardCornerRadius)
                 
                 HStack {
                     Picker("Category", selection: $selectedCategory) {
@@ -123,10 +123,11 @@ struct InventoryListView: View {
                     Spacer()
                     
                     Text("\(filteredItems.count) items")
+                        .font(AppTheme.Typography.caption)
                         .foregroundColor(.secondary)
                 }
             }
-            .padding()
+            .padding(AppTheme.Spacing.xl)
             
             Divider()
             
@@ -234,12 +235,12 @@ struct InventoryListView: View {
     }
     
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: AppTheme.Spacing.xl) {
             Image(systemName: searchText.isEmpty ? "shippingbox" : "magnifyingglass")
                 .font(.system(size: 60))
                 .foregroundColor(.secondary)
             Text(searchText.isEmpty ? "No Inventory Items" : "No Results Found")
-                .font(.title2)
+                .font(AppTheme.Typography.title2)
                 .foregroundColor(.secondary)
             if searchText.isEmpty {
                 Button {
@@ -247,7 +248,7 @@ struct InventoryListView: View {
                 } label: {
                     Label("Add First Item", systemImage: "plus")
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(PremiumButtonStyle(variant: .primary))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -293,7 +294,7 @@ struct InventoryItemRow: View {
     @ObservedObject var item: InventoryItem
     
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: AppTheme.Spacing.lg) {
             // Icon
             ZStack {
                 Circle()
@@ -305,20 +306,20 @@ struct InventoryItemRow: View {
             }
             
             // Info
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.xs) {
                 Text(item.name ?? "Unknown")
-                    .font(.headline)
+                    .font(AppTheme.Typography.headline)
                 
-                HStack(spacing: 8) {
+                HStack(spacing: AppTheme.Spacing.sm) {
                     if let partNumber = item.partNumber {
                         Text("PN: \(partNumber)")
-                            .font(.caption)
+                            .font(AppTheme.Typography.caption)
                             .foregroundColor(.secondary)
                     }
                     
                     if let sku = item.sku {
                         Text("SKU: \(sku)")
-                            .font(.caption)
+                            .font(AppTheme.Typography.caption)
                             .foregroundColor(.secondary)
                     }
                 }
@@ -327,7 +328,7 @@ struct InventoryItemRow: View {
             Spacer()
             
             // Stock Status
-            VStack(alignment: .trailing, spacing: 4) {
+            VStack(alignment: .trailing, spacing: AppTheme.Spacing.xs) {
                 HStack(spacing: 6) {
                     if item.isOutOfStock {
                         Image(systemName: "xmark.circle.fill")
@@ -338,13 +339,13 @@ struct InventoryItemRow: View {
                     }
                     
                     Text("\(item.quantity)")
-                        .font(.title3)
+                        .font(AppTheme.Typography.title3)
                         .bold()
                         .foregroundColor(item.isOutOfStock ? .red : item.isLowStock ? .orange : .primary)
                 }
                 
                 Text(String(format: "$%.2f", item.priceDouble))
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .foregroundColor(.secondary)
             }
             
@@ -367,17 +368,17 @@ struct InventoryItemRow: View {
             case "synced":
                 Image(systemName: "checkmark.icloud.fill")
                     .foregroundColor(.green)
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .help("Synced to cloud")
             case "pending":
                 Image(systemName: "arrow.triangle.2.circlepath")
                     .foregroundColor(.orange)
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .help("Sync pending")
             case "failed":
                 Image(systemName: "exclamationmark.icloud.fill")
                     .foregroundColor(.red)
-                    .font(.caption)
+                    .font(AppTheme.Typography.caption)
                     .help("Sync failed - will retry")
             default:
                 EmptyView()
