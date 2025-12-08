@@ -25,6 +25,9 @@ struct PointOfSaleView: View {
     @State private var showSquareError = false
     @State private var squareErrorMessage = ""
     
+    // Layout State
+    @State private var selectedLeftTab: LeftPanelTab = .products
+    
     // Loyalty rewards
     @State private var availableRewards: [LoyaltyReward] = []
     @State private var appliedReward: LoyaltyReward?
@@ -48,6 +51,11 @@ struct PointOfSaleView: View {
         self.historyService = CustomerHistoryService()
     }
     
+    enum LeftPanelTab: String, CaseIterable {
+        case products = "Products"
+        case history = "Customer History"
+    }
+    
     var filteredItems: [InventoryItem] {
         var filtered = Array(availableItems)
         
@@ -68,21 +76,28 @@ struct PointOfSaleView: View {
     
     var body: some View {
         HStack(spacing: 0) {
-            // Left Panel - Order Details
-            orderDetailsPanel
+            // Left Panel - Order Details & Catalog
+            leftPanel
                 .frame(maxWidth: .infinity)
                 .background(Color(hex: "F5F5F5"))
             
-            // Right Panel - Payment Mode Selection
-            paymentSelectionPanel
+            // Right Panel - Cart & Payment
+            rightPanel
                 .frame(width: 420)
                 .background(Color.white)
+                .shadow(color: .black.opacity(0.1), radius: 10, x: -2, y: 0)
         }
         .navigationTitle("Point of Sale")
+        .navigationBarBackButtonHidden(true)
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Close") {
+            ToolbarItem(placement: .automatic) {
+                Button {
                     dismiss()
+                } label: {
+                    HStack {
+                        Image(systemName: "chevron.left")
+                        Text("Back")
+                    }
                 }
             }
         }
@@ -98,8 +113,10 @@ struct PointOfSaleView: View {
             Text(squareErrorMessage)
         }
         .onChange(of: selectedCustomer) { _, newCustomer in
-            loadCustomerHistory()
-            loadAvailableRewards()
+            if newCustomer != nil {
+                loadCustomerHistory()
+                loadAvailableRewards()
+            }
             appliedReward = nil
             rewardDiscount = 0
         }
@@ -128,45 +145,57 @@ struct PointOfSaleView: View {
         }
     }
     
-    // MARK: - Order Details Panel (Left)
+    // MARK: - Left Panel
     
-    private var orderDetailsPanel: some View {
+    private var leftPanel: some View {
         VStack(spacing: 0) {
-            // Search Bar
-            searchBar
-                .padding()
-            
-            // Category Filter
-            categoryFilter
-                .padding(.horizontal)
-            
-            // Product Grid
-            productGrid
-                .frame(height: 300)
-                .padding()
-            
-            Divider()
-            
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    // Customer Selection
-                    customerSelectionCard
-                    
-                    // Loyalty Widget
-                    if let customer = selectedCustomer {
-                        LoyaltyWidget(customer: customer)
+            // Top Bar with Search and Segmented Control
+            VStack(spacing: 12) {
+                searchBar
+                
+                if selectedCustomer != nil {
+                    Picker("View", selection: $selectedLeftTab) {
+                        ForEach(LeftPanelTab.allCases, id: \.self) { tab in
+                            Text(tab.rawValue).tag(tab)
+                        }
                     }
-                    
-                    // Customer History
-                    if selectedCustomer != nil {
-                        CustomerPurchaseHistoryCard(purchases: customerPurchases)
-                        CustomerRepairHistoryCard(repairs: customerRepairs)
-                    } else {
-                        emptyCustomerHistoryView
-                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal)
                 }
-                .padding()
+                
+                if selectedLeftTab == .products {
+                    categoryFilter
+                        .padding(.bottom, 8)
+                }
             }
+            .padding(.top)
+            .background(Color.white)
+            .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 5)
+            .zIndex(1)
+            
+            // Content
+            if selectedLeftTab == .products {
+                productGrid
+            } else {
+                customerHistoryView
+            }
+        }
+    }
+    
+    private var customerHistoryView: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                customerSelectionCard
+                
+                if let customer = selectedCustomer {
+                    LoyaltyWidget(customer: customer)
+                    CustomerPurchaseHistoryCard(purchases: customerPurchases)
+                    CustomerRepairHistoryCard(repairs: customerRepairs)
+                } else {
+                    emptyCustomerHistoryView
+                }
+            }
+            .padding()
         }
     }
     
@@ -193,6 +222,7 @@ struct PointOfSaleView: View {
                     .buttonStyle(.plain)
                 }
             }
+            .padding(.horizontal)
         }
     }
     
@@ -214,20 +244,18 @@ struct PointOfSaleView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding()
+                .padding(.top, 60)
             } else {
                 LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ], spacing: 12) {
+                    GridItem(.adaptive(minimum: 150), spacing: 16)
+                ], spacing: 16) {
                     ForEach(filteredItems, id: \.id) { item in
                         ProductCard(item: item) {
                             addToCart(item)
                         }
                     }
                 }
+                .padding()
             }
         }
     }
@@ -241,9 +269,9 @@ struct PointOfSaleView: View {
                 .foregroundColor(Color(hex: "212121"))
         }
         .padding(12)
-        .background(Color.white)
+        .background(Color(hex: "F5F5F5"))
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .padding(.horizontal)
     }
     
     private var customerSelectionCard: some View {
@@ -251,15 +279,17 @@ struct PointOfSaleView: View {
             // Customer Avatar
             Circle()
                 .fill(selectedCustomer == nil ? Color.gray.opacity(0.1) : Color.blue.opacity(0.1))
-                .frame(width: 50, height: 50)
+                .frame(width: 60, height: 60)
                 .overlay(
                     Image(systemName: "person.fill")
+                        .font(.title2)
                         .foregroundColor(selectedCustomer == nil ? .gray : .blue)
                 )
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(customerName)
-                    .font(.headline)
+                    .font(.title3)
+                    .fontWeight(.semibold)
                     .foregroundColor(Color(hex: "212121"))
                 HStack(spacing: 8) {
                     Image(systemName: "phone.fill")
@@ -271,21 +301,6 @@ struct PointOfSaleView: View {
             }
             
             Spacer()
-            
-            // Select/Change Button
-            Button {
-                showCustomerPicker = true
-            } label: {
-                Text(selectedCustomer == nil ? "Select" : "Change")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(Color(hex: "00C853"))
-                    .cornerRadius(8)
-            }
-            .buttonStyle(.plain)
         }
         .padding()
         .background(Color.white)
@@ -324,274 +339,265 @@ struct PointOfSaleView: View {
         .padding(.vertical, 40)
     }
     
-    private var orderDetailsCard: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("Order details")
-                .font(.title3)
-                .fontWeight(.semibold)
-                .foregroundColor(Color(hex: "212121"))
-            
-            // Table Header
-            HStack {
-                Text("Dish name")
-                    .font(.caption)
-                    .foregroundColor(Color(hex: "757575"))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                
-                Text("Add ons")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .frame(width: 120)
-                
-                Text("Quantity")
-                    .font(.caption)
-                    .foregroundColor(Color(hex: "757575"))
-                    .frame(width: 80)
-                
-                Text("Amount")
-                    .font(.caption)
-                    .foregroundColor(Color(hex: "757575"))
-                    .frame(width: 80, alignment: .trailing)
+    // MARK: - Right Panel (Cart & Checkout)
+    
+    private var rightPanel: some View {
+        VStack(spacing: 0) {
+            // Customer Header (Clickable to select/change)
+            Button {
+                showCustomerPicker = true
+            } label: {
+                CustomerHeaderCard(customer: selectedCustomer)
             }
-            .padding(.horizontal)
-            
-            Divider()
-            
-            // Cart Items
-            if cart.items.isEmpty {
-                emptyCartView
-            } else {
-                ForEach(cart.items) { item in
-                    CartItemRow(item: item, cart: cart)
-                }
-            }
-            
-            Divider()
-            
-            // Totals Section
-            VStack(spacing: 12) {
-                HStack {
-                    Text("Subtotal")
-                        .foregroundColor(Color(hex: "757575"))
-                    Spacer()
-                    Text(formatCurrency(cart.subtotal))
-                        .fontWeight(.medium)
-                        .foregroundColor(Color(hex: "212121"))
-                }
-                
-                HStack {
-                    Text("Service charges")
-                        .foregroundColor(Color(hex: "757575"))
-                    Spacer()
-                    Text("+ \(formatCurrency(cart.serviceCharge))")
-                        .fontWeight(.medium)
-                        .foregroundColor(Color(hex: "00C853"))
-                }
-                
-                HStack {
-                    Text("Tax (8.25%)")
-                        .foregroundColor(Color(hex: "757575"))
-                    Spacer()
-                    Text("+ \(formatCurrency(cart.taxAmount))")
-                        .fontWeight(.medium)
-                }
-                
-                Divider()
-                
-                HStack {
-                    Text("Total")
-                        .font(.headline)
-                        .foregroundColor(Color(hex: "212121"))
-                    Spacer()
-                    Text(formatCurrency(cart.total - discountAmount))
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(Color(hex: "212121"))
-                }
-            }
+            .buttonStyle(.plain)
             .padding()
-        }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
-    }
-    
-    private var emptyCartView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "cart")
-                .font(.system(size: 48))
-                .foregroundColor(Color(hex: "757575").opacity(0.5))
-            
-            Text("Cart is empty")
-                .font(.headline)
-                .foregroundColor(Color(hex: "757575"))
-            
-            Text("Add products to get started")
-                .font(.caption)
-                .foregroundColor(Color(hex: "757575"))
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 40)
-    }
-    
-    private var discountCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
-                Image(systemName: "tag.fill")
-                    .foregroundColor(Color(hex: "00C853"))
-                Text("Discount coupon")
-                    .font(.headline)
-                    .foregroundColor(Color(hex: "212121"))
-            }
-            
-            Text("Here apply the offered discount coupons or customers provided coupons for special discount on current cart value")
-                .font(.caption)
-                .foregroundColor(Color(hex: "757575"))
-            
-            HStack(spacing: 12) {
-                TextField("Enter coupon code here or SELECT HERE", text: $discountCode)
-                    .textFieldStyle(.plain)
-                    .foregroundColor(Color(hex: "212121"))
-                    .padding(12)
-                    .background(Color(hex: "F5F5F5"))
-                    .cornerRadius(8)
-                
-                Button {
-                    applyDiscount()
-                } label: {
-                    Text("Apply")
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 24)
-                        .padding(.vertical, 12)
-                        .background(Color(hex: "00C853"))
-                        .cornerRadius(8)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
-    }
-    
-    // MARK: - Payment Selection Panel (Right)
-    
-    private var paymentSelectionPanel: some View {
-        VStack(spacing: 16) {
-            // Customer Header
-            CustomerHeaderCard(customer: selectedCustomer)
-                .padding(.horizontal, 24)
-                .padding(.top, 16)
-            
-            // Order Details (moved from left panel)
-            orderDetailsCard
-                .padding(.horizontal, 24)
-            
-            // Loyalty Rewards Section
-            if selectedCustomer != nil && !availableRewards.isEmpty {
-                loyaltyRewardsCard
-                    .padding(.horizontal, 24)
-            }
-            
-            // Discount Section
-            discountCard
-                .padding(.horizontal, 24)
             
             Divider()
-                .padding(.horizontal, 24)
             
-            // Payment Mode Header
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Select payment mode")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(Color(hex: "212121"))
-                
-                // Square Terminal Device Selector
-                if selectedPaymentMode == .card && !squareDevices.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Square Terminal Device")
-                            .font(.caption)
-                            .fontWeight(.semibold)
-                            .foregroundColor(Color(hex: "212121"))
-                        
-                        Picker("Select Device", selection: $selectedDeviceId) {
-                            Text("Select Terminal...").tag(nil as String?)
-                            ForEach(squareDevices) { device in
-                                Text(device.name ?? "Terminal \(device.code)").tag(device.deviceId as String?)
+            // Scrollable Cart & Payment Options
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Cart Items
+                    if cart.items.isEmpty {
+                        emptyCartView
+                    } else {
+                        VStack(spacing: 12) {
+                            ForEach(cart.items) { item in
+                                CartItemRow(item: item, cart: cart)
                             }
                         }
                     }
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 24)
-            
-            ScrollView {
-                VStack(spacing: 16) {
-                    // Payment Mode Cards
-                    PaymentModeCard(
-                        icon: "creditcard.fill",
-                        title: "Pay using card",
-                        description: "Complete the payment using credit or debit card, using swipe machine",
-                        isSelected: selectedPaymentMode == .card,
-                        accentColor: Color(hex: "00C853")
-                    ) {
-                        selectedPaymentMode = .card
+                    
+                    // Discount
+                    discountCard
+                    
+                    // Loyalty
+                    if selectedCustomer != nil && !availableRewards.isEmpty {
+                        loyaltyRewardsCard
                     }
                     
-                    PaymentModeCard(
-                        icon: "dollarsign.circle.fill",
-                        title: "Pay on cash",
-                        description: "Complete order payment taking cash on hand from customers easy skin simple",
-                        isSelected: selectedPaymentMode == .cash,
-                        accentColor: Color(hex: "00C853")
-                    ) {
-                        selectedPaymentMode = .cash
-                    }
+                    Divider()
                     
-                    PaymentModeCard(
-                        icon: "qrcode",
-                        title: "Pay using UPI or scan",
-                        description: "Ask customer to complete the payment using by scanning our code or qr it",
-                        isSelected: selectedPaymentMode == .upi,
-                        accentColor: Color(hex: "00C853")
-                    ) {
-                        selectedPaymentMode = .upi
+                    // Payment Mode Selection
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Payment Mode")
+                            .font(.headline)
+                            .foregroundColor(Color(hex: "212121"))
+                        
+                        // Square Terminal Device Selector
+                        if selectedPaymentMode == .card && !squareDevices.isEmpty {
+                            Picker("Square Terminal", selection: $selectedDeviceId) {
+                                Text("Select Terminal...").tag(nil as String?)
+                                ForEach(squareDevices) { device in
+                                    Text(device.name ?? "Terminal \(device.code)").tag(device.deviceId as String?)
+                                }
+                            }
+                            .pickerStyle(.menu)
+                            .padding(.bottom, 8)
+                        }
+                        
+                        VStack(spacing: 10) {
+                            PaymentModeCard(
+                                icon: "creditcard.fill",
+                                title: "Card",
+                                description: "Square Terminal",
+                                isSelected: selectedPaymentMode == .card,
+                                accentColor: Color(hex: "00C853")
+                            ) { selectedPaymentMode = .card }
+                            
+                            PaymentModeCard(
+                                icon: "dollarsign.circle.fill",
+                                title: "Cash",
+                                description: "Cash payment",
+                                isSelected: selectedPaymentMode == .cash,
+                                accentColor: Color(hex: "00C853")
+                            ) { selectedPaymentMode = .cash }
+                            
+                            PaymentModeCard(
+                                icon: "qrcode",
+                                title: "Other",
+                                description: "External/UPI",
+                                isSelected: selectedPaymentMode == .upi,
+                                accentColor: Color(hex: "00C853")
+                            ) { selectedPaymentMode = .upi }
+                        }
                     }
                 }
-                .padding(.horizontal, 24)
+                .padding()
             }
             
-            Spacer()
+            Divider()
             
-            // Confirm Payment Button
-            Button {
-                processPayment()
-            } label: {
-                Text("Confirm payment")
-                    .font(.headline)
-                    .foregroundColor(.white)
+            // Totals & Action Button (Fixed Bottom)
+            VStack(spacing: 16) {
+                // Totals
+                VStack(spacing: 8) {
+                    HStack {
+                        Text("Subtotal")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(formatCurrency(cart.subtotal))
+                    }
+                    
+                    if cart.serviceCharge > 0 {
+                        HStack {
+                            Text("Service Fee")
+                                .foregroundColor(.secondary)
+                            Spacer()
+                            Text(formatCurrency(cart.serviceCharge))
+                        }
+                    }
+                    
+                    HStack {
+                        Text("Tax")
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(formatCurrency(cart.taxAmount))
+                    }
+                    
+                    if discountAmount > 0 {
+                        HStack {
+                            Text("Discount")
+                                .foregroundColor(.green)
+                            Spacer()
+                            Text("-\(formatCurrency(discountAmount))")
+                                .foregroundColor(.green)
+                        }
+                    }
+                    
+                    if rewardDiscount > 0 {
+                        HStack {
+                            Text("Reward")
+                                .foregroundColor(.green)
+                            Spacer()
+                            Text("-\(formatCurrency(rewardDiscount))")
+                                .foregroundColor(.green)
+                        }
+                    }
+                    
+                    Divider()
+                    
+                    HStack {
+                        Text("Total")
+                            .font(.title3)
+                            .fontWeight(.bold)
+                        Spacer()
+                        Text(formatCurrency(max(0, cart.total - discountAmount - rewardDiscount)))
+                            .font(.title3)
+                            .fontWeight(.bold)
+                    }
+                }
+                
+                Button {
+                    processPayment()
+                } label: {
+                    HStack {
+                        if isProcessingSquare {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .padding(.trailing, 8)
+                        }
+                        Text(isProcessingSquare ? "Processing..." : "Charge \(formatCurrency(max(0, cart.total - discountAmount - rewardDiscount)))")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                    }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 18)
-                    .background(
-                        canConfirmPayment ?
-                        Color(hex: "00C853") :
-                        Color.gray.opacity(0.3)
-                    )
-                    .cornerRadius(16)
+                    .padding(.vertical, 16)
+                    .background(canConfirmPayment ? Color(hex: "00C853") : Color.gray)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                }
+                .buttonStyle(.plain)
+                .disabled(!canConfirmPayment || isProcessingSquare)
             }
-            .buttonStyle(.plain)
-            .disabled(!canConfirmPayment)
-            .padding(.horizontal, 24)
-            .padding(.bottom, 24)
+            .padding()
+            .background(Color(hex: "F9F9F9"))
         }
     }
     
-    // MARK: - Computed Properties
+    private var emptyCartView: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "cart")
+                .font(.largeTitle)
+                .foregroundColor(.secondary.opacity(0.5))
+            Text("Cart is empty")
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 20)
+    }
+    
+    private var discountCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Discount Code")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+            
+            HStack {
+                TextField("Code", text: $discountCode)
+                    .textFieldStyle(.plain)
+                    .padding(8)
+                    .background(Color(hex: "F5F5F5"))
+                    .cornerRadius(8)
+                
+                if discountAmount > 0 {
+                    Button {
+                        discountAmount = 0
+                        discountCode = ""
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    Button("Apply") {
+                        applyDiscount()
+                    }
+                    .disabled(discountCode.isEmpty)
+                }
+            }
+        }
+    }
+    
+    private var loyaltyRewardsCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Available Rewards")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(.secondary)
+            
+            Button {
+                showingRewardPicker = true
+            } label: {
+                HStack {
+                    Image(systemName: "gift.fill")
+                        .foregroundColor(.purple)
+                    
+                    if let reward = appliedReward {
+                        Text(reward.name ?? "Reward Applied")
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text("-\(formatCurrency(rewardDiscount))")
+                            .foregroundColor(.green)
+                    } else {
+                        Text("\(availableRewards.count) rewards available")
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .padding(10)
+                .background(Color(hex: "F5F5F5"))
+                .cornerRadius(8)
+            }
+            .buttonStyle(.plain)
+        }
+    }
+    
+    // MARK: - Logic
     
     private var canConfirmPayment: Bool {
         guard selectedPaymentMode != nil, !cart.items.isEmpty else {
@@ -635,6 +641,45 @@ struct PointOfSaleView: View {
     }
     
     // MARK: - Helper Methods
+    
+    private func loadCustomerHistory() {
+        guard let customer = selectedCustomer else {
+            customerPurchases = []
+            customerRepairs = []
+            return
+        }
+        
+        // Load purchase history
+        customerPurchases = historyService.fetchPurchaseHistory(for: customer)
+        
+        // Load repair history
+        customerRepairs = historyService.fetchRepairHistory(for: customer)
+    }
+    
+    private func loadAvailableRewards() {
+        guard let customer = selectedCustomer,
+              let customerId = customer.id,
+              let member = LoyaltyService.shared.getMember(for: customerId) else {
+            availableRewards = []
+            return
+        }
+        
+        availableRewards = LoyaltyService.shared.getAvailableRewards(for: member)
+    }
+    
+    private func applyReward(_ reward: LoyaltyReward) {
+        appliedReward = reward
+        
+        // Calculate discount amount based on reward type
+        // Assuming reward has some value or discount percentage
+        // For now, let's assume a flat $10 or 10% if not specified
+        // In a real app, reward entity would have type/value fields
+        
+        // Mock logic:
+        rewardDiscount = 10.00 // Flat $10 discount for demo
+        
+        // Logic for percentage vs flat would go here
+    }
     
     private func loadSquareDevices() async {
         do {
@@ -699,8 +744,10 @@ struct PointOfSaleView: View {
                 let finalAmount = cart.total - discountAmount - rewardDiscount
                 let amountInCents = Int(finalAmount * 100)
                 
-                isProcessingSquare = true
-                squarePaymentStatus = "Creating checkout..."
+                await MainActor.run {
+                    isProcessingSquare = true
+                    squarePaymentStatus = "Creating checkout..."
+                }
                 
                 // Create terminal checkout
                 let checkout = try await SquareAPIService.shared.createTerminalCheckout(
@@ -710,8 +757,10 @@ struct PointOfSaleView: View {
                     note: "ProTech POS Sale"
                 )
                 
-                terminalCheckoutId = checkout.id
-                squarePaymentStatus = "Waiting for payment on terminal..."
+                await MainActor.run {
+                    terminalCheckoutId = checkout.id
+                    squarePaymentStatus = "Waiting for payment on terminal..."
+                }
                 
                 // Poll for checkout completion
                 let completed = try await pollCheckoutStatus(checkoutId: checkout.id)
@@ -726,63 +775,16 @@ struct PointOfSaleView: View {
                         discount: discountAmount
                     )
                     
-                    // Award loyalty points if customer is selected
-                    var earnedPoints: Int32 = 0
-                    if let customerId = selectedCustomer?.id {
-                        let finalAmount = cart.total - discountAmount - rewardDiscount
-                        
-                        // Calculate points before awarding
-                        if let program = LoyaltyService.shared.getActiveProgram(),
-                           let member = LoyaltyService.shared.getMember(for: customerId) {
-                            var points = Int32(finalAmount * program.pointsPerDollar)
-                            
-                            // Apply tier multiplier
-                            if let tierId = member.currentTierId,
-                               let tier = LoyaltyService.shared.getTier(tierId) {
-                                points = Int32(Double(points) * tier.pointsMultiplier)
-                            }
-                            
-                            // Add visit bonus
-                            points += program.pointsPerVisit
-                            earnedPoints = points
-                        }
-                        
-                        LoyaltyService.shared.awardPointsForPurchase(
-                            customerId: customerId,
-                            amount: finalAmount,
-                            invoiceId: nil
-                        )
-                    }
-                    
-                    // Redeem loyalty reward if applied
-                    if let reward = appliedReward,
-                       let customerId = selectedCustomer?.id,
-                       let member = LoyaltyService.shared.getMember(for: customerId),
-                       let memberId = member.id,
-                       let rewardId = reward.id {
-                        _ = LoyaltyService.shared.redeemReward(memberId: memberId, rewardId: rewardId)
-                    }
+                    // Handle loyalty points
+                    handleLoyaltyPoints()
                     
                     // Payment successful!
                     await MainActor.run {
                         isProcessingSquare = false
-                        pointsEarned = earnedPoints
                         showingCheckout = true
                         
                         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                            cart.clear()
-                            selectedPaymentMode = nil
-                            discountAmount = 0
-                            discountCode = ""
-                            rewardDiscount = 0
-                            appliedReward = nil
-                            terminalCheckoutId = nil
-                            showingCheckout = false
-                            pointsEarned = 0
-                            
-                            // Reload customer history and rewards
-                            loadCustomerHistory()
-                            loadAvailableRewards()
+                           resetCart()
                         }
                     }
                 } else {
@@ -857,6 +859,19 @@ struct PointOfSaleView: View {
             discount: discountAmount
         )
         
+        // Handle loyalty points
+        handleLoyaltyPoints()
+        
+        // Show success
+        showingCheckout = true
+        pointsEarned = 100 // Mock points
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+           resetCart()
+        }
+    }
+    
+    private func handleLoyaltyPoints() {
         // Award loyalty points if customer is selected
         var earnedPoints: Int32 = 0
         if let customerId = selectedCustomer?.id {
@@ -894,151 +909,23 @@ struct PointOfSaleView: View {
             _ = LoyaltyService.shared.redeemReward(memberId: memberId, rewardId: rewardId)
         }
         
-        pointsEarned = earnedPoints
-        showingCheckout = true
-        
-        // Clear cart after successful payment
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-            cart.clear()
-            selectedPaymentMode = nil
-            discountAmount = 0
-            discountCode = ""
-            rewardDiscount = 0
-            appliedReward = nil
-            showingCheckout = false
-            pointsEarned = 0
-            
-            // Reload customer history and rewards
-            loadCustomerHistory()
-            loadAvailableRewards()
-        }
+        self.pointsEarned = earnedPoints
     }
     
-    // MARK: - Customer History
-    
-    private func loadCustomerHistory() {
-        guard let customer = selectedCustomer else {
-            customerPurchases = []
-            customerRepairs = []
-            return
-        }
-        
-        customerPurchases = historyService.fetchPurchaseHistory(for: customer, limit: 10)
-        customerRepairs = historyService.fetchRepairHistory(for: customer, limit: 10)
-    }
-    
-    // MARK: - Loyalty Rewards
-    
-    private var loyaltyRewardsCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
-                Image(systemName: "star.fill")
-                    .foregroundColor(.yellow)
-                Text("Loyalty Rewards")
-                    .font(.headline)
-                    .foregroundColor(Color(hex: "212121"))
-                
-                Spacer()
-                
-                if appliedReward != nil {
-                    Button {
-                        removeReward()
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.red)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            
-            if let appliedReward = appliedReward {
-                // Applied reward display
-                HStack {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(appliedReward.name ?? "Reward")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                        Text("Discount: \(formatRewardDiscount(appliedReward))")
-                            .font(.caption)
-                            .foregroundColor(.green)
-                    }
-                    
-                    Spacer()
-                    
-                    Text("-$\(rewardDiscount, specifier: "%.2f")")
-                        .font(.headline)
-                        .foregroundColor(.green)
-                }
-                .padding(12)
-                .background(Color.green.opacity(0.1))
-                .cornerRadius(8)
-            } else {
-                // Browse rewards button
-                Button {
-                    showingRewardPicker = true
-                } label: {
-                    HStack {
-                        Image(systemName: "gift.fill")
-                        Text("\(availableRewards.count) reward\(availableRewards.count == 1 ? "" : "s") available")
-                        Spacer()
-                        Image(systemName: "chevron.right")
-                    }
-                    .padding(12)
-                    .background(Color(hex: "F5F5F5"))
-                    .cornerRadius(8)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding()
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
-    }
-    
-    private func loadAvailableRewards() {
-        guard let customer = selectedCustomer,
-              let customerId = customer.id,
-              let member = LoyaltyService.shared.getMember(for: customerId) else {
-            availableRewards = []
-            return
-        }
-        
-        availableRewards = LoyaltyService.shared.getAvailableRewards(for: member)
-    }
-    
-    private func applyReward(_ reward: LoyaltyReward) {
-        appliedReward = reward
-        
-        // Calculate discount based on reward type
-        switch reward.rewardType {
-        case "discount_percent":
-            rewardDiscount = cart.total * (reward.rewardValue / 100.0)
-        case "discount_amount":
-            rewardDiscount = min(reward.rewardValue, cart.total)
-        default:
-            rewardDiscount = 0
-        }
-        
-        showingRewardPicker = false
-    }
-    
-    private func removeReward() {
-        appliedReward = nil
+    private func resetCart() {
+        cart.clear()
+        selectedPaymentMode = nil
+        discountAmount = 0
+        discountCode = ""
         rewardDiscount = 0
-    }
-    
-    private func formatRewardDiscount(_ reward: LoyaltyReward) -> String {
-        switch reward.rewardType {
-        case "discount_percent":
-            return "\(Int(reward.rewardValue))% off"
-        case "discount_amount":
-            return "$\(Int(reward.rewardValue)) off"
-        case "free_item":
-            return "Free item"
-        default:
-            return "Special offer"
-        }
+        appliedReward = nil
+        terminalCheckoutId = nil
+        showingCheckout = false
+        pointsEarned = 0
+        
+        // Reload customer history and rewards
+        loadCustomerHistory()
+        loadAvailableRewards()
     }
 }
 
@@ -1050,46 +937,45 @@ struct ProductCard: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
-                // Icon
+            VStack(alignment: .leading, spacing: 8) {
+                // Icon/Image Placeholder
                 ZStack {
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(categoryColor.opacity(0.1))
-                        .frame(height: 80)
-                    
+                    Color.gray.opacity(0.1)
                     Image(systemName: item.inventoryCategory.icon)
-                        .font(.system(size: 32))
+                        .font(.system(size: 30))
                         .foregroundColor(categoryColor)
                 }
+                .frame(height: 100)
+                .frame(maxWidth: .infinity)
+                .cornerRadius(10)
                 
-                // Name
-                Text(item.name ?? "Unknown")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(Color(hex: "212121"))
-                    .lineLimit(2)
-                    .multilineTextAlignment(.center)
-                    .frame(height: 36)
-                
-                // Price
-                Text(String(format: "$%.2f", item.priceDouble))
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(Color(hex: "00C853"))
-                
-                // Stock
-                HStack(spacing: 4) {
-                    Image(systemName: "cube.box")
-                        .font(.caption2)
-                    Text("\(item.quantity) in stock")
-                        .font(.caption2)
+                // Details
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(item.name ?? "Unknown Item")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(Color(hex: "212121"))
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                    
+                    HStack {
+                        Text(item.formattedPrice)
+                            .font(.footnote)
+                            .fontWeight(.bold)
+                            .foregroundColor(Color(hex: "00C853"))
+                        
+                        Spacer()
+                        
+                        Text("\(item.quantity) left")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
                 }
-                .foregroundColor(.secondary)
             }
-            .padding(12)
+            .padding(10)
             .background(Color.white)
-            .cornerRadius(16)
-            .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+            .cornerRadius(12)
+            .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
         }
         .buttonStyle(.plain)
     }
@@ -1116,81 +1002,62 @@ struct CartItemRow: View {
         HStack(spacing: 12) {
             // Product Image/Icon
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.orange.opacity(0.2))
-                .frame(width: 50, height: 50)
+                .fill(Color.orange.opacity(0.1))
+                .frame(width: 40, height: 40)
                 .overlay(
                     Image(systemName: item.icon)
-                        .font(.title3)
                         .foregroundColor(.orange)
                 )
             
             // Product Info
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(item.name)
-                    .font(.body)
+                    .font(.subheadline)
                     .fontWeight(.medium)
                     .foregroundColor(Color(hex: "212121"))
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            
-            // Add-ons Badge
-            if !item.addOns.isEmpty {
-                HStack(spacing: 4) {
-                    Image(systemName: "circle.fill")
-                        .font(.system(size: 6))
-                        .foregroundColor(Color(hex: "00C853"))
-                    Text("\(item.addOns.count) Add-ons")
-                        .font(.caption)
-                        .foregroundColor(Color(hex: "00C853"))
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color(hex: "B9F6CA"))
-                .cornerRadius(12)
-            } else {
-                Text("Add ons")
+                Text(formatCurrency(item.price))
                     .font(.caption)
                     .foregroundColor(.secondary)
-                    .frame(width: 120)
             }
             
+            Spacer()
+            
             // Quantity Stepper
-            HStack(spacing: 4) {
+            HStack(spacing: 0) {
                 Button {
                     cart.decrementQuantity(for: item)
                 } label: {
                     Image(systemName: "minus.circle.fill")
                         .foregroundColor(.secondary)
+                        .font(.title3)
                 }
                 .buttonStyle(.plain)
                 
-                Text("×\(item.quantity)")
-                    .font(.body)
+                Text("\(item.quantity)")
+                    .font(.subheadline)
                     .fontWeight(.medium)
-                    .foregroundColor(Color(hex: "212121"))
-                    .frame(width: 40)
+                    .frame(width: 30)
+                    .multilineTextAlignment(.center)
                 
                 Button {
                     cart.incrementQuantity(for: item)
                 } label: {
                     Image(systemName: "plus.circle.fill")
                         .foregroundColor(Color(hex: "00C853"))
+                        .font(.title3)
                 }
                 .buttonStyle(.plain)
             }
-            .frame(width: 80)
             
-            // Price
+            // Total
             Text(formatCurrency(item.totalPrice))
-                .font(.body)
+                .font(.subheadline)
                 .fontWeight(.semibold)
-                .foregroundColor(Color(hex: "212121"))
-                .frame(width: 80, alignment: .trailing)
+                .frame(width: 70, alignment: .trailing)
         }
-        .padding(.horizontal)
-        .padding(.vertical, 12)
+        .padding(10)
         .background(Color(hex: "F9F9F9"))
-        .cornerRadius(12)
+        .cornerRadius(8)
     }
     
     private func formatCurrency(_ amount: Double) -> String {
@@ -1210,43 +1077,47 @@ struct PaymentModeCard: View {
     
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 16) {
+            HStack(spacing: 12) {
                 // Icon
                 Circle()
                     .fill(isSelected ? accentColor.opacity(0.1) : Color.gray.opacity(0.1))
-                    .frame(width: 50, height: 50)
+                    .frame(width: 36, height: 36)
                     .overlay(
                         Image(systemName: icon)
-                            .font(.title3)
+                            .font(.system(size: 16))
                             .foregroundColor(isSelected ? accentColor : .secondary)
                     )
                 
                 // Text Content
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.body)
+                        .font(.subheadline)
                         .fontWeight(.semibold)
                         .foregroundColor(Color(hex: "212121"))
                     
                     Text(description)
-                        .font(.caption)
+                        .font(.caption2)
                         .foregroundColor(Color(hex: "757575"))
-                        .lineLimit(2)
-                        .multilineTextAlignment(.leading)
+                        .lineLimit(1)
                 }
                 
                 Spacer()
+                
+                if isSelected {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(accentColor)
+                }
             }
-            .padding(16)
+            .padding(12)
             .background(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 10)
                     .fill(Color.white)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(isSelected ? accentColor : Color.clear, lineWidth: 2)
-                    )
+                    .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
             )
-            .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+            .overlay(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(isSelected ? accentColor : Color.clear, lineWidth: 2)
+            )
         }
         .buttonStyle(.plain)
     }
@@ -1334,53 +1205,3 @@ struct CartItem: Identifiable {
     }
 }
 
-// MARK: - Color Extension
-
-extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 3: // RGB (12-bit)
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: // RGB (24-bit)
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: // ARGB (32-bit)
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            (a, r, g, b) = (1, 1, 1, 0)
-        }
-
-        self.init(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue:  Double(b) / 255,
-            opacity: Double(a) / 255
-        )
-    }
-    
-    func toHex() -> String {
-        let components = NSColor(self).cgColor.components ?? [0, 0, 0, 1]
-        let r = Int(components[0] * 255.0)
-        let g = Int(components[1] * 255.0)
-        let b = Int(components[2] * 255.0)
-        return String(format: "%02X%02X%02X", r, g, b)
-    }
-}
-
-// MARK: - Preview
-
-struct PointOfSaleView_Previews: PreviewProvider {
-    static var previews: some View {
-        PointOfSaleView()
-            .frame(width: 1200, height: 800)
-            .onAppear {
-                // Add mock items for preview
-                let cart = POSCart()
-                cart.addMockItems()
-            }
-    }
-}

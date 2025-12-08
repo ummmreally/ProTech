@@ -11,31 +11,38 @@ struct SocialMediaPlatformSettingsView: View {
     @State private var selectedPlatform: ConfigurablePlatform = .twitter
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Platform Tabs
-            Picker("Platform", selection: $selectedPlatform) {
-                ForEach(ConfigurablePlatform.allCases, id: \.self) { platform in
-                    Text(platform.displayName).tag(platform)
+        platformView
+            .id(selectedPlatform)
+            .safeAreaInset(edge: .top) {
+                VStack(spacing: 0) {
+                    Picker("Platform", selection: $selectedPlatform) {
+                        ForEach(ConfigurablePlatform.allCases, id: \.self) { platform in
+                            Text(platform.displayName).tag(platform)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                    .padding(.horizontal)
+                    .padding(.top, 12)
+                    
+                    Divider()
                 }
+                .background(.thinMaterial)
             }
-            .pickerStyle(.segmented)
-            .padding()
-            
-            Divider()
-            
-            // Platform-specific settings
-            Group {
-                switch selectedPlatform {
-                case .twitter:
-                    TwitterSettingsView()
-                case .facebook:
-                    FacebookSettingsView()
-                case .linkedin:
-                    LinkedInSettingsView()
-                case .instagram:
-                    InstagramSettingsView()
-                }
-            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .animation(.default, value: selectedPlatform)
+    }
+    
+    @ViewBuilder
+    private var platformView: some View {
+        switch selectedPlatform {
+        case .twitter:
+            TwitterSettingsView()
+        case .facebook:
+            FacebookSettingsView()
+        case .linkedin:
+            LinkedInSettingsView()
+        case .instagram:
+            InstagramSettingsView()
         }
     }
 }

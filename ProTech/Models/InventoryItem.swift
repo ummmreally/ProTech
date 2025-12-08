@@ -61,6 +61,10 @@ extension InventoryItem {
         return ((priceDouble - costDouble) / priceDouble) * 100
     }
     
+    var formattedPrice: String {
+        String(format: "$%.2f", priceDouble)
+    }
+    
     /// Display name for migration purposes
     var migrationDisplayName: String {
         return name ?? "Unknown Item"
