@@ -32,7 +32,11 @@ class AuthenticationService: ObservableObject {
     // MARK: - Authentication Methods
     
     func loginWithPIN(_ pin: String) -> Result<Employee, LocalAuthError> {
-        guard let employee = Employee.fetchEmployeeByPIN(pin, context: context) else {
+        // PINs are stored hashed in Supabase and synced to Core Data
+        // so we must hash the input PIN to match
+        let hashedPin = pin.hashed()
+        
+        guard let employee = Employee.fetchEmployeeByPIN(hashedPin, context: context) else {
             return .failure(.invalidCredentials)
         }
         

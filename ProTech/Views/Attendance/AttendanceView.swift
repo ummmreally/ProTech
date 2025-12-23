@@ -17,38 +17,73 @@ struct AttendanceView: View {
     }
     
     var body: some View {
-        HSplitView {
-            // Left Panel - Clock In/Out
-            PINClockView()
-                .frame(minWidth: 400, idealWidth: 450, maxWidth: 500)
+        ZStack {
+            AppTheme.Colors.background.ignoresSafeArea()
             
-            // Right Panel - Management Tools
-            VStack(spacing: 0) {
-                // Tab selector
-                Picker("View", selection: $selectedView) {
-                    Label("Edit Time Cards", systemImage: "pencil.circle").tag(AttendanceViewType.editTimeCards)
-                    Label("Time Off", systemImage: "calendar.badge.clock").tag(AttendanceViewType.timeOffRequests)
-                    Label("Reports", systemImage: "chart.bar").tag(AttendanceViewType.attendanceReports)
+            HSplitView {
+                // Left Panel - Clock In/Out (Kiosk Side)
+                ZStack {
+                    Color(nsColor: .controlBackgroundColor).opacity(0.5)
+                        .ignoresSafeArea()
+                    PINClockView()
                 }
-                .pickerStyle(.segmented)
-                .padding()
+                .frame(minWidth: 400, idealWidth: 450, maxWidth: 500)
                 
-                Divider()
-                
-                // Content area
-                Group {
-                    switch selectedView {
-                    case .editTimeCards:
-                        EditTimeCardsView()
-                    case .timeOffRequests:
-                        TimeOffRequestsView()
-                    case .attendanceReports:
-                        AttendanceReportsView()
+                // Right Panel - Management Dashboard
+                VStack(spacing: 0) {
+                    // Modern Tab Bar
+                    HStack(spacing: 20) {
+                        tabButton(title: "Time Cards", icon: "pencil.line", type: .editTimeCards)
+                        tabButton(title: "Time Off", icon: "calendar.badge.clock", type: .timeOffRequests)
+                        tabButton(title: "Reports", icon: "chart.bar.fill", type: .attendanceReports)
+                        Spacer()
+                    }
+                    .padding()
+                    .background(.ultraThinMaterial)
+                    
+                    Divider()
+                    
+                    // Content area with background
+                    ZStack {
+                        Color(nsColor: .windowBackgroundColor)
+                            .opacity(0.5)
+                            .ignoresSafeArea()
+                        
+                        switch selectedView {
+                        case .editTimeCards:
+                            EditTimeCardsView() // Will be updated to Dashboard
+                        case .timeOffRequests:
+                            TimeOffRequestsView()
+                        case .attendanceReports:
+                            AttendanceReportsView()
+                        }
                     }
                 }
+                .frame(minWidth: 700)
             }
-            .frame(minWidth: 600)
         }
+    }
+    
+    private func tabButton(title: String, icon: String, type: AttendanceViewType) -> some View {
+        Button {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                selectedView = type
+            }
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                Text(title)
+            }
+            .font(selectedView == type ? AppTheme.Typography.headline : AppTheme.Typography.body)
+            .foregroundColor(selectedView == type ? AppTheme.Colors.primary : .secondary)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 16)
+            .background(
+                Capsule()
+                    .fill(selectedView == type ? AppTheme.Colors.primary.opacity(0.1) : Color.clear)
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -81,57 +116,62 @@ struct PINClockView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            VStack(spacing: AppTheme.Spacing.sm) {
-                Text("Time Clock")
-                    .font(AppTheme.Typography.largeTitle)
-                    .fontWeight(.bold)
-                
-                Text(currentTime, style: .time)
-                    .font(.system(size: 48, weight: .medium, design: .rounded))
+            VStack(spacing: 8) {
+                Text(currentTime.formatted(date: .omitted, time: .shortened))
+                    .font(.system(size: 64, weight: .bold, design: .rounded))
                     .monospacedDigit()
+                    .foregroundStyle(AppTheme.Colors.primaryGradient)
                     .onReceive(timer) { _ in
                         currentTime = Date()
-                        // Update active entry if exists
                         if let employee = activeEmployee, let employeeId = employee.id {
                             currentEntry = timeClockService.getActiveEntry(for: employeeId)
                         }
                     }
                 
                 Text(currentTime.formatted(date: .complete, time: .omitted))
-                    .font(AppTheme.Typography.headline)
+                    .font(AppTheme.Typography.title3)
                     .foregroundColor(.secondary)
             }
-            .padding(.top, AppTheme.Spacing.xl)
-            .padding(.bottom, AppTheme.Spacing.lg)
+            .padding(.top, 40)
+            .padding(.bottom, 20)
             
-            Divider()
+            Spacer()
             
+            // Main Interaction Area
             ScrollView {
-                VStack(spacing: 24) {
-                    // Status Display
+                VStack(spacing: 32) {
+                    // Status or "Ready" State
                     if let employee = activeEmployee, let entry = currentEntry, entry.isActive {
                         activeStatusCard(employee: employee, entry: entry)
+                            .transition(.scale.combined(with: .opacity))
                     } else {
                         readyToClockInCard
+                            .transition(.scale.combined(with: .opacity))
                     }
                     
-                    // PIN Entry
+                    // PIN Entry (Always visible for quick switching)
                     pinEntrySection
                     
-                    // Quick Actions
+                    // Quick Actions (Only when authenticated)
                     if let employee = activeEmployee, let entry = currentEntry, entry.isActive {
                         quickActionsSection(employee: employee, entry: entry)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                     
-                    // Message Display
+                    // Messages
                     if showMessage {
                         messageCard
+                            .transition(.move(edge: .top).combined(with: .opacity))
                     }
                 }
-                .padding()
+                .padding(32)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: activeEmployee)
+                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: showMessage)
             }
+            
+            Spacer()
         }
-        .background(Color(NSColor.windowBackgroundColor))
+        .background(Color(nsColor: .controlBackgroundColor))
     }
     
     // MARK: - Active Status Card
@@ -220,7 +260,7 @@ struct PINClockView: View {
                                     .font(.title)
                                     .fontWeight(.semibold)
                                     .frame(width: 70, height: 70)
-                                    .background(Color.white)
+                                    .background(AppTheme.Colors.cardBackground)
                                     .cornerRadius(12)
                                     .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
                             }
@@ -249,7 +289,7 @@ struct PINClockView: View {
                             .font(.title)
                             .fontWeight(.semibold)
                             .frame(width: 70, height: 70)
-                            .background(Color.white)
+                            .background(AppTheme.Colors.cardBackground)
                             .cornerRadius(12)
                             .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
                     }
@@ -447,8 +487,7 @@ struct PINClockView: View {
     }
 }
 
-// MARK: - Edit Time Cards View
-
+// MARK: - Attendance Dashboard (Formerly EditTimeCardsView)
 struct EditTimeCardsView: View {
     @StateObject private var timeClockService = TimeClockService()
     @EnvironmentObject var authService: AuthenticationService
@@ -463,6 +502,8 @@ struct EditTimeCardsView: View {
     @State private var customEndDate = Date()
     @State private var entries: [TimeClockEntry] = []
     @State private var editingEntry: TimeClockEntry?
+    @State private var searchText = ""
+    @State private var filterStatus: EntryFilterStatus = .all
     
     enum DateRange: String, CaseIterable {
         case today = "Today"
@@ -472,87 +513,138 @@ struct EditTimeCardsView: View {
         case custom = "Custom"
     }
     
+    enum EntryFilterStatus: String, CaseIterable {
+        case all = "All"
+        case active = "Clocked In"
+        case completed = "Completed"
+        case edited = "Edited"
+    }
+    
     var body: some View {
         VStack(spacing: 0) {
-            // Header
-            HStack {
-                VStack(alignment: .leading) {
-                    Text("Edit Time Cards")
-                        .font(.title)
-                        .fontWeight(.bold)
-                    Text("Review and edit employee time entries")
-                        .foregroundColor(.secondary)
+            // Dashboard Header & Stats
+            VStack(spacing: 20) {
+                // Top Control Bar
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text("Attendance Dashboard")
+                            .font(AppTheme.Typography.title2)
+                            .fontWeight(.bold)
+                        Text("Manage time cards and payroll hours")
+                            .font(AppTheme.Typography.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    // Period Selector
+                    HStack {
+                        Picker("Period", selection: $selectedDateRange) {
+                            ForEach(DateRange.allCases, id: \.self) { range in
+                                Text(range.rawValue).tag(range)
+                            }
+                        }
+                        .labelsHidden()
+                        .pickerStyle(.menu)
+                        .frame(width: 120)
+                        
+                        if selectedDateRange == .custom {
+                            DatePicker("From", selection: $customStartDate, displayedComponents: [.date])
+                                .labelsHidden()
+                            Text("-")
+                            DatePicker("To", selection: $customEndDate, in: customStartDate..., displayedComponents: [.date])
+                                .labelsHidden()
+                        }
+                    }
+                    .padding(8)
+                    .background(Color(nsColor: .controlBackgroundColor))
+                    .cornerRadius(8)
                 }
+                
+                // Summary Stats Cards
+                HStack(spacing: 16) {
+                    summaryCard(
+                        title: "Total Hours",
+                        value: calculateTotalHours(),
+                        icon: "clock.fill",
+                        color: .blue
+                    )
+                    
+                    summaryCard(
+                        title: "Active Staff",
+                        value: "\(entries.filter { $0.isActive }.count)",
+                        icon: "person.2.fill",
+                        color: .green
+                    )
+                    
+                    summaryCard(
+                        title: "Entries",
+                        value: "\(entries.count)",
+                        icon: "list.bullet.rectangle.portrait.fill",
+                        color: .purple
+                    )
+                }
+            }
+            .padding()
+            .background(Color(nsColor: .windowBackgroundColor))
+            
+            Divider()
+            
+            // Filter Bar
+            HStack(spacing: 16) {
+                // Search
+                HStack {
+                    Image(systemName: "magnifyingglass")
+                        .foregroundColor(.secondary)
+                    TextField("Search employee...", text: $searchText)
+                        .textFieldStyle(.plain)
+                }
+                .padding(8)
+                .background(Color(nsColor: .controlBackgroundColor))
+                .cornerRadius(8)
+                .frame(maxWidth: 300)
+                
+                // Status Filter
+                Picker("Status", selection: $filterStatus) {
+                    ForEach(EntryFilterStatus.allCases, id: \.self) { status in
+                        Text(status.rawValue).tag(status)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(maxWidth: 400)
                 
                 Spacer()
-            }
-            .padding()
-            
-            Divider()
-            
-            // Filters
-            VStack(spacing: 12) {
-                HStack {
-                    Picker("Employee", selection: $selectedEmployee) {
-                        Text("All Employees").tag(nil as Employee?)
-                        ForEach(employees, id: \.id) { employee in
-                            Text(employee.fullName).tag(employee as Employee?)
-                        }
-                    }
-                    .frame(width: 200)
-                    
-                    Picker("Period", selection: $selectedDateRange) {
-                        ForEach(DateRange.allCases, id: \.self) { range in
-                            Text(range.rawValue).tag(range)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(width: 400)
-                }
                 
-                // Custom date range pickers
-                if selectedDateRange == .custom {
-                    HStack(spacing: 16) {
-                        DatePicker("From:", selection: $customStartDate, displayedComponents: [.date])
-                            .labelsHidden()
-                            .datePickerStyle(.compact)
-                        
-                        Image(systemName: "arrow.right")
-                            .foregroundColor(.secondary)
-                        
-                        DatePicker("To:", selection: $customEndDate, in: customStartDate..., displayedComponents: [.date])
-                            .labelsHidden()
-                            .datePickerStyle(.compact)
-                        
-                        Text("(\(daysBetween(customStartDate, customEndDate)) days)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        Spacer()
+                // Employee Filter (Dropdown)
+                Picker("Employee", selection: $selectedEmployee) {
+                    Text("All Employees").tag(nil as Employee?)
+                    ForEach(employees, id: \.id) { employee in
+                        Text(employee.fullName).tag(employee as Employee?)
                     }
-                    .padding(.horizontal)
-                    .transition(.move(edge: .top).combined(with: .opacity))
                 }
+                .frame(width: 200)
             }
-            .padding()
-            .animation(.easeInOut(duration: 0.2), value: selectedDateRange)
+            .padding(12)
+            .background(.ultraThinMaterial)
             
             Divider()
             
-            // Time entries list
-            if entries.isEmpty {
+            // Content List
+            if filteredEntries.isEmpty {
                 emptyStateView
             } else {
-                ScrollView {
-                    LazyVStack(spacing: 12) {
-                        ForEach(entries) { entry in
-                            TimeCardRow(entry: entry, onEdit: {
-                                editingEntry = entry
-                            })
-                        }
+                List {
+                    ForEach(filteredEntries) { entry in
+                        TimeCardRow(entry: entry, onEdit: {
+                            editingEntry = entry
+                        })
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .padding(.vertical, 4)
                     }
-                    .padding()
                 }
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
             }
         }
         .sheet(item: $editingEntry) { entry in
@@ -560,31 +652,93 @@ struct EditTimeCardsView: View {
         }
         .onChange(of: selectedEmployee) { _, _ in loadEntries() }
         .onChange(of: selectedDateRange) { _, _ in loadEntries() }
-        .onChange(of: customStartDate) { _, _ in
-            if selectedDateRange == .custom {
-                loadEntries()
-            }
-        }
-        .onChange(of: customEndDate) { _, _ in
-            if selectedDateRange == .custom {
-                loadEntries()
-            }
-        }
+        .onChange(of: customStartDate) { _, _ in if selectedDateRange == .custom { loadEntries() } }
+        .onChange(of: customEndDate) { _, _ in if selectedDateRange == .custom { loadEntries() } }
         .onAppear { loadEntries() }
+    }
+    
+    // MARK: - Computed Properties & Helpers
+    
+    private var filteredEntries: [TimeClockEntry] {
+        var result = entries
+        
+        // Filter by Search
+        if !searchText.isEmpty {
+            result = result.filter { entry in
+                entry.employeeName?.localizedCaseInsensitiveContains(searchText) ?? false
+            }
+        }
+        
+        // Filter by Status
+        switch filterStatus {
+        case .all: break
+        case .active: result = result.filter { $0.isActive }
+        case .completed: result = result.filter { !$0.isActive }
+        case .edited: result = result.filter { $0.wasEdited }
+        }
+        
+        return result
+    }
+    
+    private func calculateTotalHours() -> String {
+        let totalSeconds = entries.reduce(0) { total, entry in
+            return total + entry.currentDuration
+        }
+        
+        let hours = Int(totalSeconds) / 3600
+        let minutes = (Int(totalSeconds) % 3600) / 60
+        return "\(hours)h \(minutes)m"
+    }
+    
+    // MARK: - View Components
+    
+    private func summaryCard(title: String, value: String, icon: String, color: Color) -> some View {
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.1))
+                    .frame(width: 44, height: 44)
+                Image(systemName: icon)
+                    .foregroundColor(color)
+                    .font(.title3)
+            }
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(AppTheme.Typography.caption)
+                    .foregroundColor(.secondary)
+                Text(value)
+                    .font(AppTheme.Typography.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+            }
+            
+            Spacer()
+        }
+        .padding()
+        .background(Color(nsColor: .controlBackgroundColor))
+        .cornerRadius(AppTheme.cardCornerRadius)
+        .overlay(
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
+                .stroke(Color.primary.opacity(0.05), lineWidth: 1)
+        )
     }
     
     private var emptyStateView: some View {
         VStack(spacing: 16) {
-            Image(systemName: "clock")
-                .font(.system(size: 50))
-                .foregroundColor(.secondary)
-            Text("No time entries found")
-                .font(.headline)
-            Text("Select a different period or employee")
+            Image(systemName: "clock.badge.exclamationmark")
+                .font(.system(size: 60))
+                .foregroundStyle(LinearGradient(colors: [.secondary, .secondary.opacity(0.5)], startPoint: .top, endPoint: .bottom))
+            Text("No entries found")
+                .font(.title2)
+                .fontWeight(.medium)
+            Text("Try adjusting your filters or date range")
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
+    
+    // MARK: - Data Loading
     
     private func loadEntries() {
         let (startDate, endDate) = getDateRange()
@@ -594,12 +748,6 @@ struct EditTimeCardsView: View {
         } else {
             entries = timeClockService.fetchAllEntries(from: startDate, to: endDate)
         }
-    }
-    
-    private func daysBetween(_ start: Date, _ end: Date) -> Int {
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.day], from: calendar.startOfDay(for: start), to: calendar.startOfDay(for: end))
-        return (components.day ?? 0) + 1
     }
     
     private func getDateRange() -> (Date, Date) {

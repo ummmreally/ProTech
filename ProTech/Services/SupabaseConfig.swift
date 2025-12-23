@@ -89,3 +89,47 @@ enum SyncConfig {
     
     static let conflictStrategy: ConflictResolution = .newestWins
 }
+
+// MARK: - Google Ads Configuration
+enum GoogleAdsConfig {
+    // Keys for UserDefaults
+    private static let kDeveloperToken = "GoogleAds_DeveloperToken"
+    private static let kClientId = "GoogleAds_ClientId"
+    private static let kClientSecret = "GoogleAds_ClientSecret"
+    private static let kRefreshToken = "GoogleAds_RefreshToken"
+    private static let kCustomerId = "GoogleAds_CustomerId"
+    
+    // Computed properties backed by UserDefaults
+    static var developerToken: String? {
+        get { UserDefaults.standard.string(forKey: kDeveloperToken) }
+        set { UserDefaults.standard.set(newValue, forKey: kDeveloperToken) }
+    }
+    
+    static var clientId: String? {
+        get { UserDefaults.standard.string(forKey: kClientId) }
+        set { UserDefaults.standard.set(newValue, forKey: kClientId) }
+    }
+    
+    static var clientSecret: String? {
+        get { UserDefaults.standard.string(forKey: kClientSecret) }
+        set { UserDefaults.standard.set(newValue, forKey: kClientSecret) }
+    }
+    
+    static var refreshToken: String? {
+        get { UserDefaults.standard.string(forKey: kRefreshToken) }
+        set { UserDefaults.standard.set(newValue, forKey: kRefreshToken) }
+    }
+    
+    static var customerId: String? {
+        get { UserDefaults.standard.string(forKey: kCustomerId) }
+        set { UserDefaults.standard.set(newValue, forKey: kCustomerId) }
+    }
+    
+    static var isConfigured: Bool {
+        return developerToken != nil && !developerToken!.isEmpty &&
+               clientId != nil && !clientId!.isEmpty &&
+               clientSecret != nil && !clientSecret!.isEmpty &&
+               refreshToken != nil && !refreshToken!.isEmpty &&
+               customerId != nil && !customerId!.isEmpty
+    }
+}

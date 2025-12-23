@@ -44,7 +44,12 @@ class SquareWebhookHandler {
     
     private func processEvent(_ event: WebhookEvent) async throws {
         guard let syncManager = syncManager else {
-            throw WebhookError.notConfigured
+            // Note: We continue even if inventory sync manager is missing, 
+            // because we might want to process payments for Google Ads
+            if !event.type.contains("payment") {
+                throw WebhookError.notConfigured
+            }
+            return
         }
         
         print("📨 Received webhook: \(event.type)")
@@ -55,12 +60,26 @@ class SquareWebhookHandler {
             try await handleInventoryEvent(event)
         case let type where type.contains("catalog"):
             try await handleCatalogEvent(event)
+        case let type where type.contains("payment"):
+            await handlePaymentEvent(event)
         default:
             print("⚠️ Unhandled webhook type: \(event.type)")
         }
         
-        // Log the webhook event
-        try await syncManager.processWebhookEvent(event)
+        // Log the webhook event (for inventory sync mainly)
+        if event.type.contains("inventory") || event.type.contains("catalog") {
+            try await syncManager.processWebhookEvent(event)
+        }
+    }
+    
+    private func handlePaymentEvent(_ event: WebhookEvent) async {
+        let paymentId = event.data.id
+        print("💰 Payment Event: \(paymentId) (\(event.type))")
+        
+        // Trigger Google Ads Sync
+        if event.type == "payment.updated" || event.type == "payment.created" {
+            await GoogleAdsSyncManager.shared.handleNewPayment(paymentId: paymentId)
+        }
     }
     
     private func handleInventoryEvent(_ event: WebhookEvent) async throws {
@@ -110,7 +129,9 @@ class SquareWebhookHandler {
     func registerWebhooks(url: String) async throws -> Webhook {
         let eventTypes = [
             "inventory.count.updated",
-            "catalog.version.updated"
+            "catalog.version.updated",
+            "payment.updated",
+            "payment.created"
         ]
         
         return try await SquareAPIService.shared.registerWebhook(url: url, eventTypes: eventTypes)

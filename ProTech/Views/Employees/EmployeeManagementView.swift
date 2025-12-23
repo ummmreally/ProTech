@@ -46,23 +46,53 @@ struct EmployeeManagementView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Offline Banner
-            OfflineBanner()
+        ZStack {
+            AppTheme.Colors.background
+                .ignoresSafeArea()
             
-            // Header
+            VStack(spacing: 0) {
+                // Offline Banner
+                OfflineBanner()
+                
+                // Header
+                headerView
+                
+                // Filters
+                filterBar
+                
+                // Employee list
+                if filteredEmployees.isEmpty {
+                    emptyStateView
+                } else {
+                    employeeListView
+                }
+            }
+        }
+        .sheet(isPresented: $showAddEmployee) {
+            AddEmployeeView(employeeService: employeeService, onSave: loadEmployees)
+        }
+        .sheet(item: $selectedEmployee) { employee in
+            EmployeeDetailView(employee: employee, employeeService: employeeService, onUpdate: loadEmployees)
+        }
+        .onAppear(perform: loadEmployees)
+    }
+    
+    // MARK: - Header
+    
+    private var headerView: some View {
+        VStack(spacing: AppTheme.Spacing.md) {
             HStack {
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 4) {
                     HStack {
                         Text("Employees")
                             .font(AppTheme.Typography.largeTitle)
-                            .fontWeight(.bold)
+                            .foregroundStyle(AppTheme.Colors.primaryGradient)
                         
                         SyncStatusBadge()
                     }
                     
-                    Text("\(filteredEmployees.count) employees")
-                        .font(AppTheme.Typography.caption)
+                    Text("Manage your team, roles, and permissions")
+                        .font(AppTheme.Typography.body)
                         .foregroundColor(.secondary)
                 }
                 
@@ -74,62 +104,88 @@ struct EmployeeManagementView: View {
                 .buttonStyle(PremiumButtonStyle(variant: .primary))
                 .disabled(!authService.hasPermission(.manageEmployees))
             }
-            .padding(AppTheme.Spacing.xl)
             
-            Divider()
-            
-            // Filters
-            HStack {
-                // Search
-                HStack {
-                    Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
-                    TextField("Search employees...", text: $searchText)
-                        .textFieldStyle(.plain)
-                }
-                .padding(AppTheme.Spacing.sm)
-                .background(AppTheme.Colors.cardBackground.opacity(0.5))
-                .cornerRadius(AppTheme.cardCornerRadius)
+            // Stats Row
+            HStack(spacing: AppTheme.Spacing.lg) {
+                EmployeeStatBadge(
+                    icon: "person.2.fill",
+                    value: "\(employees.count)",
+                    label: "Total"
+                )
                 
-                // Role filter
-                Picker("Role", selection: $selectedRole) {
-                    Text("All Roles").tag(nil as EmployeeRole?)
+                EmployeeStatBadge(
+                    icon: "checkmark.circle.fill",
+                    value: "\(employees.filter { $0.isActive }.count)",
+                    label: "Active",
+                    color: .green
+                )
+                
+                EmployeeStatBadge(
+                    icon: "briefcase.fill",
+                    value: "\(employees.filter { $0.roleType == .technician }.count)",
+                    label: "Techs",
+                    color: .blue
+                )
+            }
+        }
+        .padding(AppTheme.Spacing.xl)
+        .background(AppTheme.Colors.cardBackground)
+        .overlay(
+            Rectangle()
+                .frame(height: 1)
+                .foregroundColor(Color.gray.opacity(0.2))
+                .padding(.horizontal, -AppTheme.Spacing.xl),
+            alignment: .bottom
+        )
+    }
+    
+    // MARK: - Filter Bar
+    
+    private var filterBar: some View {
+        HStack(spacing: AppTheme.Spacing.md) {
+            // Search
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                TextField("Search employees...", text: $searchText)
+                    .textFieldStyle(.plain)
+            }
+            .padding(10)
+            .background(AppTheme.Colors.cardBackground)
+            .cornerRadius(8)
+            .overlay(
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+            )
+            
+            // Role filter items
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    FilterChip(
+                        title: "All",
+                        isSelected: selectedRole == nil,
+                        action: { selectedRole = nil }
+                    )
+                    
                     ForEach(EmployeeRole.allCases, id: \.self) { role in
-                        Text(role.rawValue).tag(role as EmployeeRole?)
+                        FilterChip(
+                            title: role.rawValue,
+                            isSelected: selectedRole == role,
+                            action: { selectedRole = role }
+                        )
                     }
                 }
-                .frame(width: 180)
-                
-                // Show inactive toggle
-                Toggle("Show Inactive", isOn: $showInactive)
-                    .toggleStyle(.switch)
             }
-            .padding(AppTheme.Spacing.xl)
             
-            Divider()
+            Spacer()
             
-            // Employee list
-            if filteredEmployees.isEmpty {
-                emptyStateView
-            } else {
-                employeeListView
-            }
+            // Show inactive toggle
+            Toggle("Show Inactive", isOn: $showInactive)
+                .toggleStyle(.switch)
+                .font(AppTheme.Typography.caption)
         }
-        .sheet(isPresented: $showAddEmployee) {
-            AddEmployeeView(employeeService: employeeService, onSave: loadEmployees)
-        }
-        .sheet(item: $selectedEmployee) { employee in
-            EmployeeDetailView(employee: employee, employeeService: employeeService, onUpdate: loadEmployees)
-        }
-        .pullToRefresh(isRefreshing: $isRefreshing) {
-            do {
-                try await employeeSyncer.download()
-                loadEmployees()
-            } catch {
-                print("⚠️ Failed to sync employees: \(error.localizedDescription)")
-            }
-        }
-        .onAppear(perform: loadEmployees)
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Colors.background)
     }
     
     // MARK: - Employee List
@@ -152,25 +208,31 @@ struct EmployeeManagementView: View {
     
     private var emptyStateView: some View {
         VStack(spacing: AppTheme.Spacing.xl) {
+            Spacer()
+            
             Image(systemName: "person.3.fill")
                 .font(.system(size: 60))
-                .foregroundColor(.gray)
+                .foregroundStyle(AppTheme.Colors.primaryGradient)
+                .opacity(0.8)
             
-            Text("No Employees Found")
-                .font(AppTheme.Typography.title2)
-                .fontWeight(.semibold)
+            VStack(spacing: 8) {
+                Text("No Employees Found")
+                    .font(AppTheme.Typography.title2)
+                    .fontWeight(.semibold)
+                
+                Text(searchText.isEmpty ? "Add your first employee to get started" : "Try adjusting your search or filters")
+                    .foregroundColor(.secondary)
+            }
             
-            Text("Add your first employee to get started")
-                .foregroundColor(.secondary)
-            
-            if authService.hasPermission(.manageEmployees) {
+            if authService.hasPermission(.manageEmployees) && searchText.isEmpty {
                 Button("Add Employee") {
                     showAddEmployee = true
                 }
                 .buttonStyle(PremiumButtonStyle(variant: .primary))
             }
+            
+            Spacer()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     // MARK: - Actions
@@ -180,34 +242,104 @@ struct EmployeeManagementView: View {
     }
 }
 
+// MARK: - Subviews
+
+struct EmployeeStatBadge: View {
+    let icon: String
+    let value: String
+    let label: String
+    var color: Color = .primary
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: icon)
+                .foregroundColor(color)
+            
+            VStack(alignment: .leading, spacing: 0) {
+                Text(value)
+                    .font(.headline)
+                    .fontWeight(.bold)
+                Text(label)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(AppTheme.Colors.cardBackground)
+        .cornerRadius(8)
+    }
+}
+
+struct FilterChip: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(AppTheme.Typography.caption)
+                .fontWeight(isSelected ? .semibold : .regular)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(isSelected ? AppTheme.Colors.primary.opacity(0.2) : AppTheme.Colors.cardBackground)
+                .foregroundColor(isSelected ? AppTheme.Colors.primary : .primary)
+                .cornerRadius(16)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(isSelected ? AppTheme.Colors.primary : Color.gray.opacity(0.2), lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 // MARK: - Employee Row View
 struct EmployeeRowView: View {
     let employee: Employee
+    @State private var isHovered = false
     
     var body: some View {
         HStack(spacing: 15) {
             // Avatar
             ZStack {
                 Circle()
-                    .fill(employee.isActive ? Color.blue : Color.gray)
-                    .frame(width: 50, height: 50)
+                    .fill(employee.isActive ? 
+                          AppTheme.Colors.primary.opacity(0.1) : 
+                          Color.gray.opacity(0.1))
+                    .frame(width: 48, height: 48)
                 
                 Text(employee.initials)
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(employee.isActive ? AppTheme.Colors.primary : .gray)
             }
+            .overlay(
+                Circle()
+                    .stroke(Color.gray.opacity(0.2), lineWidth: 1)
+            )
             
             // Info
             VStack(alignment: .leading, spacing: 4) {
-                Text(employee.fullName)
-                    .font(.headline)
-                
                 HStack {
+                    Text(employee.fullName)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    if employee.isAdmin {
+                        Image(systemName: "shield.fill")
+                            .font(.caption)
+                            .foregroundColor(.purple)
+                            .help("Administrator")
+                    }
+                }
+                
+                HStack(spacing: 8) {
                     Text(employee.displayRole)
                         .font(.caption)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
-                        .background(roleColor(employee.roleType).opacity(0.2))
+                        .background(roleColor(employee.roleType).opacity(0.15))
                         .foregroundColor(roleColor(employee.roleType))
                         .cornerRadius(4)
                     
@@ -227,15 +359,7 @@ struct EmployeeRowView: View {
                     .font(.subheadline)
                     .fontWeight(.medium)
                 
-                HStack(spacing: 4) {
-                    Circle()
-                        .fill(employee.isActive ? Color.green : Color.red)
-                        .frame(width: 8, height: 8)
-                    
-                    Text(employee.isActive ? "Active" : "Inactive")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+                StatusBadge(isActive: employee.isActive)
             }
             
             // Sync status icon
@@ -244,11 +368,10 @@ struct EmployeeRowView: View {
             }
             
             Image(systemName: "chevron.right")
-                .foregroundColor(.secondary)
+                .foregroundColor(.secondary.opacity(0.5))
         }
         .padding()
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(12)
+        .glassCard()
     }
     
     private func syncStatusIcon(for status: String) -> some View {
@@ -281,6 +404,27 @@ struct EmployeeRowView: View {
         case .manager: return .blue
         case .technician: return .green
         case .frontDesk: return .orange
+        }
+    }
+    
+    struct StatusBadge: View {
+        let isActive: Bool
+        
+        var body: some View {
+            HStack(spacing: 4) {
+                Circle()
+                    .fill(isActive ? Color.green : Color.red)
+                    .frame(width: 6, height: 6)
+                
+                Text(isActive ? "Active" : "Inactive")
+                    .font(.caption2)
+                    .fontWeight(.medium)
+                    .foregroundColor(isActive ? .green : .red)
+            }
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background((isActive ? Color.green : Color.red).opacity(0.1))
+            .cornerRadius(4)
         }
     }
 }

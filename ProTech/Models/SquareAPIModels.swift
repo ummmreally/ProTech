@@ -539,3 +539,128 @@ struct BatchChangeInventoryRequest: Codable {
         case ignoreUnchangedCounts = "ignore_unchanged_counts"
     }
 }
+
+// MARK: - Payment Models
+
+struct SquarePayment: Codable {
+    let id: String
+    let createdAt: String
+    let updatedAt: String
+    let amountMoney: Money
+    let tipMoney: Money?
+    let totalMoney: Money?
+    let status: String?
+    let sourceType: String?
+    let orderId: String?
+    let customerId: String?
+    let receiptNumber: String?
+    let note: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case amountMoney = "amount_money"
+        case tipMoney = "tip_money"
+        case totalMoney = "total_money"
+        case status
+        case sourceType = "source_type"
+        case orderId = "order_id"
+        case customerId = "customer_id"
+        case receiptNumber = "receipt_number"
+        case note
+    }
+}
+
+struct ListPaymentsResponse: Codable {
+    let payments: [SquarePayment]?
+    let cursor: String?
+    let errors: [SquareError]?
+}
+
+struct PaymentResponse: Codable {
+    let payment: SquarePayment?
+    let errors: [SquareError]?
+}
+
+struct CreatePaymentRequest: Codable {
+    let idempotencyKey: String
+    let sourceId: String
+    let amountMoney: Money
+    let locationId: String?
+    let autocomplete: Bool?
+    let customerId: String?
+    let referenceId: String?
+    let note: String?
+
+    enum CodingKeys: String, CodingKey {
+        case idempotencyKey = "idempotency_key"
+        case sourceId = "source_id"
+        case amountMoney = "amount_money"
+        case locationId = "location_id"
+        case autocomplete
+        case customerId = "customer_id"
+        case referenceId = "reference_id"
+        case note
+    }
+}
+
+struct SquareDeviceCodesResponse: Codable {
+    let deviceCodes: [SquareDeviceCode]?
+
+    enum CodingKeys: String, CodingKey {
+        case deviceCodes = "device_codes"
+    }
+}
+
+struct SquareDeviceCode: Codable {
+    let id: String
+    let name: String?
+    let code: String?
+    let productType: String?
+    let locationId: String?
+    let status: String?
+    let deviceId: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case name
+        case code
+        case productType = "product_type"
+        case locationId = "location_id"
+        case status
+        case deviceId = "device_id"
+    }
+}
+
+struct CreateDeviceCodeRequest: Codable {
+    let idempotencyKey: String
+    let deviceCode: CreateDeviceCodeData
+
+    enum CodingKeys: String, CodingKey {
+        case idempotencyKey = "idempotency_key"
+        case deviceCode = "device_code"
+    }
+}
+
+struct CreateDeviceCodeData: Codable {
+    let name: String?
+    let productType: String
+    let locationId: String?
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case productType = "product_type"
+        case locationId = "location_id"
+    }
+}
+
+struct CreateDeviceCodeResponse: Codable {
+    let deviceCode: SquareDeviceCode?
+    let errors: [SquareError]?
+
+    enum CodingKeys: String, CodingKey {
+        case deviceCode = "device_code"
+        case errors
+    }
+}

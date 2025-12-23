@@ -11,25 +11,20 @@ struct SocialMediaPlatformSettingsView: View {
     @State private var selectedPlatform: ConfigurablePlatform = .twitter
     
     var body: some View {
-        platformView
-            .id(selectedPlatform)
-            .safeAreaInset(edge: .top) {
-                VStack(spacing: 0) {
-                    Picker("Platform", selection: $selectedPlatform) {
-                        ForEach(ConfigurablePlatform.allCases, id: \.self) { platform in
-                            Text(platform.displayName).tag(platform)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
-                    .padding(.top, 12)
-                    
-                    Divider()
+        VStack(spacing: 0) {
+            Picker("Platform", selection: $selectedPlatform) {
+                ForEach(ConfigurablePlatform.allCases, id: \.self) { platform in
+                    Text(platform.displayName).tag(platform)
                 }
-                .background(.thinMaterial)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .animation(.default, value: selectedPlatform)
+            .pickerStyle(.segmented)
+            .padding()
+            
+            Divider()
+            
+            platformView
+                .id(selectedPlatform)
+        }
     }
     
     @ViewBuilder

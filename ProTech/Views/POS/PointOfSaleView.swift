@@ -24,6 +24,8 @@ struct PointOfSaleView: View {
     @State private var squarePaymentStatus: String = ""
     @State private var showSquareError = false
     @State private var squareErrorMessage = ""
+    @State private var showingPairingCode = false
+    @State private var pairingCode = ""
     
     // Layout State
     @State private var selectedLeftTab: LeftPanelTab = .products
@@ -111,6 +113,15 @@ struct PointOfSaleView: View {
             Button("OK", role: .cancel) {}
         } message: {
             Text(squareErrorMessage)
+        }
+        .alert("Pair Square Terminal", isPresented: $showingPairingCode) {
+            Button("OK", role: .cancel) {
+                Task {
+                    await loadSquareDevices()
+                }
+            }
+        } message: {
+            Text("Enter this code on your Square Terminal to pair:\n\n\(pairingCode)\n\nAfter pairing, tap OK to refresh devices.")
         }
         .onChange(of: selectedCustomer) { _, newCustomer in
             if newCustomer != nil {
@@ -389,11 +400,40 @@ struct PointOfSaleView: View {
                             Picker("Square Terminal", selection: $selectedDeviceId) {
                                 Text("Select Terminal...").tag(nil as String?)
                                 ForEach(squareDevices) { device in
-                                    Text(device.name ?? "Terminal \(device.code)").tag(device.deviceId as String?)
+                                    Text(device.name ?? device.id).tag(device.id as String?)
                                 }
                             }
                             .pickerStyle(.menu)
                             .padding(.bottom, 8)
+                        }
+
+                        if selectedPaymentMode == .card && squareDevices.isEmpty {
+                            Button {
+                                Task {
+                                    do {
+                                        let code = try await SquareAPIService.shared.createDeviceCode(name: "ProTech POS")
+                                        await MainActor.run {
+                                            pairingCode = code.code ?? ""
+                                            showingPairingCode = true
+                                        }
+                                    } catch {
+                                        await MainActor.run {
+                                            squareErrorMessage = "Failed to generate pairing code: \(error.localizedDescription)"
+                                            showSquareError = true
+                                        }
+                                    }
+                                }
+                            } label: {
+                                Text("Generate Pairing Code")
+                                    .font(.subheadline)
+                                    .fontWeight(.semibold)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, 10)
+                                    .background(Color(hex: "F5F5F5"))
+                                    .foregroundColor(Color(hex: "212121"))
+                                    .cornerRadius(10)
+                            }
+                            .buttonStyle(.plain)
                         }
                         
                         VStack(spacing: 10) {
@@ -688,11 +728,16 @@ struct PointOfSaleView: View {
                 self.squareDevices = devices
                 // Auto-select first device if available
                 if let firstDevice = devices.first {
-                    self.selectedDeviceId = firstDevice.deviceId
+                    self.selectedDeviceId = firstDevice.id
                 }
             }
         } catch {
-            print("Failed to load Square devices: \(error.localizedDescription)")
+            await MainActor.run {
+                squareErrorMessage = "Failed to load Square Terminal devices: \(error.localizedDescription)"
+                showSquareError = true
+                squareDevices = []
+                selectedDeviceId = nil
+            }
         }
     }
     
@@ -725,9 +770,57 @@ struct PointOfSaleView: View {
         case .card:
             // Process through Square Terminal
             processSquareTerminalPayment()
-        case .cash, .upi:
+        case .cash:
+            processSquareCashPayment()
+        case .upi:
             // Process locally
             processLocalPayment()
+        }
+    }
+
+    private func processSquareCashPayment() {
+        Task {
+            do {
+                let finalAmount = cart.total - discountAmount - rewardDiscount
+                let amountInCents = Int(finalAmount * 100)
+
+                await MainActor.run {
+                    isProcessingSquare = true
+                    squarePaymentStatus = "Recording cash payment in Square..."
+                }
+
+                let payment = try await SquareAPIService.shared.createCashPayment(
+                    amount: amountInCents,
+                    customerId: selectedCustomer?.squareCustomerId,
+                    referenceId: "POS-\(UUID().uuidString.prefix(8))",
+                    note: "ProTech POS Sale (Cash)"
+                )
+
+                _ = try? historyService.savePurchase(
+                    customer: selectedCustomer,
+                    cart: cart,
+                    paymentMethod: "cash",
+                    squareTransactionId: payment.id,
+                    discount: discountAmount
+                )
+
+                handleLoyaltyPoints()
+
+                await MainActor.run {
+                    isProcessingSquare = false
+                    showingCheckout = true
+
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                        resetCart()
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    isProcessingSquare = false
+                    squareErrorMessage = "Cash payment failed: \(error.localizedDescription)"
+                    showSquareError = true
+                }
+            }
         }
     }
     

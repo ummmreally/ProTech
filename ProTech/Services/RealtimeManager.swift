@@ -22,10 +22,27 @@ class RealtimeManager: ObservableObject {
     
     @Published var isRealtimeActive = false
     @Published var lastRealtimeUpdate: Date?
+    @Published var isUsingPollingFallback = false
     
     // Polling configuration (fallback for real-time)
     private var pollingTask: Task<Void, Never>?
     private let pollingInterval: TimeInterval = 30.0 // 30 seconds
+    
+    private enum RealtimeManagerError: Error {
+        case missingShopId
+    }
+    
+    private enum Entity: Hashable {
+        case customers
+        case tickets
+        case inventory
+        case employees
+        case appointments
+    }
+    
+    private var channel: RealtimeChannelV2?
+    private var changeTasks: [Task<Void, Never>] = []
+    private var scheduledSyncTasks: [Entity: Task<Void, Never>] = [:]
     
     private init() {}
     
@@ -37,19 +54,117 @@ class RealtimeManager: ObservableObject {
         
         isRealtimeActive = true
         
-        // Use polling as reliable fallback
-        startPolling()
-        
-        print("✅ Real-time sync started (polling mode)")
+        do {
+            try await startRealtimeChannel()
+            isUsingPollingFallback = false
+            print("✅ Real-time sync started (realtime mode)")
+        } catch {
+            isUsingPollingFallback = true
+            startPolling()
+            print("⚠️ Real-time subscriptions failed, falling back to polling: \(error.localizedDescription)")
+        }
     }
     
     /// Stop real-time sync
     func stopRealtimeSync() {
         pollingTask?.cancel()
         pollingTask = nil
+        isUsingPollingFallback = false
+        
+        for task in changeTasks {
+            task.cancel()
+        }
+        changeTasks.removeAll()
+        
+        for (_, task) in scheduledSyncTasks {
+            task.cancel()
+        }
+        scheduledSyncTasks.removeAll()
+        
+        if let channel {
+            Task {
+                await channel.unsubscribe()
+                await supabase.client.removeChannel(channel)
+            }
+        }
+        channel = nil
         isRealtimeActive = false
         
         print("⏹️ Real-time sync stopped")
+    }
+    
+    private func startRealtimeChannel() async throws {
+        guard channel == nil else { return }
+        
+        guard let shopId = supabase.currentShopId, !shopId.isEmpty else {
+            throw RealtimeManagerError.missingShopId
+        }
+        let channel = supabase.client.channel("realtime-\(shopId)")
+        self.channel = channel
+        
+        let customerChanges = channel.postgresChange(AnyAction.self, schema: "public", table: "customers")
+        let ticketChanges = channel.postgresChange(AnyAction.self, schema: "public", table: "tickets")
+        let inventoryChanges = channel.postgresChange(AnyAction.self, schema: "public", table: "inventory_items")
+        let employeeChanges = channel.postgresChange(AnyAction.self, schema: "public", table: "employees")
+        let appointmentChanges = channel.postgresChange(AnyAction.self, schema: "public", table: "appointments")
+        
+        await channel.subscribe()
+        
+        changeTasks = [
+            Task { [weak self] in
+                for await _ in customerChanges {
+                    await self?.scheduleSync(.customers)
+                }
+            },
+            Task { [weak self] in
+                for await _ in ticketChanges {
+                    await self?.scheduleSync(.tickets)
+                }
+            },
+            Task { [weak self] in
+                for await _ in inventoryChanges {
+                    await self?.scheduleSync(.inventory)
+                }
+            },
+            Task { [weak self] in
+                for await _ in employeeChanges {
+                    await self?.scheduleSync(.employees)
+                }
+            },
+            Task { [weak self] in
+                for await _ in appointmentChanges {
+                    await self?.scheduleSync(.appointments)
+                }
+            }
+        ]
+    }
+    
+    private func scheduleSync(_ entity: Entity) {
+        scheduledSyncTasks[entity]?.cancel()
+        scheduledSyncTasks[entity] = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            await self?.performEntitySync(entity)
+        }
+    }
+    
+    private func performEntitySync(_ entity: Entity) async {
+        do {
+            switch entity {
+            case .customers:
+                try await customerSyncer.download()
+            case .tickets:
+                try await ticketSyncer.download()
+            case .inventory:
+                try await inventorySyncer.download()
+            case .employees:
+                try await employeeSyncer.download()
+            case .appointments:
+                try await appointmentSyncer.download()
+            }
+            lastRealtimeUpdate = Date()
+        } catch {
+            print("⚠️ Realtime-triggered sync failed: \(error.localizedDescription)")
+        }
     }
     
     // MARK: - Polling Implementation

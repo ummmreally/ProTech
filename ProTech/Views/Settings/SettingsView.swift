@@ -48,13 +48,19 @@ struct SettingsView: View {
                     Label("Developer", systemImage: "hammer.fill")
                 }
                 .tag(SettingsTab.developer)
+            
+            APISettingsView()
+                .tabItem {
+                    Label("API", systemImage: "network")
+                }
+                .tag(SettingsTab.api)
         }
         .frame(minWidth: 600, minHeight: 500)
     }
 }
 
 enum SettingsTab {
-    case general, socialMedia, forms, kiosk, subscription, developer
+    case general, socialMedia, forms, kiosk, subscription, developer, api
 }
 
 // MARK: - General Settings
@@ -126,6 +132,9 @@ struct GeneralSettingsView: View {
                 }
                 Link(destination: Configuration.privacyPolicyURL) {
                     Label("Privacy Policy", systemImage: "hand.raised")
+                }
+                Link(destination: Configuration.termsOfServiceURL) {
+                    Label("Terms of Use", systemImage: "doc.text")
                 }
             }
         }

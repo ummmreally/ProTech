@@ -15,5 +15,21 @@
 			</array>
 		</dict>
 	</array>
+	<key>CFBundleDisplayName</key>
+	<string>ProTech</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleShortVersionString</key>
+	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleVersion</key>
+	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>ProTech needs camera access to scan barcodes and take photos of repairs.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>ProTech needs access to photos to attach images to repair tickets.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>ProTech needs Bluetooth access to connect to Dymo label printers.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>ProTech needs access to local network to discover printers.</string>
 </dict>
 </plist>

@@ -25,6 +25,12 @@ RELEASE_DIR="${BUILD_DIR}/Release"
 DMG_NAME="ProTech-Installer.dmg"
 DMG_TEMP_DIR="${BUILD_DIR}/dmg_temp"
 VOLUME_NAME="ProTech Installer"
+SIGN_IDENTITY="${SIGN_IDENTITY:-}"
+NOTARIZE="${NOTARIZE:-0}"
+APPLE_ID="${APPLE_ID:-}"
+TEAM_ID="${TEAM_ID:-}"
+NOTARY_PASSWORD="${NOTARY_PASSWORD:-}"
+NOTARY_PROFILE="${NOTARY_PROFILE:-}"
 
 # Clean previous builds
 echo -e "\n${BLUE}Cleaning previous builds...${NC}"
@@ -33,14 +39,25 @@ mkdir -p "${BUILD_DIR}"
 
 # Build the app
 echo -e "\n${BLUE}Building ProTech app for macOS...${NC}"
-xcodebuild clean build \
-    -project "${PROJECT_DIR}/ProTech.xcodeproj" \
-    -scheme "${SCHEME}" \
-    -configuration Release \
-    -derivedDataPath "${BUILD_DIR}" \
-    CODE_SIGN_IDENTITY="-" \
-    CODE_SIGNING_REQUIRED=NO \
-    CODE_SIGNING_ALLOWED=NO
+if [ -n "${SIGN_IDENTITY}" ]; then
+    xcodebuild clean build \
+        -project "${PROJECT_DIR}/ProTech.xcodeproj" \
+        -scheme "${SCHEME}" \
+        -configuration Release \
+        -derivedDataPath "${BUILD_DIR}" \
+        CODE_SIGN_IDENTITY="${SIGN_IDENTITY}" \
+        CODE_SIGNING_REQUIRED=YES \
+        CODE_SIGNING_ALLOWED=YES
+else
+    xcodebuild clean build \
+        -project "${PROJECT_DIR}/ProTech.xcodeproj" \
+        -scheme "${SCHEME}" \
+        -configuration Release \
+        -derivedDataPath "${BUILD_DIR}" \
+        CODE_SIGN_IDENTITY="-" \
+        CODE_SIGNING_REQUIRED=NO \
+        CODE_SIGNING_ALLOWED=NO
+fi
 
 # Find the built app
 BUILT_APP=$(find "${BUILD_DIR}" -name "${APP_NAME}" -type d | head -n 1)
@@ -52,6 +69,13 @@ fi
 
 echo -e "${GREEN}✓ App built successfully${NC}"
 echo -e "  Location: ${BUILT_APP}"
+
+if [ -n "${SIGN_IDENTITY}" ]; then
+    echo -e "\n${BLUE}Signing app...${NC}"
+    /usr/bin/codesign --force --deep --options runtime --timestamp --sign "${SIGN_IDENTITY}" "${BUILT_APP}"
+    /usr/bin/codesign --verify --deep --strict "${BUILT_APP}"
+    echo -e "${GREEN}✓ App signed successfully${NC}"
+fi
 
 # Create DMG
 echo -e "\n${BLUE}Creating DMG installer...${NC}"
@@ -107,6 +131,30 @@ echo -e "${GREEN}✓ DMG created successfully!${NC}"
 echo -e "${GREEN}======================================${NC}"
 echo -e "\nFile: ${PROJECT_DIR}/${DMG_NAME}"
 echo -e "Size: ${DMG_SIZE}"
+
+if [ "${NOTARIZE}" = "1" ]; then
+    if [ -z "${SIGN_IDENTITY}" ]; then
+        echo -e "${RED}Error: NOTARIZE=1 requires SIGN_IDENTITY to be set${NC}"
+        exit 1
+    fi
+
+    if [ -n "${NOTARY_PROFILE}" ]; then
+        echo -e "\n${BLUE}Submitting DMG for notarization (keychain profile)...${NC}"
+        xcrun notarytool submit "${PROJECT_DIR}/${DMG_NAME}" --keychain-profile "${NOTARY_PROFILE}" --wait
+    else
+        if [ -z "${APPLE_ID}" ] || [ -z "${TEAM_ID}" ] || [ -z "${NOTARY_PASSWORD}" ]; then
+            echo -e "${RED}Error: NOTARIZE=1 requires either NOTARY_PROFILE or (APPLE_ID, TEAM_ID, NOTARY_PASSWORD)${NC}"
+            exit 1
+        fi
+        echo -e "\n${BLUE}Submitting DMG for notarization...${NC}"
+        xcrun notarytool submit "${PROJECT_DIR}/${DMG_NAME}" --apple-id "${APPLE_ID}" --team-id "${TEAM_ID}" --password "${NOTARY_PASSWORD}" --wait
+    fi
+
+    echo -e "\n${BLUE}Stapling notarization ticket...${NC}"
+    xcrun stapler staple "${PROJECT_DIR}/${DMG_NAME}"
+    echo -e "${GREEN}✓ Notarization complete (stapled)${NC}"
+fi
+
 echo -e "\n${BLUE}To install:${NC}"
 echo -e "1. Double-click ${DMG_NAME}"
 echo -e "2. Drag ProTech.app to the Applications folder"

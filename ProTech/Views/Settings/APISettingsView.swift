@@ -59,6 +59,49 @@ struct APISettingsView: View {
                 }
                 .premiumCard()
                 
+                // Google Ads Section
+                VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+                    HStack(spacing: AppTheme.Spacing.sm) {
+                        Image(systemName: "megaphone.fill")
+                            .foregroundColor(.orange)
+                        Text("Google Ads Configuration")
+                            .sectionHeader()
+                    }
+                    
+                    VStack(spacing: AppTheme.Spacing.sm) {
+                        TextField("Developer Token", text: Binding(
+                            get: { GoogleAdsConfig.developerToken ?? "" },
+                            set: { GoogleAdsConfig.developerToken = $0 }
+                        ))
+                        .textFieldStyle(.roundedBorder)
+                        
+                        TextField("Client ID", text: Binding(
+                            get: { GoogleAdsConfig.clientId ?? "" },
+                            set: { GoogleAdsConfig.clientId = $0 }
+                        ))
+                        .textFieldStyle(.roundedBorder)
+                        
+                        SecureField("Client Secret", text: Binding(
+                            get: { GoogleAdsConfig.clientSecret ?? "" },
+                            set: { GoogleAdsConfig.clientSecret = $0 }
+                        ))
+                        .textFieldStyle(.roundedBorder)
+                        
+                        TextField("Refresh Token", text: Binding(
+                            get: { GoogleAdsConfig.refreshToken ?? "" },
+                            set: { GoogleAdsConfig.refreshToken = $0 }
+                        ))
+                        .textFieldStyle(.roundedBorder)
+                        
+                        TextField("Customer ID (xxx-xxx-xxxx)", text: Binding(
+                            get: { GoogleAdsConfig.customerId ?? "" },
+                            set: { GoogleAdsConfig.customerId = $0 }
+                        ))
+                        .textFieldStyle(.roundedBorder)
+                    }
+                }
+                .premiumCard()
+                
                 // Social Media Section
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
                     HStack(spacing: AppTheme.Spacing.sm) {

@@ -22,55 +22,125 @@ struct EmployeeDetailView: View {
     @State private var phone = ""
     @State private var role: EmployeeRole = .technician
     @State private var hourlyRate = ""
+    
+    // Security states
+    @State private var showResetPassword = false
+    @State private var showResetPIN = false
+    @State private var newPassword = ""
+    @State private var confirmNewPassword = ""
+    @State private var newPIN = ""
+    @State private var confirmNewPIN = ""
+    
     @State private var showDeactivateAlert = false
     @State private var showError = false
+    @State private var showSuccess = false
     @State private var errorMessage = ""
+    @State private var successMessage = ""
     
     @State private var timeClockEntries: [TimeClockEntry] = []
     
     var body: some View {
-        VStack(spacing: 0) {
-            // Header
-            HStack {
-                VStack(alignment: .leading) {
-                    Text(employee.fullName)
-                        .font(AppTheme.Typography.largeTitle)
-                        .fontWeight(.bold)
-                    
-                    Text(employee.displayRole)
-                        .font(AppTheme.Typography.body)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                if !isEditing {
-                    Button("Edit") {
-                        startEditing()
-                    }
-                    .disabled(!AuthenticationService.shared.hasPermission(.manageEmployees))
-                    .buttonStyle(PremiumButtonStyle(variant: .secondary))
-                }
-                
-                Button("Close") {
-                    dismiss()
-                }
-                .buttonStyle(PremiumButtonStyle(variant: .secondary))
-            }
-            .padding(AppTheme.Spacing.lg)
+        ZStack {
+            AppTheme.Colors.background
+                .ignoresSafeArea()
             
-            Divider()
-            
-            if isEditing {
-                editFormView
-            } else {
-                detailView
+            VStack(spacing: 0) {
+                // Header
+                headerView
+                
+                if isEditing {
+                    editFormView
+                } else {
+                    detailView
+                }
             }
         }
-        .frame(width: 700, height: 600)
+        .frame(width: 800, height: 700)
         .onAppear {
             loadTimeClockEntries()
         }
+        // Password Reset Sheet
+        .sheet(isPresented: $showResetPassword) {
+            resetPasswordSheet
+        }
+        // PIN Reset Sheet
+        .sheet(isPresented: $showResetPIN) {
+            resetPINSheet
+        }
+        // Alerts
+        .alert("Deactivate Employee", isPresented: $showDeactivateAlert) {
+            Button("Cancel", role: .cancel) {}
+            Button("Deactivate", role: .destructive) {
+                deactivateEmployee()
+            }
+        } message: {
+            Text("This will prevent \(employee.fullName) from logging in. Their data will be preserved.")
+        }
+        // Success Toast Overlay
+        .overlay(alignment: .bottom) {
+            if showSuccess {
+                Text(successMessage)
+                    .padding()
+                    .background(Material.regular)
+                    .cornerRadius(10)
+                    .padding(.bottom, 20)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                            withAnimation { showSuccess = false }
+                        }
+                    }
+            }
+        }
+    }
+    
+    // MARK: - Header
+    
+    private var headerView: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(employee.fullName)
+                    .font(AppTheme.Typography.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundStyle(AppTheme.Colors.primaryGradient)
+                
+                HStack {
+                    Text(employee.displayRole)
+                        .font(AppTheme.Typography.body)
+                        .foregroundColor(.secondary)
+                    
+                    if employee.isAdmin {
+                        Image(systemName: "shield.fill")
+                            .foregroundColor(.purple)
+                            .font(.caption)
+                    }
+                }
+            }
+            
+            Spacer()
+            
+            if !isEditing {
+                Button("Edit Profile") {
+                    startEditing()
+                }
+                .disabled(!AuthenticationService.shared.hasPermission(.manageEmployees))
+                .buttonStyle(PremiumButtonStyle(variant: .secondary))
+            }
+            
+            Button("Close") {
+                dismiss()
+            }
+            .buttonStyle(PremiumButtonStyle(variant: .secondary))
+        }
+        .padding(AppTheme.Spacing.lg)
+        .background(AppTheme.Colors.cardBackground)
+        .overlay(
+            Rectangle()
+                .frame(height: 1)
+                .foregroundColor(Color.gray.opacity(0.2))
+                .padding(.horizontal, -AppTheme.Spacing.lg),
+            alignment: .bottom
+        )
     }
     
     // MARK: - Detail View
@@ -78,34 +148,37 @@ struct EmployeeDetailView: View {
     private var detailView: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
-                // Profile section
-                profileSection
-                
-                // Employment info
-                employmentSection
-                
-                // Time clock summary
-                timeClockSection
+                HStack(alignment: .top, spacing: AppTheme.Spacing.lg) {
+                    // Left Column
+                    VStack(spacing: AppTheme.Spacing.lg) {
+                        profileSection
+                        employmentSection
+                    }
+                    .frame(maxWidth: .infinity)
+                    
+                    // Right Column
+                    VStack(spacing: AppTheme.Spacing.lg) {
+                        securitySection
+                        timeClockSection
+                    }
+                    .frame(maxWidth: .infinity)
+                }
                 
                 // Actions
                 actionsSection
             }
             .padding(AppTheme.Spacing.lg)
-            .onAppear {
-                loadTimeClockEntries()
-            }
         }
     }
     
     private var profileSection: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
-            Text("Profile Information")
-                .font(AppTheme.Typography.headline)
+            SectionHeader(title: "Profile Information", icon: "person.text.rectangle")
             
             InfoRow(label: "Name", value: employee.fullName)
-            InfoRow(label: "Email", value: employee.email ?? "N/A")
-            InfoRow(label: "Phone", value: employee.phone ?? "N/A")
-            InfoRow(label: "Employee #", value: employee.employeeNumber ?? "N/A")
+            InfoRow(label: "Email", value: employee.email ?? "N/A", copyable: true)
+            InfoRow(label: "Phone", value: employee.phone ?? "N/A", copyable: true)
+            InfoRow(label: "Employee #", value: employee.employeeNumber ?? "N/A", copyable: true)
             
             HStack {
                 Text("Status:")
@@ -119,6 +192,7 @@ struct EmployeeDetailView: View {
                     Text(employee.isActive ? "Active" : "Inactive")
                         .font(AppTheme.Typography.body)
                         .fontWeight(.medium)
+                        .foregroundColor(employee.isActive ? AppTheme.Colors.success : AppTheme.Colors.error)
                 }
             }
         }
@@ -128,8 +202,7 @@ struct EmployeeDetailView: View {
     
     private var employmentSection: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
-            Text("Employment Details")
-                .font(AppTheme.Typography.headline)
+            SectionHeader(title: "Employment Details", icon: "briefcase")
             
             InfoRow(label: "Role", value: employee.displayRole)
             InfoRow(label: "Hourly Rate", value: employee.formattedHourlyRate)
@@ -142,10 +215,13 @@ struct EmployeeDetailView: View {
                 InfoRow(label: "Last Login", value: formatDateTime(lastLogin))
             }
             
+            Divider()
+                .padding(.vertical, 4)
+            
             VStack(alignment: .leading, spacing: 8) {
-                Text("Permissions:")
-                    .font(AppTheme.Typography.body)
-                    .foregroundColor(.secondary)
+                Text("Permissions")
+                    .font(AppTheme.Typography.subheadline)
+                    .fontWeight(.medium)
                 
                 ForEach(employee.roleType.permissions, id: \.self) { permission in
                     HStack {
@@ -154,6 +230,7 @@ struct EmployeeDetailView: View {
                             .font(.caption)
                         Text(permission.rawValue)
                             .font(AppTheme.Typography.caption)
+                            .foregroundColor(.secondary)
                     }
                 }
             }
@@ -162,42 +239,108 @@ struct EmployeeDetailView: View {
         .glassCard()
     }
     
+    private var securitySection: some View {
+        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
+            SectionHeader(title: "Security & Access", icon: "lock.shield")
+            
+            HStack {
+                VStack(alignment: .leading) {
+                    Text("Password")
+                        .font(.subheadline)
+                    Text(employee.hasPasswordSet ? "Set" : "Not Set")
+                        .font(.caption)
+                        .foregroundColor(employee.hasPasswordSet ? .green : .orange)
+                }
+                
+                Spacer()
+                
+                Button("Reset Password") {
+                    newPassword = ""
+                    confirmNewPassword = ""
+                    showResetPassword = true
+                }
+                .buttonStyle(PremiumButtonStyle(variant: .secondary))
+            }
+            
+            Divider()
+            
+            HStack {
+                VStack(alignment: .leading) {
+                    Text("PIN Code")
+                        .font(.subheadline)
+                    Text(employee.hasPINSet ? "Set (6 digits)" : "Not Set")
+                        .font(.caption)
+                        .foregroundColor(employee.hasPINSet ? .green : .orange)
+                }
+                
+                Spacer()
+                
+                Button("Reset PIN") {
+                    newPIN = ""
+                    confirmNewPIN = ""
+                    showResetPIN = true
+                }
+                .buttonStyle(PremiumButtonStyle(variant: .secondary))
+            }
+        }
+        .padding(AppTheme.Spacing.lg)
+        .glassCard()
+    }
+    
     private var timeClockSection: some View {
         VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
-            Text("Time Clock Summary")
-                .font(AppTheme.Typography.headline)
+            SectionHeader(title: "Time Clock", icon: "clock")
             
             if let employeeId = employee.id {
                 let thisWeekHours = timeClockService.getTotalHoursThisWeek(for: employeeId)
                 let thisMonthHours = timeClockService.getTotalHoursThisMonth(for: employeeId)
                 
-                InfoRow(label: "This Week", value: formatHours(thisWeekHours))
-                InfoRow(label: "This Month", value: formatHours(thisMonthHours))
+                HStack(spacing: 20) {
+                    VStack(alignment: .leading) {
+                        Text("This Week")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(formatHours(thisWeekHours))
+                            .font(.headline)
+                    }
+                    
+                    VStack(alignment: .leading) {
+                        Text("This Month")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        Text(formatHours(thisMonthHours))
+                            .font(.headline)
+                    }
+                }
                 
                 // Recent entries
                 if !timeClockEntries.isEmpty {
-                    Text("Recent Clock Entries")
-                        .font(AppTheme.Typography.subheadline)
+                    Text("Recent Activity")
+                        .font(AppTheme.Typography.caption)
+                        .fontWeight(.medium)
                         .foregroundColor(.secondary)
                         .padding(.top, 8)
                     
-                    ForEach(timeClockEntries.prefix(5)) { entry in
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(entry.formattedShiftDate)
-                                    .font(AppTheme.Typography.caption)
-                                Text("\(entry.formattedClockIn) - \(entry.formattedClockOut)")
-                                    .font(AppTheme.Typography.caption)
-                                    .foregroundColor(.secondary)
+                    VStack(spacing: 8) {
+                        ForEach(timeClockEntries.prefix(3)) { entry in
+                            HStack {
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(entry.formattedShiftDate)
+                                        .font(.caption2)
+                                        .fontWeight(.semibold)
+                                    Text("\(entry.formattedClockIn) - \(entry.formattedClockOut)")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Text(entry.formattedDuration)
+                                    .font(.caption2)
+                                    .padding(.horizontal, 6)
+                                    .padding(.vertical, 2)
+                                    .background(Color.white.opacity(0.1))
+                                    .cornerRadius(4)
                             }
-                            Spacer()
-                            Text(entry.formattedDuration)
-                                .font(AppTheme.Typography.caption)
-                                .fontWeight(.medium)
                         }
-                        .padding(8)
-                        .background(Color.white.opacity(0.1))
-                        .cornerRadius(6)
                     }
                 }
             }
@@ -207,34 +350,22 @@ struct EmployeeDetailView: View {
     }
     
     private var actionsSection: some View {
-        VStack(alignment: .leading, spacing: AppTheme.Spacing.md) {
-            Text("Actions")
-                .font(AppTheme.Typography.headline)
+        HStack {
+            Spacer()
             
-            HStack {
-                if employee.isActive {
-                    Button("Deactivate Employee") {
-                        showDeactivateAlert = true
-                    }
-                    .buttonStyle(PremiumButtonStyle(variant: .destructive))
-                } else {
-                    Button("Activate Employee") {
-                        activateEmployee()
-                    }
-                    .buttonStyle(PremiumButtonStyle(variant: .success))
+            if employee.isActive {
+                Button(action: { showDeactivateAlert = true }) {
+                    Label("Deactivate Employee", systemImage: "person.slash")
                 }
+                .buttonStyle(PremiumButtonStyle(variant: .destructive))
+            } else {
+                Button(action: { activateEmployee() }) {
+                    Label("Activate Employee", systemImage: "person.fill.checkmark")
+                }
+                .buttonStyle(PremiumButtonStyle(variant: .success))
             }
         }
-        .padding(AppTheme.Spacing.lg)
-        .glassCard()
-        .alert("Deactivate Employee", isPresented: $showDeactivateAlert) {
-            Button("Cancel", role: .cancel) {}
-            Button("Deactivate", role: .destructive) {
-                deactivateEmployee()
-            }
-        } message: {
-            Text("This will prevent \(employee.fullName) from logging in. Their data will be preserved.")
-        }
+        .padding(.horizontal, AppTheme.Spacing.lg)
     }
     
     // MARK: - Edit Form View
@@ -281,14 +412,128 @@ struct EmployeeDetailView: View {
                 .buttonStyle(PremiumButtonStyle(variant: .primary))
             }
             .padding(AppTheme.Spacing.lg)
+            .background(AppTheme.Colors.cardBackground)
         }
+    }
+    
+    // MARK: - Sheets
+    
+    private var resetPasswordSheet: some View {
+        VStack(spacing: AppTheme.Spacing.lg) {
+            Text("Reset Password")
+                .font(AppTheme.Typography.title2)
+                .fontWeight(.bold)
+            
+            Text("Create a new password for \(employee.fullName)")
+                .foregroundColor(.secondary)
+            
+            VStack(spacing: 12) {
+                SecureField("New Password", text: $newPassword)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                
+                SecureField("Confirm Password", text: $confirmNewPassword)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                
+                Text("Min 10 chars, uppercase, lowercase, number, symbol")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .padding()
+            
+            if showError {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .font(.caption)
+            }
+            
+            HStack {
+                Button("Cancel") {
+                    showResetPassword = false
+                    showError = false
+                }
+                .buttonStyle(PremiumButtonStyle(variant: .secondary))
+                
+                Button("Update Password") {
+                    resetPassword()
+                }
+                .buttonStyle(PremiumButtonStyle(variant: .primary))
+                .disabled(newPassword.isEmpty || confirmNewPassword.isEmpty)
+            }
+        }
+        .padding(AppTheme.Spacing.xl)
+        .frame(width: 400)
+    }
+    
+    private var resetPINSheet: some View {
+        VStack(spacing: AppTheme.Spacing.lg) {
+            Text("Reset PIN Code")
+                .font(AppTheme.Typography.title2)
+                .fontWeight(.bold)
+            
+            Text("Set a new 6-digit PIN for \(employee.fullName)")
+                .foregroundColor(.secondary)
+            
+            VStack(spacing: 12) {
+                SecureField("New PIN (6 digits)", text: $newPIN)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .onChange(of: newPIN) { _, val in
+                        newPIN = String(val.filter { $0.isNumber }.prefix(6))
+                    }
+                
+                SecureField("Confirm PIN", text: $confirmNewPIN)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .onChange(of: confirmNewPIN) { _, val in
+                        confirmNewPIN = String(val.filter { $0.isNumber }.prefix(6))
+                    }
+            }
+            .padding()
+            
+            if showError {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+                    .font(.caption)
+            }
+            
+            HStack {
+                Button("Cancel") {
+                    showResetPIN = false
+                    showError = false
+                }
+                .buttonStyle(PremiumButtonStyle(variant: .secondary))
+                
+                Button("Update PIN") {
+                    resetPIN()
+                }
+                .buttonStyle(PremiumButtonStyle(variant: .primary))
+                .disabled(newPIN.count != 6 || confirmNewPIN.count != 6)
+            }
+        }
+        .padding(AppTheme.Spacing.xl)
+        .frame(width: 400)
     }
     
     // MARK: - Helper Views
     
+    private struct SectionHeader: View {
+        let title: String
+        let icon: String
+        
+        var body: some View {
+            HStack {
+                Image(systemName: icon)
+                    .foregroundColor(AppTheme.Colors.primary)
+                Text(title)
+                    .font(AppTheme.Typography.headline)
+            }
+            .padding(.bottom, 4)
+        }
+    }
+    
     private struct InfoRow: View {
         let label: String
         let value: String
+        var copyable: Bool = false
         
         var body: some View {
             HStack {
@@ -296,9 +541,16 @@ struct EmployeeDetailView: View {
                     .font(AppTheme.Typography.body)
                     .foregroundColor(.secondary)
                 Spacer()
-                Text(value)
-                    .font(AppTheme.Typography.body)
-                    .fontWeight(.medium)
+                if copyable {
+                    Text(value)
+                        .font(AppTheme.Typography.body)
+                        .fontWeight(.medium)
+                        .textSelection(.enabled)
+                } else {
+                    Text(value)
+                        .font(AppTheme.Typography.body)
+                        .fontWeight(.medium)
+                }
             }
         }
     }
@@ -333,6 +585,39 @@ struct EmployeeDetailView: View {
             )
             
             isEditing = false
+            showSuccessMessage("Profile updated successfully")
+            onUpdate()
+        } catch {
+            showErrorMessage(error.localizedDescription)
+        }
+    }
+    
+    private func resetPassword() {
+        guard newPassword == confirmNewPassword else {
+            showErrorMessage("Passwords do not match")
+            return
+        }
+        
+        do {
+            try employeeService.updateEmployeePassword(employee, newPassword: newPassword)
+            showResetPassword = false
+            showSuccessMessage("Password reset successfully")
+            onUpdate() // Changes pending states typically
+        } catch {
+            showErrorMessage(error.localizedDescription)
+        }
+    }
+    
+    private func resetPIN() {
+        guard newPIN == confirmNewPIN else {
+            showErrorMessage("PINs do not match")
+            return
+        }
+        
+        do {
+            try employeeService.updateEmployee(employee, pinCode: newPIN)
+            showResetPIN = false
+            showSuccessMessage("PIN reset successfully")
             onUpdate()
         } catch {
             showErrorMessage(error.localizedDescription)
@@ -343,6 +628,7 @@ struct EmployeeDetailView: View {
         do {
             try employeeService.deactivateEmployee(employee)
             onUpdate()
+            showSuccessMessage("Employee deactivated")
         } catch {
             showErrorMessage(error.localizedDescription)
         }
@@ -352,6 +638,7 @@ struct EmployeeDetailView: View {
         do {
             try employeeService.activateEmployee(employee)
             onUpdate()
+            showSuccessMessage("Employee activated")
         } catch {
             showErrorMessage(error.localizedDescription)
         }
@@ -365,6 +652,11 @@ struct EmployeeDetailView: View {
     private func showErrorMessage(_ message: String) {
         errorMessage = message
         showError = true
+    }
+    
+    private func showSuccessMessage(_ message: String) {
+        successMessage = message
+        showSuccess = true
     }
     
     // MARK: - Formatters
@@ -384,6 +676,6 @@ struct EmployeeDetailView: View {
     
     private func formatHours(_ seconds: TimeInterval) -> String {
         let hours = seconds / 3600
-        return String(format: "%.1f hours", hours)
+        return String(format: "%.1f hrs", hours)
     }
 }

@@ -41,6 +41,15 @@ struct ProTechApp: App {
                         .frame(minWidth: 600, minHeight: 800)
                 }
             }
+            .onChange(of: authService.isAuthenticated) { _, isAuthenticated in
+                if isAuthenticated {
+                    Task {
+                        await RealtimeManager.shared.startRealtimeSync()
+                    }
+                } else {
+                    RealtimeManager.shared.stopRealtimeSync()
+                }
+            }
             .onOpenURL { url in
                 // Handle deep links for Supabase email confirmations
                 handleDeepLink(url)

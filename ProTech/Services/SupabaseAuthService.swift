@@ -155,26 +155,27 @@ class SupabaseAuthService: ObservableObject {
     }
     
     /// Sign in with PIN (fallback for kiosk mode)
-    func signInWithPIN(employeeNumber: String, pin: String) async throws {
+    func signInWithPIN(pin: String) async throws {
         isLoading = true
         defer { isLoading = false }
         
-        // 1. Fetch employee by employee number
-        let employee: SupabaseEmployee = try await supabase.client
+        let hashedPIN = pin.hashed()
+        
+        // 1. Fetch employee by PIN
+        let employees: [SupabaseEmployee] = try await supabase.client
             .from("employees")
             .select()
-            .eq("employee_number", value: employeeNumber)
-            .single()
+            .eq("pin_code", value: hashedPIN)
+            .limit(1)
             .execute()
             .value
         
-        // 2. Verify PIN
-        guard let storedPIN = employee.pinCode,
-              pin.hashed() == storedPIN else {
-            // Increment failed attempts
-            try await incrementFailedPINAttempts(employee.id)
+        guard let employee = employees.first else {
             throw SupabaseAuthError.invalidPIN
         }
+        
+        // 2. Verify PIN (Implicitly done by query, but double check for safety/logging if needed)
+        // PIN match confirmed by query success
         
         // 3. Check if account is locked
         if let lockedUntil = employee.pinLockedUntil,

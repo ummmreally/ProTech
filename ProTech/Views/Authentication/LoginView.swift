@@ -16,7 +16,8 @@ struct LoginView: View {
     
     @State private var loginMode: LoginMode = .pin
     @State private var pinCode = ""
-    @State private var employeeNumber = "" // For PIN login
+
+    // @State private var employeeNumber = "" // Removed for PIN-only login
     @State private var email = ""
     @State private var password = ""
     @State private var errorMessage = ""
@@ -32,128 +33,159 @@ struct LoginView: View {
     
     var body: some View {
         ZStack {
-            // Background gradient
-            LinearGradient(
-                gradient: Gradient(colors: [Color.blue.opacity(0.6), Color.purple.opacity(0.4)]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
+            // Professional Background
+            ZStack {
+                AppTheme.Colors.background
+                    .ignoresSafeArea()
+                
+                // Subtle gradient overlay for depth
+                LinearGradient(
+                    colors: [
+                        Color(nsColor: .windowBackgroundColor),
+                        Color(nsColor: .windowBackgroundColor).opacity(0.8),
+                        Color.blue.opacity(0.05)
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .ignoresSafeArea()
+                
+                // Ambient orb for modern feel
+                GeometryReader { proxy in
+                    Circle()
+                        .fill(Color.blue.opacity(0.05))
+                        .frame(width: 800, height: 800)
+                        .blur(radius: 100)
+                        .position(x: proxy.size.width * 0.9, y: proxy.size.height * 0.1)
+                    
+                    Circle()
+                        .fill(Color.purple.opacity(0.03))
+                        .frame(width: 600, height: 600)
+                        .blur(radius: 80)
+                        .position(x: proxy.size.width * 0.1, y: proxy.size.height * 0.9)
+                }
+            }
             
-            VStack(spacing: 30) {
-                // Logo and title
-                VStack(spacing: 10) {
-                    // Custom logo or default icon
+            VStack(spacing: 40) {
+                // Logo/Header Section
+                VStack(spacing: 16) {
                     if !customLogoPath.isEmpty, let nsImage = NSImage(contentsOfFile: customLogoPath) {
                         Image(nsImage: nsImage)
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 100, height: 100)
-                            .cornerRadius(12)
-                            .shadow(radius: 10)
+                            .frame(width: 120, height: 120) // Slightly larger
+                            .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 4)
                     } else {
-                        Image(systemName: "lock.shield.fill")
+                        Image(systemName: "shield.check.fill") // More professional icon
                             .font(.system(size: 80))
-                            .foregroundColor(.white)
+                            .foregroundStyle(AppTheme.Colors.primaryGradient)
+                            .shadow(color: .blue.opacity(0.3), radius: 10, x: 0, y: 0)
                     }
                     
                     Text(brandName)
-                        .font(.system(size: 48, weight: .bold))
-                        .foregroundColor(.white)
+                        .font(AppTheme.Typography.largeTitle)
+                        .foregroundColor(.primary)
                     
-                    // Live date and time
-                    Text(currentTime, style: .date)
-                        .font(.title3)
-                        .foregroundColor(.white.opacity(0.9))
-                    + Text(" • ")
-                        .font(.title3)
-                        .foregroundColor(.white.opacity(0.9))
-                    + Text(currentTime, style: .time)
-                        .font(.title3)
-                        .foregroundColor(.white.opacity(0.9))
+                    // Date Time
+                    HStack(spacing: 8) {
+                        Text(currentTime, style: .date)
+                        Text("•")
+                        Text(currentTime, style: .time)
+                    }
+                    .font(AppTheme.Typography.body)
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Capsule())
                 }
-                .padding(.bottom, 20)
+                .padding(.top, 20)
                 
-                // Login card
-                VStack(spacing: 25) {
-                    // Mode selector
+                // Login Card
+                VStack(spacing: 32) {
+                    // Mode Selector
                     Picker("Login Mode", selection: $loginMode) {
-                        Text("PIN").tag(LoginMode.pin)
+                        Text("PIN Code").tag(LoginMode.pin)
                         Text("Password").tag(LoginMode.password)
                     }
                     .pickerStyle(.segmented)
+                    .padding(.horizontal, 4)
                     
-                    // PIN Login
-                    if loginMode == .pin {
-                        pinLoginView
+                    // Login Fields
+                    Group {
+                        if loginMode == .pin {
+                            pinLoginView
+                                .transition(.opacity.combined(with: .move(edge: .leading)))
+                        } else {
+                            passwordLoginView
+                                .transition(.opacity.combined(with: .move(edge: .trailing)))
+                        }
                     }
-                    // Password Login
-                    else {
-                        passwordLoginView
-                    }
+                    // .animation(AppTheme.Animation.standard, value: loginMode)
                     
-                    // Login button
+                    // Login Action
                     Button(action: handleLogin) {
                         if isLoading {
                             ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle())
-                                .scaleEffect(0.8)
+                                .controlSize(.small)
                                 .frame(maxWidth: .infinity)
-                                .padding()
                         } else {
-                            HStack {
-                                Image(systemName: "arrow.right.circle.fill")
-                                Text("Login")
-                                    .fontWeight(.semibold)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
+                            Text("Sign In")
+                                .font(AppTheme.Typography.headline)
+                                .frame(maxWidth: .infinity)
                         }
                     }
-                    .background(Color.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
-                    .buttonStyle(.plain)
+                    .buttonStyle(PremiumButtonStyle(variant: .primary))
                     .disabled(isLoading)
                     .keyboardShortcut(.return)
                     
-                    // Signup link
+                    // Create Account
                     Button("Create Account") {
                         showSignup = true
                     }
-                    .buttonStyle(.link)
-                    .foregroundColor(.blue)
+                    .buttonStyle(LinkButtonStyle())
                 }
-                .padding(30)
-                .background(Color(NSColor.windowBackgroundColor))
-                .cornerRadius(20)
-                .shadow(radius: 20)
-                .frame(width: 400)
+                .padding(40)
+                .frame(width: 420)
+                .glassCard() // Custom DesignSystem modifier
                 
-                // Network status
+                // Network Status Pill
                 if !offlineQueue.isOnline {
-                    HStack {
-                        Image(systemName: "wifi.slash")
-                        Text("Offline Mode - Limited functionality")
-                            .font(.caption)
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(Color.orange)
+                            .frame(width: 8, height: 8)
+                        Text("Offline Mode")
+                            .font(AppTheme.Typography.caption)
+                            .foregroundColor(.orange)
                     }
-                    .foregroundColor(.orange)
-                    .padding(8)
-                    .background(Color.white.opacity(0.9))
-                    .cornerRadius(8)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(Color.orange.opacity(0.1))
+                    .clipShape(Capsule())
                 }
                 
-                // Error message
+                // Error Toast
                 if showError {
-                    Text(errorMessage)
-                        .foregroundColor(.red)
-                        .padding()
-                        .background(Color.white.opacity(0.9))
-                        .cornerRadius(8)
+                    HStack(spacing: 12) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.red)
+                        Text(errorMessage)
+                            .font(AppTheme.Typography.subheadline)
+                            .foregroundColor(.primary)
+                    }
+                    .padding()
+                    .background(.ultraThinMaterial)
+                    .cornerRadius(AppTheme.cardCornerRadius)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
+                            .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                    )
+                    .shadow(color: .black.opacity(0.1), radius: 10)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
                 
                 Spacer()
-                
             }
             .padding()
         }
@@ -163,6 +195,8 @@ struct LoginView: View {
         .sheet(isPresented: $showSignup) {
             SignupView()
         }
+        .animation(AppTheme.Animation.standard, value: showError)
+        .animation(AppTheme.Animation.standard, value: loginMode)
     }
     
     // MARK: - Time Updater
@@ -177,13 +211,19 @@ struct LoginView: View {
     
     private var pinLoginView: some View {
         VStack(spacing: 15) {
-            Text("Enter Employee Number and PIN")
-                .font(.headline)
-                .help("Use your employee number and 6-digit PIN")
+            VStack(spacing: 4) {
+                Text("Enter PIN")
+                    .font(AppTheme.Typography.title3)
+                Text("Use your 6-digit staff PIN")
+                    .font(AppTheme.Typography.caption)
+                    .foregroundColor(.secondary)
+            }
             
+            /*
             TextField("Employee Number", text: $employeeNumber)
                 .textFieldStyle(.roundedBorder)
                 .textContentType(.username)
+            */
             
             SecureField("PIN Code", text: $pinCode)
                 .textFieldStyle(.roundedBorder)
@@ -200,7 +240,7 @@ struct LoginView: View {
             // PIN pad
             VStack(spacing: 12) {
                 ForEach(0..<3) { row in
-                    HStack(spacing: 12) {
+                    HStack(spacing: 16) {
                         ForEach(1...3, id: \.self) { col in
                             let number = row * 3 + col
                             pinButton(number: number)
@@ -208,12 +248,14 @@ struct LoginView: View {
                     }
                 }
                 
-                HStack(spacing: 12) {
+                HStack(spacing: 16) {
                     Button(action: { pinCode = "" }) {
                         Text("Clear")
+                            .font(AppTheme.Typography.subheadline)
+                            .foregroundColor(.red)
                             .frame(width: 80, height: 60)
-                            .background(Color.red.opacity(0.2))
-                            .cornerRadius(8)
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(16)
                     }
                     .buttonStyle(.plain)
                     
@@ -224,17 +266,19 @@ struct LoginView: View {
                             pinCode.removeLast()
                         }
                     }) {
-                        Image(systemName: "delete.left")
+                        Image(systemName: "delete.left.fill")
+                            .font(.title2)
+                            .foregroundColor(.secondary)
                             .frame(width: 80, height: 60)
-                            .background(Color.orange.opacity(0.2))
-                            .cornerRadius(8)
+                            .background(Color.secondary.opacity(0.1))
+                            .cornerRadius(16)
                     }
                     .buttonStyle(.plain)
                 }
             }
             
-            Text("Up to 5 failed attempts allowed. Accounts lock for 15 minutes after repeated failures.")
-                .font(.caption)
+            Text("Session timeout 15 minutes after 5 failed attempts")
+                .font(AppTheme.Typography.caption)
                 .foregroundColor(.secondary)
         }
     }
@@ -246,11 +290,15 @@ struct LoginView: View {
             }
         }) {
             Text("\(number)")
-                .font(.title2)
-                .fontWeight(.medium)
+                .font(.title) // Larger font
+                .fontWeight(.light)
                 .frame(width: 80, height: 60)
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(8)
+                .background(.ultraThinMaterial) // Glass buttons
+                .cornerRadius(16)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.primary.opacity(0.1), lineWidth: 1)
+                )
         }
         .buttonStyle(.plain)
     }
@@ -286,9 +334,9 @@ struct LoginView: View {
         Task {
             do {
                 if loginMode == .pin {
-                    guard !employeeNumber.isEmpty && !pinCode.isEmpty else {
+                    guard !pinCode.isEmpty else {
                         await MainActor.run {
-                            showErrorMessage("Please enter employee number and PIN")
+                            showErrorMessage("Please enter PIN")
                             isLoading = false
                         }
                         return
@@ -298,7 +346,6 @@ struct LoginView: View {
                     if offlineQueue.isOnline {
                         print("🌐 Online - using Supabase PIN auth")
                         try await supabaseAuth.signInWithPIN(
-                            employeeNumber: employeeNumber,
                             pin: pinCode
                         )
                     } else {
@@ -349,7 +396,7 @@ struct LoginView: View {
                     if supabaseAuth.isAuthenticated || oldAuthService.isAuthenticated {
                         print("✅ Authentication successful - clearing form fields")
                         pinCode = ""
-                        employeeNumber = ""
+                        // employeeNumber = ""
                         email = ""
                         password = ""
                     } else {

@@ -29,7 +29,7 @@ class SquareAPIService {
     }
     
     private var baseURL: String {
-        SquareConfig.apiBaseURL
+        normalizeBaseURL(SquareConfig.apiBaseURL)
     }
     
     var isConfigured: Bool {
@@ -38,6 +38,31 @@ class SquareAPIService {
     
     private var clientSecret: String {
         SquareConfig.clientSecret
+    }
+
+    private var terminalBaseURL: String {
+        if let baseURL = configuration?.baseURL, !baseURL.isEmpty {
+            return normalizeBaseURL(baseURL)
+        }
+        return normalizeBaseURL(SquareConfig.environment.baseURL)
+    }
+
+    private var terminalAccessToken: String {
+        if let token = configuration?.accessToken, !token.isEmpty {
+            return token
+        }
+        return SquareConfig.accessToken
+    }
+
+    private func normalizeBaseURL(_ url: String) -> String {
+        var normalized = url
+        while normalized.hasSuffix("/") {
+            normalized.removeLast()
+        }
+        if normalized.hasSuffix("/v2") {
+            normalized = String(normalized.dropLast(3))
+        }
+        return normalized
     }
     
     private let redirectUri = "protech://square-oauth-callback"
@@ -537,18 +562,14 @@ extension SquareAPIService {
         referenceId: String? = nil,
         note: String? = nil
     ) async throws -> TerminalCheckout {
-        guard let config = configuration else {
-            throw SquareAPIError.notConfigured
-        }
-        
-        let endpoint = "/v2/terminal/checkouts"
-        let url = URL(string: "\(config.baseURL)\(endpoint)")!
+        let endpoint = "/v2/terminals/checkouts"
+        let url = URL(string: "\(terminalBaseURL)\(endpoint)")!
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(config.accessToken ?? "")", forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer \(terminalAccessToken)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.setValue("2024-10-17", forHTTPHeaderField: "Square-Version")
+        request.setValue("2025-10-16", forHTTPHeaderField: "Square-Version")
         
         let checkoutRequest = TerminalCheckoutRequest(
             idempotencyKey: UUID().uuidString,
@@ -586,17 +607,13 @@ extension SquareAPIService {
     
     /// Gets the status of a Terminal Checkout
     func getTerminalCheckout(checkoutId: String) async throws -> TerminalCheckout {
-        guard let config = configuration else {
-            throw SquareAPIError.notConfigured
-        }
-        
-        let endpoint = "/v2/terminal/checkouts/\(checkoutId)"
-        let url = URL(string: "\(config.baseURL)\(endpoint)")!
+        let endpoint = "/v2/terminals/checkouts/\(checkoutId)"
+        let url = URL(string: "\(terminalBaseURL)\(endpoint)")!
         
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
-        request.setValue("Bearer \(config.accessToken ?? "")", forHTTPHeaderField: "Authorization")
-        request.setValue("2024-10-17", forHTTPHeaderField: "Square-Version")
+        request.setValue("Bearer \(terminalAccessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("2025-10-16", forHTTPHeaderField: "Square-Version")
         
         let (data, response) = try await session.data(for: request)
         
@@ -622,17 +639,13 @@ extension SquareAPIService {
     
     /// Cancels a Terminal Checkout
     func cancelTerminalCheckout(checkoutId: String) async throws -> TerminalCheckout {
-        guard let config = configuration else {
-            throw SquareAPIError.notConfigured
-        }
-        
-        let endpoint = "/v2/terminal/checkouts/\(checkoutId)/cancel"
-        let url = URL(string: "\(config.baseURL)\(endpoint)")!
+        let endpoint = "/v2/terminals/checkouts/\(checkoutId)/cancel"
+        let url = URL(string: "\(terminalBaseURL)\(endpoint)")!
         
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue("Bearer \(config.accessToken ?? "")", forHTTPHeaderField: "Authorization")
-        request.setValue("2024-10-17", forHTTPHeaderField: "Square-Version")
+        request.setValue("Bearer \(terminalAccessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("2025-10-16", forHTTPHeaderField: "Square-Version")
         
         let (data, response) = try await session.data(for: request)
         
@@ -658,30 +671,86 @@ extension SquareAPIService {
     
     /// Lists available Terminal devices
     func listTerminalDevices() async throws -> [TerminalDevice] {
-        guard let config = configuration else {
-            throw SquareAPIError.notConfigured
+        do {
+            // Preferred (but beta): List Devices
+            let endpoint = "/v2/devices"
+            let url = URL(string: "\(terminalBaseURL)\(endpoint)")!
+
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.setValue("Bearer \(terminalAccessToken)", forHTTPHeaderField: "Authorization")
+            request.setValue("2025-10-16", forHTTPHeaderField: "Square-Version")
+
+            let (data, response) = try await session.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw SquareAPIError.networkError(NSError(domain: "Invalid response", code: -1))
+            }
+
+            guard httpResponse.statusCode == 200 else {
+                throw SquareAPIError.httpError(statusCode: httpResponse.statusCode)
+            }
+
+            let devicesResponse = try JSONDecoder().decode(SquareDevicesResponse.self, from: data)
+            let devices = devicesResponse.devices ?? []
+
+            return devices
+                .filter { device in
+                    guard let type = device.attributes?.type else { return false }
+                    return type == "TERMINAL" || type == "HANDHELD"
+                }
+                .map { device in
+                    TerminalDevice(
+                        id: device.id,
+                        name: device.attributes?.name,
+                        type: device.attributes?.type,
+                        status: device.status?.category
+                    )
+                }
+        } catch {
+            // Fallback (stable): List Device Codes and use paired device_id
+            var components = URLComponents(string: "\(terminalBaseURL)/v2/devices/codes")!
+            components.queryItems = [
+                URLQueryItem(name: "status", value: "PAIRED"),
+                URLQueryItem(name: "product_type", value: "TERMINAL_API")
+            ]
+
+            let url = components.url!
+            var request = URLRequest(url: url)
+            request.httpMethod = "GET"
+            request.setValue("Bearer \(terminalAccessToken)", forHTTPHeaderField: "Authorization")
+            request.setValue("2025-10-16", forHTTPHeaderField: "Square-Version")
+
+            let (data, response) = try await session.data(for: request)
+
+            guard let httpResponse = response as? HTTPURLResponse else {
+                throw SquareAPIError.networkError(NSError(domain: "Invalid response", code: -1))
+            }
+
+            guard httpResponse.statusCode == 200 else {
+                throw SquareAPIError.httpError(statusCode: httpResponse.statusCode)
+            }
+
+            let codesResponse = try JSONDecoder().decode(SquareDeviceCodesResponse.self, from: data)
+            let codes = codesResponse.deviceCodes ?? []
+
+            let pairedDevices: [TerminalDevice] = codes
+                .compactMap { code in
+                    guard let deviceId = code.deviceId, !deviceId.isEmpty else { return nil }
+                    return TerminalDevice(
+                        id: deviceId,
+                        name: code.name,
+                        type: "TERMINAL_API",
+                        status: code.status
+                    )
+                }
+
+            if pairedDevices.isEmpty {
+                throw SquareAPIError.apiError(message: "No paired Square Terminal found. Pair a terminal using a device code first.")
+            }
+
+            return pairedDevices
         }
-        
-        let endpoint = "/v2/devices/codes"
-        let url = URL(string: "\(config.baseURL)\(endpoint)")!
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.setValue("Bearer \(config.accessToken ?? "")", forHTTPHeaderField: "Authorization")
-        request.setValue("2024-10-17", forHTTPHeaderField: "Square-Version")
-        
-        let (data, response) = try await session.data(for: request)
-        
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw SquareAPIError.networkError(NSError(domain: "Invalid response", code: -1))
-        }
-        
-        guard httpResponse.statusCode == 200 else {
-            throw SquareAPIError.httpError(statusCode: httpResponse.statusCode)
-        }
-        
-        let devicesResponse = try JSONDecoder().decode(TerminalDevicesResponse.self, from: data)
-        return devicesResponse.deviceCodes ?? []
     }
 }
 
@@ -769,28 +838,48 @@ struct TerminalCheckout: Codable {
     }
 }
 
-struct TerminalDevice: Codable, Identifiable {
+struct TerminalDevice: Identifiable {
     let id: String
     let name: String?
-    let deviceId: String
-    let code: String
+    let type: String?
     let status: String?
-    
+}
+
+struct SquareDevicesResponse: Codable {
+    let devices: [SquareDevice]?
+    let cursor: String?
+}
+
+struct SquareDevice: Codable {
+    let id: String
+    let attributes: SquareDeviceAttributes?
+    let status: SquareDeviceStatus?
+}
+
+struct SquareDeviceAttributes: Codable {
+    let type: String?
+    let manufacturer: String?
+    let model: String?
+    let name: String?
+    let manufacturersId: String?
+    let updatedAt: String?
+    let version: String?
+    let merchantToken: String?
+
     enum CodingKeys: String, CodingKey {
-        case id
+        case type
+        case manufacturer
+        case model
         case name
-        case deviceId = "device_id"
-        case code
-        case status
+        case manufacturersId = "manufacturers_id"
+        case updatedAt = "updated_at"
+        case version
+        case merchantToken = "merchant_token"
     }
 }
 
-struct TerminalDevicesResponse: Codable {
-    let deviceCodes: [TerminalDevice]?
-    
-    enum CodingKeys: String, CodingKey {
-        case deviceCodes = "device_codes"
-    }
+struct SquareDeviceStatus: Codable {
+    let category: String?
 }
 
 // MARK: - Customer API Extension
@@ -959,5 +1048,160 @@ extension SquareAPIService {
         
         let (data, response) = try await session.data(for: request)
         try validateResponse(response, data: data)
+    }
+}
+
+// MARK: - Payment API Extension
+
+extension SquareAPIService {
+    
+    /// Lists payments with optional date range
+    func listPayments(beginTime: Date? = nil, endTime: Date? = nil, cursor: String? = nil, limit: Int = 100) async throws -> ListPaymentsResponse {
+        guard let config = configuration else {
+            throw SquareAPIError.notConfigured
+        }
+        
+        var components = URLComponents(string: "\(config.baseURL)/v2/payments")!
+        var queryItems: [URLQueryItem] = []
+        
+        let formatter = ISO8601DateFormatter()
+        
+        if let beginTime = beginTime {
+            queryItems.append(URLQueryItem(name: "begin_time", value: formatter.string(from: beginTime)))
+        }
+        
+        if let endTime = endTime {
+            queryItems.append(URLQueryItem(name: "end_time", value: formatter.string(from: endTime)))
+        }
+        
+        if let cursor = cursor {
+            queryItems.append(URLQueryItem(name: "cursor", value: cursor))
+        }
+        
+        queryItems.append(URLQueryItem(name: "limit", value: String(limit)))
+        
+        if !queryItems.isEmpty {
+            components.queryItems = queryItems
+        }
+        
+        let request = try createAuthenticatedRequest(url: components.url!, method: "GET")
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response, data: data)
+        
+        return try JSONDecoder().decode(ListPaymentsResponse.self, from: data)
+    }
+    
+    /// Gets a specific payment by ID
+    func getPayment(paymentId: String) async throws -> SquarePayment {
+        guard let config = configuration else {
+            throw SquareAPIError.notConfigured
+        }
+        
+        let url = URL(string: "\(config.baseURL)/v2/payments/\(paymentId)")!
+        let request = try createAuthenticatedRequest(url: url, method: "GET")
+        
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response, data: data)
+        
+        // Check if there are errors first (Square API style)
+        if let errorResponse = try? JSONDecoder().decode(PaymentResponse.self, from: data), let errors = errorResponse.errors, !errors.isEmpty {
+            throw SquareAPIError.apiError(message: errors.first?.detail ?? "Payment error")
+        }
+        
+        let paymentResponse = try JSONDecoder().decode(PaymentResponse.self, from: data)
+        guard let payment = paymentResponse.payment else {
+            throw SquareAPIError.apiError(message: "Payment not found")
+        }
+        
+        return payment
+    }
+
+    /// Records a completed cash payment in Square (so cash sales show up in Square reporting)
+    func createCashPayment(
+        amount: Int,
+        customerId: String? = nil,
+        referenceId: String? = nil,
+        note: String? = nil
+    ) async throws -> SquarePayment {
+        let url = URL(string: "\(baseURL)/v2/payments")!
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("2025-10-16", forHTTPHeaderField: "Square-Version")
+
+        let createRequest = CreatePaymentRequest(
+            idempotencyKey: UUID().uuidString,
+            sourceId: "CASH",
+            amountMoney: Money(amount: amount, currency: "USD"),
+            locationId: nil,
+            autocomplete: true,
+            customerId: nil,
+            referenceId: referenceId,
+            note: note
+        )
+
+        request.httpBody = try JSONEncoder().encode(createRequest)
+
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(response, data: data)
+
+        let paymentResponse = try JSONDecoder().decode(PaymentResponse.self, from: data)
+        if let errors = paymentResponse.errors, let firstError = errors.first {
+            throw SquareAPIError.apiError(message: firstError.detail ?? firstError.code)
+        }
+
+        guard let payment = paymentResponse.payment else {
+            throw SquareAPIError.apiError(message: "Failed to create cash payment")
+        }
+
+        return payment
+    }
+
+    func createDeviceCode(name: String? = nil) async throws -> SquareDeviceCode {
+        let url = URL(string: "\(terminalBaseURL)/v2/devices/codes")!
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(terminalAccessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("2025-10-16", forHTTPHeaderField: "Square-Version")
+
+        let body = CreateDeviceCodeRequest(
+            idempotencyKey: UUID().uuidString,
+            deviceCode: CreateDeviceCodeData(
+                name: name,
+                productType: "TERMINAL_API",
+                locationId: SquareConfig.locationId
+            )
+        )
+
+        request.httpBody = try JSONEncoder().encode(body)
+
+        let (data, response) = try await session.data(for: request)
+        
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw SquareAPIError.networkError(NSError(domain: "Invalid response", code: -1))
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            if let errorResponse = try? JSONDecoder().decode(SquareErrorResponse.self, from: data),
+               let firstError = errorResponse.errors?.first {
+                throw SquareAPIError.apiError(message: firstError.detail ?? "Failed to create device code")
+            }
+            throw SquareAPIError.httpError(statusCode: httpResponse.statusCode)
+        }
+
+        let decoded = try JSONDecoder().decode(CreateDeviceCodeResponse.self, from: data)
+        if let errors = decoded.errors, let firstError = errors.first {
+            throw SquareAPIError.apiError(message: firstError.detail ?? firstError.code)
+        }
+
+        guard let deviceCode = decoded.deviceCode else {
+            throw SquareAPIError.apiError(message: "Failed to create device code")
+        }
+
+        return deviceCode
     }
 }
