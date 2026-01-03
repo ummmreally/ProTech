@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Supabase
 
 struct PointOfSaleView: View {
     @Environment(\.dismiss) private var dismiss
@@ -52,6 +53,118 @@ struct PointOfSaleView: View {
     init() {
         self.historyService = CustomerHistoryService()
     }
+
+// MARK: - Square Sales Edge Function Types
+
+private struct SquareSalesCreateTerminalCheckoutRequest: Encodable {
+    let action = "create_terminal_checkout"
+    let deviceId: String
+    let amountCents: Int
+    let referenceId: String?
+    let note: String?
+    let squareCustomerId: String?
+
+    enum CodingKeys: String, CodingKey {
+        case action
+        case deviceId = "device_id"
+        case amountCents = "amount_cents"
+        case referenceId = "reference_id"
+        case note
+        case squareCustomerId = "square_customer_id"
+    }
+}
+
+private struct SquareSalesCreateTerminalCheckoutResponse: Decodable {
+    let ok: Bool
+    let orderId: String
+    let checkoutId: String
+    let checkoutStatus: String
+    let paymentIds: [String]
+
+    enum CodingKeys: String, CodingKey {
+        case ok
+        case orderId = "order_id"
+        case checkoutId = "checkout_id"
+        case checkoutStatus = "checkout_status"
+        case paymentIds = "payment_ids"
+    }
+}
+
+private struct SquareSalesGetTerminalCheckoutRequest: Encodable {
+    let action = "get_terminal_checkout"
+    let checkoutId: String
+
+    enum CodingKeys: String, CodingKey {
+        case action
+        case checkoutId = "checkout_id"
+    }
+}
+
+private struct SquareSalesGetTerminalCheckoutResponse: Decodable {
+    let ok: Bool
+    let checkoutId: String
+    let checkoutStatus: String
+    let paymentIds: [String]
+
+    enum CodingKeys: String, CodingKey {
+        case ok
+        case checkoutId = "checkout_id"
+        case checkoutStatus = "checkout_status"
+        case paymentIds = "payment_ids"
+    }
+}
+
+private struct SquareSalesCancelTerminalCheckoutRequest: Encodable {
+    let action = "cancel_terminal_checkout"
+    let checkoutId: String
+
+    enum CodingKeys: String, CodingKey {
+        case action
+        case checkoutId = "checkout_id"
+    }
+}
+
+private struct SquareSalesCancelTerminalCheckoutResponse: Decodable {
+    let ok: Bool
+    let checkoutId: String
+    let checkoutStatus: String
+    let paymentIds: [String]
+
+    enum CodingKeys: String, CodingKey {
+        case ok
+        case checkoutId = "checkout_id"
+        case checkoutStatus = "checkout_status"
+        case paymentIds = "payment_ids"
+    }
+}
+
+private struct SquareSalesCreateCashPaymentRequest: Encodable {
+    let action = "create_cash_payment"
+    let amountCents: Int
+    let referenceId: String?
+    let note: String?
+    let squareCustomerId: String?
+
+    enum CodingKeys: String, CodingKey {
+        case action
+        case amountCents = "amount_cents"
+        case referenceId = "reference_id"
+        case note
+        case squareCustomerId = "square_customer_id"
+    }
+}
+
+private struct SquareSalesCreateCashPaymentResponse: Decodable {
+    let ok: Bool
+    let orderId: String
+    let paymentId: String
+
+    enum CodingKeys: String, CodingKey {
+        case ok
+        case orderId = "order_id"
+        case paymentId = "payment_id"
+    }
+}
     
     enum LeftPanelTab: String, CaseIterable {
         case products = "Products"
@@ -789,18 +902,24 @@ struct PointOfSaleView: View {
                     squarePaymentStatus = "Recording cash payment in Square..."
                 }
 
-                let payment = try await SquareAPIService.shared.createCashPayment(
-                    amount: amountInCents,
-                    customerId: selectedCustomer?.squareCustomerId,
-                    referenceId: "POS-\(UUID().uuidString.prefix(8))",
-                    note: "ProTech POS Sale (Cash)"
+                let referenceId = "POS-\(UUID().uuidString.prefix(8))"
+                let response: SquareSalesCreateCashPaymentResponse = try await SupabaseService.shared.client.functions.invoke(
+                    "square-sales",
+                    options: FunctionInvokeOptions(
+                        body: SquareSalesCreateCashPaymentRequest(
+                            amountCents: amountInCents,
+                            referenceId: referenceId,
+                            note: "ProTech POS Sale (Cash)",
+                            squareCustomerId: selectedCustomer?.squareCustomerId
+                        )
+                    )
                 )
 
                 _ = try? historyService.savePurchase(
                     customer: selectedCustomer,
                     cart: cart,
                     paymentMethod: "cash",
-                    squareTransactionId: payment.id,
+                    squareTransactionId: response.paymentId,
                     discount: discountAmount
                 )
 
@@ -841,22 +960,28 @@ struct PointOfSaleView: View {
                     isProcessingSquare = true
                     squarePaymentStatus = "Creating checkout..."
                 }
-                
-                // Create terminal checkout
-                let checkout = try await SquareAPIService.shared.createTerminalCheckout(
-                    amount: amountInCents,
-                    deviceId: deviceId,
-                    referenceId: "POS-\(UUID().uuidString.prefix(8))",
-                    note: "ProTech POS Sale"
+
+                let referenceId = "POS-\(UUID().uuidString.prefix(8))"
+                let checkoutResponse: SquareSalesCreateTerminalCheckoutResponse = try await SupabaseService.shared.client.functions.invoke(
+                    "square-sales",
+                    options: FunctionInvokeOptions(
+                        body: SquareSalesCreateTerminalCheckoutRequest(
+                            deviceId: deviceId,
+                            amountCents: amountInCents,
+                            referenceId: referenceId,
+                            note: "ProTech POS Sale",
+                            squareCustomerId: selectedCustomer?.squareCustomerId
+                        )
+                    )
                 )
                 
                 await MainActor.run {
-                    terminalCheckoutId = checkout.id
+                    terminalCheckoutId = checkoutResponse.checkoutId
                     squarePaymentStatus = "Waiting for payment on terminal..."
                 }
                 
                 // Poll for checkout completion
-                let completed = try await pollCheckoutStatus(checkoutId: checkout.id)
+                let completed = try await pollCheckoutStatus(checkoutId: checkoutResponse.checkoutId)
                 
                 if completed {
                     // Save purchase history
@@ -864,7 +989,7 @@ struct PointOfSaleView: View {
                         customer: selectedCustomer,
                         cart: cart,
                         paymentMethod: "card",
-                        squareCheckoutId: checkout.id,
+                        squareCheckoutId: checkoutResponse.checkoutId,
                         discount: discountAmount
                     )
                     
@@ -898,16 +1023,21 @@ struct PointOfSaleView: View {
         // Poll every 2 seconds for up to 5 minutes
         for _ in 0..<150 {
             try await Task.sleep(nanoseconds: 2_000_000_000) // 2 seconds
-            
-            let checkout = try await SquareAPIService.shared.getTerminalCheckout(checkoutId: checkoutId)
-            
+
+            let statusResponse: SquareSalesGetTerminalCheckoutResponse = try await SupabaseService.shared.client.functions.invoke(
+                "square-sales",
+                options: FunctionInvokeOptions(
+                    body: SquareSalesGetTerminalCheckoutRequest(checkoutId: checkoutId)
+                )
+            )
+
             await MainActor.run {
-                squarePaymentStatus = "Status: \(checkout.status)"
+                squarePaymentStatus = "Status: \(statusResponse.checkoutStatus)"
             }
-            
-            if checkout.isCompleted {
+
+            if statusResponse.checkoutStatus == "COMPLETED" {
                 return true
-            } else if checkout.isCanceled {
+            } else if statusResponse.checkoutStatus == "CANCELED" {
                 return false
             }
             // Continue polling if pending
@@ -924,7 +1054,12 @@ struct PointOfSaleView: View {
         
         Task {
             do {
-                _ = try await SquareAPIService.shared.cancelTerminalCheckout(checkoutId: checkoutId)
+                let _: SquareSalesCancelTerminalCheckoutResponse = try await SupabaseService.shared.client.functions.invoke(
+                    "square-sales",
+                    options: FunctionInvokeOptions(
+                        body: SquareSalesCancelTerminalCheckoutRequest(checkoutId: checkoutId)
+                    )
+                )
                 await MainActor.run {
                     isProcessingSquare = false
                     terminalCheckoutId = nil

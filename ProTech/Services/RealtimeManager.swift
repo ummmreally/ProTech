@@ -108,32 +108,32 @@ class RealtimeManager: ObservableObject {
         let employeeChanges = channel.postgresChange(AnyAction.self, schema: "public", table: "employees")
         let appointmentChanges = channel.postgresChange(AnyAction.self, schema: "public", table: "appointments")
         
-        await channel.subscribe()
+        try await channel.subscribeWithError()
         
         changeTasks = [
             Task { [weak self] in
                 for await _ in customerChanges {
-                    await self?.scheduleSync(.customers)
+                    self?.scheduleSync(.customers)
                 }
             },
             Task { [weak self] in
                 for await _ in ticketChanges {
-                    await self?.scheduleSync(.tickets)
+                    self?.scheduleSync(.tickets)
                 }
             },
             Task { [weak self] in
                 for await _ in inventoryChanges {
-                    await self?.scheduleSync(.inventory)
+                    self?.scheduleSync(.inventory)
                 }
             },
             Task { [weak self] in
                 for await _ in employeeChanges {
-                    await self?.scheduleSync(.employees)
+                    self?.scheduleSync(.employees)
                 }
             },
             Task { [weak self] in
                 for await _ in appointmentChanges {
-                    await self?.scheduleSync(.appointments)
+                    self?.scheduleSync(.appointments)
                 }
             }
         ]
