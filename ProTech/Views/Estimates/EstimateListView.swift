@@ -204,8 +204,13 @@ struct EstimateListView: View {
     }
     
     private func duplicateEstimate(_ estimate: Estimate) {
-        let _ = EstimateService.shared.duplicateEstimate(estimate)
-        // Estimate will automatically appear in list due to @FetchRequest
+        do {
+            let _ = try EstimateService.shared.duplicateEstimate(estimate)
+            // Estimate will automatically appear in list due to @FetchRequest
+        } catch {
+            print("Error duplicating estimate: \(error.localizedDescription)")
+            // Ideally show an alert here, but print is better than crash for now
+        }
     }
     
     private func deleteEstimate(_ estimate: Estimate) {

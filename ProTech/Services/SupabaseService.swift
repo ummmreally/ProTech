@@ -23,9 +23,13 @@ class SupabaseService: ObservableObject {
     private init() {
         let authOptions = SupabaseClientOptions.AuthOptions(emitLocalSessionAsInitialSession: true)
         let clientOptions = SupabaseClientOptions(auth: authOptions)
+        
+        // Use ProductionConfig for credentials
+        let env = ProductionConfig.shared.currentEnvironment
+        
         self.client = SupabaseClient(
-            supabaseURL: URL(string: SupabaseConfig.supabaseURL)!,
-            supabaseKey: SupabaseConfig.supabaseAnonKey,
+            supabaseURL: URL(string: env.supabaseURL)!,
+            supabaseKey: env.supabaseAnonKey,
             options: clientOptions
         )
         self.isInitialized = true

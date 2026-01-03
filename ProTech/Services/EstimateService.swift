@@ -68,10 +68,11 @@ class EstimateService {
     }
     
     /// Duplicate an existing estimate
-    func duplicateEstimate(_ estimate: Estimate) -> Estimate {
+    /// Duplicate an existing estimate
+    func duplicateEstimate(_ estimate: Estimate) throws -> Estimate {
         // Create new estimate with same customer
         guard let customerId = estimate.customerId else {
-            fatalError("Estimate must have a customerId")
+            throw NSError(domain: "EstimateService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Estimate missing customer ID"])
         }
         
         let newEstimate = Estimate(context: context)

@@ -21,7 +21,7 @@ class SecurityAuditService: ObservableObject {
     @Published var lastAuditDate: Date?
     
     private let supabase = SupabaseService.shared
-    private let config = ConfigurationManager.shared
+    private let config = ProductionConfig.shared
     
     // MARK: - Main Audit
     

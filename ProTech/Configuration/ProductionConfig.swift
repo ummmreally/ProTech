@@ -14,25 +14,32 @@ enum AppEnvironment: String, CaseIterable, Codable {
     case staging = "Staging"
     case production = "Production"
     
+    // TechMedics Project (ucpgsubidqbhxstgykyt) - Default/Fallback
+    static let defaultSupabaseURL = "https://ucpgsubidqbhxstgykyt.supabase.co"
+    static let defaultSupabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcGdzdWJpZHFiaHhzdGd5a3l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5MjI3NzYsImV4cCI6MjA2NTQ5ODc3Nn0.pW1nwjWlh_igmFnXp7zEMgdhJuwQwvNrtCrG8w3Si4k"
+
     var supabaseURL: String {
         switch self {
         case .development:
-            return "https://sztwxxwnhupwmvxhbzyo.supabase.co"
+            // Use the verified TechMedics project for dev as well to ensure consistency
+            return AppEnvironment.defaultSupabaseURL
         case .staging:
             return "https://staging-project.supabase.co"
         case .production:
-            return UserDefaults.standard.string(forKey: "production_supabase_url") ?? ""
+            let stored = UserDefaults.standard.string(forKey: "production_supabase_url") ?? ""
+            return stored.isEmpty ? AppEnvironment.defaultSupabaseURL : stored
         }
     }
     
     var supabaseAnonKey: String {
         switch self {
         case .development:
-            return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN6dHd4eHduaHVwd212eGhienlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY5NzMxMjEsImV4cCI6MjA1MjU0OTEyMX0.JQSjAC_-GByJfj-AqpqBylPLdmK9MZy8V-f8vQsCaHc"
+            return AppEnvironment.defaultSupabaseKey
         case .staging:
             return "staging-anon-key"
         case .production:
-            return UserDefaults.standard.string(forKey: "production_supabase_key") ?? ""
+            let stored = UserDefaults.standard.string(forKey: "production_supabase_key") ?? ""
+            return stored.isEmpty ? AppEnvironment.defaultSupabaseKey : stored
         }
     }
     
@@ -128,8 +135,8 @@ enum AppEnvironment: String, CaseIterable, Codable {
 
 // MARK: - Configuration Manager
 
-class ConfigurationManager {
-    static let shared = ConfigurationManager()
+class ProductionConfig {
+    static let shared = ProductionConfig()
     
     // Current environment
     private(set) var currentEnvironment: AppEnvironment {
@@ -390,7 +397,7 @@ extension Notification.Name {
 
 // MARK: - Environment Validation
 
-extension ConfigurationManager {
+extension ProductionConfig {
     
     /// Validates that the current environment is properly configured
     func validateConfiguration() -> [ConfigurationIssue] {

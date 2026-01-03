@@ -57,9 +57,7 @@ struct InventoryItemDetailView: View {
                             
                         }
                     }
-                    .padding()
-                    .background(Color(NSColor.controlBackgroundColor))
-                    .cornerRadius(12)
+                    .premiumCard()
                     
                     // Quick Stats
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
@@ -106,9 +104,7 @@ struct InventoryItemDetailView: View {
                                 .disabled(item.quantity <= 0)
                             }
                         }
-                        .padding()
-                        .background(Color(NSColor.controlBackgroundColor))
-                        .cornerRadius(12)
+                        .premiumCard()
                         
                         Button {
                             showingStockAdjustment = true
@@ -135,8 +131,7 @@ struct InventoryItemDetailView: View {
                             Divider()
                             InventoryDetailRow(label: "Selling Price", value: String(format: "$%.2f", item.priceDouble))
                         }
-                        .background(Color(NSColor.controlBackgroundColor))
-                        .cornerRadius(12)
+                        .premiumCard()
                     }
                     
                     // Stock History
@@ -199,6 +194,7 @@ struct InventoryItemDetailView: View {
             .onAppear {
                 loadStockHistory()
             }
+            .background(AppTheme.Colors.groupedBackground)
         }
         .frame(width: 700, height: 800)
     }
@@ -264,9 +260,8 @@ struct QuickStatCard: View {
                 .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(12)
+        .frame(maxWidth: .infinity)
+        .premiumCard()
     }
 }
 
@@ -322,9 +317,7 @@ struct StockAdjustmentRow: View {
                 }
             }
         }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
+        .premiumCard()
     }
     
     private var adjustmentIcon: String {
@@ -409,7 +402,7 @@ struct InventoryHistorySheet: View {
                             .textFieldStyle(.plain)
                     }
                     .padding(10)
-                    .background(Color.gray.opacity(0.1))
+                    .background(AppTheme.Colors.groupedBackground)
                     .cornerRadius(8)
                     
                     // Filters
@@ -512,6 +505,7 @@ struct InventoryHistorySheet: View {
             }
         }
         .frame(width: 700, height: 600)
+        .background(AppTheme.Colors.cardBackground)
     }
     
     private func exportToCSV() {
@@ -629,9 +623,7 @@ struct DetailedStockAdjustmentRow: View {
                 }
             }
         }
-        .padding()
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(8)
+        .premiumCard()
     }
     
     private var adjustmentIcon: String {

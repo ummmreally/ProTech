@@ -48,10 +48,14 @@ class InventorySyncer: ObservableObject {
             syncVersion: 1 // Default sync version
         )
         
-        try await supabase.client
-            .from("inventory_items")
-            .upsert(supabaseItem)
-            .execute()
+        do {
+            try await supabase.client
+                .from("inventory_items")
+                .upsert(supabaseItem)
+                .execute()
+        } catch {
+            throw SyncError.networkError(error)
+        }
         
         // Mark as synced
         item.cloudSyncStatus = "synced"
@@ -66,9 +70,9 @@ class InventorySyncer: ObservableObject {
         
         let pendingItems = try coreData.viewContext.fetch(request)
         
-        for item in pendingItems {
-            try await upload(item)
-        }
+        if pendingItems.isEmpty { return }
+        
+        try await batchUpload(pendingItems)
     }
     
     // MARK: - Download
@@ -82,14 +86,19 @@ class InventorySyncer: ObservableObject {
         isSyncing = true
         defer { isSyncing = false }
         
-        let remoteItems: [SupabaseInventoryItem] = try await supabase.client
-            .from("inventory_items")
-            .select()
-            .eq("shop_id", value: shopId.uuidString)
-            .is("deleted_at", value: nil)
-            .order("name", ascending: true)
-            .execute()
-            .value
+        let remoteItems: [SupabaseInventoryItem]
+        do {
+            remoteItems = try await supabase.client
+                .from("inventory_items")
+                .select()
+                .eq("shop_id", value: shopId.uuidString)
+                .is("deleted_at", value: nil)
+                .order("name", ascending: true)
+                .execute()
+                .value
+        } catch {
+            throw SyncError.networkError(error)
+        }
         
         for remote in remoteItems {
             try await mergeOrCreate(remote)
@@ -154,14 +163,19 @@ class InventorySyncer: ObservableObject {
             throw SyncError.notAuthenticated
         }
         
-        let remoteItems: [SupabaseInventoryItem] = try await supabase.client
-            .from("inventory_items")
-            .select()
-            .eq("shop_id", value: shopId.uuidString)
-            .is("deleted_at", value: nil)
-            .lte("quantity", value: "min_quantity")
-            .execute()
-            .value
+        let remoteItems: [SupabaseInventoryItem]
+        do {
+            remoteItems = try await supabase.client
+                .from("inventory_items")
+                .select()
+                .eq("shop_id", value: shopId.uuidString)
+                .is("deleted_at", value: nil)
+                .lte("quantity", value: "min_quantity")
+                .execute()
+                .value
+        } catch {
+            throw SyncError.networkError(error)
+        }
         
         // Update local with low stock items
         for remote in remoteItems {
@@ -219,44 +233,32 @@ class InventorySyncer: ObservableObject {
     
     // MARK: - Realtime Subscriptions
     
-    /// Subscribe to realtime changes for inventory
-    func subscribeToChanges() async {
-        // TODO: Implement proper Supabase Realtime API
-        print("Realtime subscriptions not yet implemented for InventorySyncer")
-    }
-    
-    // TODO: Uncomment when Supabase Realtime types are available
-    /*
-    private func handleRealtimeChange(_ payload: PostgresChangePayload) async {
-        guard let record = payload.record else { return }
-        
+    /// Process remote upsert from RealtimeManager
+    func processRemoteUpsert(_ record: SupabaseInventoryItem) async {
         do {
-            let jsonData = try JSONSerialization.data(withJSONObject: record)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            decoder.keyDecodingStrategy = .convertFromSnakeCase
-            
-            let remoteItem = try decoder.decode(SupabaseInventoryItem.self, from: jsonData)
-            
-            switch payload.eventType {
-            case .insert, .update:
-                try await mergeOrCreate(remoteItem)
-                
-                // Check if low stock alert is needed
-                if remoteItem.quantity <= remoteItem.minQuantity {
-                    await sendLowStockNotification(remoteItem)
-                }
-            case .delete:
-                try await deleteLocal(id: remoteItem.id)
-            default:
-                break
+            try await mergeOrCreate(record)
+            // Check if low stock alert is needed
+            if record.quantity <= record.minQuantity {
+                await sendLowStockNotification(record)
             }
         } catch {
-            print("Failed to handle realtime change: \(error)")
-            syncError = error
+            print("Failed to process remote upsert: \(error)")
         }
     }
-    */
+    
+    /// Process remote delete from RealtimeManager
+    func processRemoteDelete(_ id: UUID) async {
+        do {
+            try await deleteLocal(id: id)
+        } catch {
+             print("Failed to process remote delete: \(error)")
+        }
+    }
+    
+    // Kept for backward compatibility
+    func subscribeToChanges() async {
+        // Managed by RealtimeManager
+    }
     
     private func deleteLocal(id: UUID) async throws {
         let request: NSFetchRequest<InventoryItem> = InventoryItem.fetchRequest()
@@ -314,10 +316,14 @@ class InventorySyncer: ObservableObject {
         // Upload in batches of 100
         let batchSize = 100
         for batch in supabaseItems.chunked(into: batchSize) {
-            try await supabase.client
-                .from("inventory_items")
-                .upsert(batch)
-                .execute()
+            do {
+                try await supabase.client
+                    .from("inventory_items")
+                    .upsert(batch)
+                    .execute()
+            } catch {
+                throw SyncError.networkError(error)
+            }
         }
         
         // Mark all as synced

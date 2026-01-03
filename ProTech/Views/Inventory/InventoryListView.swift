@@ -100,8 +100,9 @@ struct InventoryListView: View {
                     }
                 }
                 .padding(AppTheme.Spacing.sm)
-                .background(AppTheme.Colors.cardBackground.opacity(0.5))
+                .background(AppTheme.Colors.cardBackground)
                 .cornerRadius(AppTheme.cardCornerRadius)
+                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
                 
                 HStack {
                     Picker("Category", selection: $selectedCategory) {
@@ -131,13 +132,18 @@ struct InventoryListView: View {
             
             Divider()
             
-            // Inventory List
+            // Inventory List (Themed)
             if filteredItems.isEmpty {
                 emptyStateView
             } else {
                 List {
                     ForEach(filteredItems, id: \.id) { item in
                         InventoryItemRow(item: item)
+                            .padding(.horizontal, 4) // Inner padding adjustment for card content
+                            .premiumCard()
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
+                            .padding(.vertical, 4) // Spacing between cards
                             .contentShape(Rectangle())
                             .onTapGesture {
                                 selectedItem = item
@@ -171,9 +177,11 @@ struct InventoryListView: View {
                             }
                     }
                 }
-                .listStyle(.inset)
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
             }
         }
+        .background(AppTheme.Colors.groupedBackground)
         .navigationTitle("Inventory")
         .toolbar {
             ToolbarItemGroup {
@@ -227,7 +235,11 @@ struct InventoryListView: View {
         }
         .pullToRefresh(isRefreshing: $isRefreshing) {
             do {
+                // Sync with Supabase
                 try await inventorySyncer.download()
+                
+                // Sync with Square
+                try await SquareInventorySyncManager.shared.syncChangedItems(since: SquareInventorySyncManager.shared.lastSyncDate ?? .distantPast)
             } catch {
                 print("⚠️ Failed to sync inventory: \(error.localizedDescription)")
             }

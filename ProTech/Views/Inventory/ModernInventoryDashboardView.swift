@@ -46,7 +46,8 @@ struct ModernInventoryDashboardView: View {
                 // Search Bar (like POS)
                 searchBar
                     .padding()
-                    .background(Color(hex: "F5F5F5"))
+                    .padding()
+                    .background(AppTheme.Colors.groupedBackground)
                 
                 // Main Content
                 VStack(spacing: 20) {
@@ -67,10 +68,10 @@ struct ModernInventoryDashboardView: View {
                     }
                 }
                 .padding()
-                .background(Color(hex: "F5F5F5"))
+                .background(AppTheme.Colors.groupedBackground)
             }
         }
-        .background(Color(hex: "F5F5F5"))
+        .background(AppTheme.Colors.groupedBackground)
         .navigationTitle("Inventory Dashboard")
         .toolbar {
             ToolbarItem {
@@ -90,15 +91,14 @@ struct ModernInventoryDashboardView: View {
     private var searchBar: some View {
         HStack {
             Image(systemName: "magnifyingglass")
-                .foregroundColor(Color(hex: "757575"))
+                .foregroundColor(.secondary)
             TextField("Search inventory...", text: $searchText)
                 .textFieldStyle(.plain)
-                .foregroundColor(Color(hex: "212121"))
+                .foregroundColor(.primary)
         }
         .padding(12)
-        .background(Color.white)
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .sectionHeader()
+        .premiumCard()
     }
     
     // MARK: - Stats Section
@@ -166,7 +166,7 @@ struct ModernInventoryDashboardView: View {
             Text("Quick Actions")
                 .font(.title3)
                 .fontWeight(.semibold)
-                .foregroundColor(Color(hex: "212121"))
+                .foregroundColor(.primary)
             
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
                 NavigationLink(destination: InventoryListView()) {
@@ -220,7 +220,7 @@ struct ModernInventoryDashboardView: View {
             Text("Inventory by Category")
                 .font(.title3)
                 .fontWeight(.semibold)
-                .foregroundColor(Color(hex: "212121"))
+                .foregroundColor(.primary)
             
             VStack(spacing: 12) {
                 ForEach(categoryBreakdown.prefix(8), id: \.0) { category, count in
@@ -232,7 +232,7 @@ struct ModernInventoryDashboardView: View {
                                 .frame(width: 8, height: 8)
                             Text(category.displayName)
                                 .font(.body)
-                                .foregroundColor(Color(hex: "212121"))
+                                .foregroundColor(.primary)
                         }
                         
                         Spacer()
@@ -249,15 +249,14 @@ struct ModernInventoryDashboardView: View {
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
-                    .background(Color.white)
+                    .background(AppTheme.Colors.groupedBackground)
                     .cornerRadius(12)
                 }
             }
         }
         .padding(16)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .padding(16)
+        .premiumCard()
     }
 }
 
@@ -285,18 +284,17 @@ struct ModernStatCard: View {
             Text(value)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(Color(hex: "212121"))
+                .foregroundColor(.primary)
             
             // Title
             Text(title)
                 .font(.caption)
-                .foregroundColor(Color(hex: "757575"))
+                .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .premiumCard()
     }
 }
 
@@ -324,24 +322,22 @@ struct ModernAlertBanner: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.headline)
-                    .foregroundColor(Color(hex: "212121"))
+                    .foregroundColor(.primary)
                 Text(message)
                     .font(.caption)
-                    .foregroundColor(Color(hex: "757575"))
+                    .foregroundColor(.secondary)
             }
             
             Spacer()
             
             // Arrow
             Image(systemName: "chevron.right")
-                .foregroundColor(Color(hex: "757575"))
+                .foregroundColor(.secondary)
         }
         .padding(16)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .premiumCard()
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
+            RoundedRectangle(cornerRadius: AppTheme.cardCornerRadius)
                 .stroke(color.opacity(0.2), lineWidth: 1)
         )
     }
@@ -388,17 +384,15 @@ struct ModernActionCard: View {
                 Text(title)
                     .font(.body)
                     .fontWeight(.semibold)
-                    .foregroundColor(Color(hex: "212121"))
+                    .foregroundColor(.primary)
                 
                 Text(subtitle)
                     .font(.caption)
-                    .foregroundColor(Color(hex: "757575"))
+                    .foregroundColor(.secondary)
             }
         }
         .padding(16)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .premiumCard()
     }
 }
 

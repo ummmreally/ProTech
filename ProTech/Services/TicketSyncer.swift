@@ -36,6 +36,12 @@ class TicketSyncer: ObservableObject {
             throw SyncError.conflict(details: "Ticket missing ID")
         }
         
+        // Handle signature upload
+        var signatureUrl: String?
+        if let signatureData = ticket.checkInSignature {
+             signatureUrl = try? await uploadSignature(signatureData, for: ticketId, shopId: shopId)
+        }
+        
         let supabaseTicket = SupabaseTicket(
             id: ticketId,
             shopId: shopId,
@@ -64,7 +70,7 @@ class TicketSyncer: ObservableObject {
             startedAt: ticket.startedAt,
             completedAt: ticket.completedAt,
             pickedUpAt: ticket.pickedUpAt,
-            checkInSignatureUrl: nil, // TODO: Upload signature data to storage
+            checkInSignatureUrl: signatureUrl,
             checkInAgreedAt: ticket.checkInAgreedAt,
             createdAt: ticket.createdAt ?? Date(),
             updatedAt: ticket.updatedAt ?? Date(),
@@ -72,10 +78,14 @@ class TicketSyncer: ObservableObject {
             syncVersion: 1 // Default sync version
         )
         
-        try await supabase.client
-            .from("tickets")
-            .upsert(supabaseTicket)
-            .execute()
+        do {
+            try await supabase.client
+                .from("tickets")
+                .upsert(supabaseTicket)
+                .execute()
+        } catch {
+            throw SyncError.networkError(error)
+        }
         
         // Mark as synced
         ticket.cloudSyncStatus = "synced"
@@ -90,9 +100,9 @@ class TicketSyncer: ObservableObject {
         
         let pendingTickets = try coreData.viewContext.fetch(request)
         
-        for ticket in pendingTickets {
-            try await upload(ticket)
-        }
+        if pendingTickets.isEmpty { return }
+        
+        try await batchUpload(pendingTickets)
     }
     
     // MARK: - Download
@@ -106,14 +116,19 @@ class TicketSyncer: ObservableObject {
         isSyncing = true
         defer { isSyncing = false }
         
-        let remoteTickets: [SupabaseTicket] = try await supabase.client
-            .from("tickets")
-            .select()
-            .eq("shop_id", value: shopId.uuidString)
-            .is("deleted_at", value: nil)
-            .order("created_at", ascending: false)
-            .execute()
-            .value
+        let remoteTickets: [SupabaseTicket]
+        do {
+            remoteTickets = try await supabase.client
+                .from("tickets")
+                .select()
+                .eq("shop_id", value: shopId.uuidString)
+                .is("deleted_at", value: nil)
+                .order("created_at", ascending: false)
+                .execute()
+                .value
+        } catch {
+            throw SyncError.networkError(error)
+        }
         
         for remote in remoteTickets {
             try await mergeOrCreate(remote)
@@ -203,7 +218,7 @@ class TicketSyncer: ObservableObject {
             // Customer doesn't exist locally, we should sync it
             Task { @MainActor in
                 let customerSyncer = CustomerSyncer()
-                try? await customerSyncer.download()
+                try? await customerSyncer.download(id: id)
             }
             return nil
         }
@@ -211,39 +226,28 @@ class TicketSyncer: ObservableObject {
     
     // MARK: - Realtime Subscriptions
     
-    /// Subscribe to realtime changes for tickets
-    func subscribeToChanges() async {
-        // TODO: Implement proper Supabase Realtime API
-        print("Realtime subscriptions not yet implemented for TicketSyncer")
-    }
-    
-    // TODO: Uncomment when Supabase Realtime types are available
-    /*
-    private func handleRealtimeChange(_ payload: PostgresChangePayload) async {
-        guard let record = payload.record else { return }
-        
+    /// Process remote upsert from RealtimeManager
+    func processRemoteUpsert(_ record: SupabaseTicket) async {
         do {
-            let jsonData = try JSONSerialization.data(withJSONObject: record)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            decoder.keyDecodingStrategy = .convertFromSnakeCase
-            
-            let remoteTicket = try decoder.decode(SupabaseTicket.self, from: jsonData)
-            
-            switch payload.eventType {
-            case .insert, .update:
-                try await mergeOrCreate(remoteTicket)
-            case .delete:
-                try await deleteLocal(id: remoteTicket.id)
-            default:
-                break
-            }
+            try await mergeOrCreate(record)
         } catch {
-            print("Failed to handle realtime change: \(error)")
-            syncError = error
+            print("Failed to process remote upsert: \(error)")
         }
     }
-    */
+    
+    /// Process remote delete from RealtimeManager
+    func processRemoteDelete(_ id: UUID) async {
+        do {
+            try await deleteLocal(id: id)
+        } catch {
+             print("Failed to process remote delete: \(error)")
+        }
+    }
+    
+    // Kept for backward compatibility or direct usage if needed
+    func subscribeToChanges() async {
+        // Managed by RealtimeManager
+    }
     
     private func deleteLocal(id: UUID) async throws {
         let request: NSFetchRequest<Ticket> = Ticket.fetchRequest()
@@ -263,12 +267,20 @@ class TicketSyncer: ObservableObject {
             throw SyncError.notAuthenticated
         }
         
-        let supabaseTickets = tickets.compactMap { ticket -> SupabaseTicket? in
-            guard let customerId = ticket.customerId else { return nil }
+        // Prepare Supabase objects (needs to be async loop for signature uploads)
+        var supabaseTickets: [SupabaseTicket] = []
+        
+        for ticket in tickets {
+            guard let customerId = ticket.customerId,
+                  let ticketId = ticket.id else { continue }
             
-            guard let ticketId = ticket.id else { return nil }
+            // Handle signature upload
+            var signatureUrl: String?
+            if let signatureData = ticket.checkInSignature {
+                 signatureUrl = try? await uploadSignature(signatureData, for: ticketId, shopId: shopId)
+            }
             
-            return SupabaseTicket(
+            let supabaseTicket = SupabaseTicket(
                 id: ticketId,
                 shopId: shopId,
                 customerId: customerId,
@@ -296,22 +308,28 @@ class TicketSyncer: ObservableObject {
                 startedAt: ticket.startedAt,
                 completedAt: ticket.completedAt,
                 pickedUpAt: ticket.pickedUpAt,
-                checkInSignatureUrl: nil, // TODO: Upload signature data to storage
+                checkInSignatureUrl: signatureUrl,
                 checkInAgreedAt: ticket.checkInAgreedAt,
                 createdAt: ticket.createdAt ?? Date(),
                 updatedAt: ticket.updatedAt ?? Date(),
                 deletedAt: nil,
-                syncVersion: 1 // Default sync version
+                syncVersion: 1
             )
+            supabaseTickets.append(supabaseTicket)
         }
         
         // Upload in batches of 100
+        // Upload in batches of 100
         let batchSize = 100
         for batch in supabaseTickets.chunked(into: batchSize) {
-            try await supabase.client
-                .from("tickets")
-                .upsert(batch)
-                .execute()
+            do {
+                try await supabase.client
+                    .from("tickets")
+                    .upsert(batch)
+                    .execute()
+            } catch {
+                throw SyncError.networkError(error)
+            }
         }
         
         // Mark all as synced
@@ -330,6 +348,37 @@ class TicketSyncer: ObservableObject {
             return UUID(uuidString: shopIdString)
         }
         return UUID(uuidString: "00000000-0000-0000-0000-000000000001")
+    }
+    
+    /// Upload signature image to Supabase Storage
+    private func uploadSignature(_ data: Data, for ticketId: UUID, shopId: UUID) async throws -> String? {
+        let fileName = "\(shopId)/\(ticketId).png"
+        
+        do {
+            try await supabase.client.storage
+                .from(SupabaseConfig.signaturesBucket)
+                .upload(
+                    path: fileName,
+                    file: data,
+                    options: FileOptions(
+                        cacheControl: "3600",
+                        contentType: "image/png",
+                        upsert: true
+                    )
+                )
+            
+            // Construct public URL
+            // Construct public URL manually since getPublicUrl might vary in SDK version
+            // Standard format: {projectUrl}/storage/v1/object/public/{bucket}/{path}
+            let projectUrl = ProductionConfig.shared.currentEnvironment.supabaseURL
+            let publicUrl = "\(projectUrl)/storage/v1/object/public/\(SupabaseConfig.signaturesBucket)/\(fileName)"
+            
+            return publicUrl
+            
+        } catch {
+            print("Failed to upload signature: \(error)")
+            return nil
+        }
     }
 }
 

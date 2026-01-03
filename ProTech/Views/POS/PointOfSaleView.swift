@@ -169,6 +169,7 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
     enum LeftPanelTab: String, CaseIterable {
         case products = "Products"
         case history = "Customer History"
+        case transactions = "Transactions"
     }
     
     var filteredItems: [InventoryItem] {
@@ -194,13 +195,13 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
             // Left Panel - Order Details & Catalog
             leftPanel
                 .frame(maxWidth: .infinity)
-                .background(Color(hex: "F5F5F5"))
+                .background(AppTheme.Colors.groupedBackground)
             
             // Right Panel - Cart & Payment
             rightPanel
                 .frame(width: 420)
-                .background(Color.white)
-                .shadow(color: .black.opacity(0.1), radius: 10, x: -2, y: 0)
+                .background(AppTheme.Colors.cardBackground)
+                .shadow(color: .black.opacity(0.1), radius: AppTheme.shadowRadius, x: -2, y: 0)
         }
         .navigationTitle("Point of Sale")
         .navigationBarBackButtonHidden(true)
@@ -277,15 +278,13 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
             VStack(spacing: 12) {
                 searchBar
                 
-                if selectedCustomer != nil {
-                    Picker("View", selection: $selectedLeftTab) {
-                        ForEach(LeftPanelTab.allCases, id: \.self) { tab in
-                            Text(tab.rawValue).tag(tab)
-                        }
+                Picker("View", selection: $selectedLeftTab) {
+                    ForEach(LeftPanelTab.allCases, id: \.self) { tab in
+                        Text(tab.rawValue).tag(tab)
                     }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal)
                 }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
                 
                 if selectedLeftTab == .products {
                     categoryFilter
@@ -293,15 +292,17 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
                 }
             }
             .padding(.top)
-            .background(Color.white)
+            .background(AppTheme.Colors.cardBackground)
             .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 5)
             .zIndex(1)
             
             // Content
             if selectedLeftTab == .products {
                 productGrid
-            } else {
+            } else if selectedLeftTab == .history {
                 customerHistoryView
+            } else {
+                POSTransactionHistoryView()
             }
         }
     }
@@ -334,13 +335,13 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
                             Image(systemName: category.icon)
                             Text(category.displayName)
                         }
-                        .font(.subheadline)
+                        .font(AppTheme.Typography.subheadline)
                         .fontWeight(selectedCategory == category ? .semibold : .regular)
-                        .foregroundColor(selectedCategory == category ? .white : Color(hex: "212121"))
+                        .foregroundColor(selectedCategory == category ? .white : .primary)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
-                        .background(selectedCategory == category ? Color(hex: "00C853") : Color.white)
-                        .cornerRadius(20)
+                        .background(selectedCategory == category ? AppTheme.Colors.success : AppTheme.Colors.cardBackground)
+                        .cornerRadius(AppTheme.buttonCornerRadius)
                         .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
                     }
                     .buttonStyle(.plain)
@@ -387,14 +388,15 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
     private var searchBar: some View {
         HStack {
             Image(systemName: "magnifyingglass")
-                .foregroundColor(Color(hex: "757575"))
+                .foregroundColor(.secondary)
             TextField("Search products...", text: $searchText)
                 .textFieldStyle(.plain)
-                .foregroundColor(Color(hex: "212121"))
+                .font(AppTheme.Typography.body)
         }
         .padding(12)
-        .background(Color(hex: "F5F5F5"))
-        .cornerRadius(12)
+        .background(AppTheme.Colors.cardBackground)
+        .cornerRadius(AppTheme.cornerRadius)
+        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
         .padding(.horizontal)
     }
     
@@ -414,7 +416,7 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
                 Text(customerName)
                     .font(.title3)
                     .fontWeight(.semibold)
-                    .foregroundColor(Color(hex: "212121"))
+                    .foregroundColor(.primary)
                 HStack(spacing: 8) {
                     Image(systemName: "phone.fill")
                         .font(.caption)
@@ -427,7 +429,7 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
             Spacer()
         }
         .padding()
-        .background(Color.white)
+        .background(AppTheme.Colors.cardBackground)
         .cornerRadius(16)
         .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
@@ -451,13 +453,13 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
         VStack(spacing: 12) {
             Image(systemName: "person.crop.circle.badge.questionmark")
                 .font(.system(size: 48))
-                .foregroundColor(Color(hex: "757575").opacity(0.3))
+                .foregroundColor(.secondary.opacity(0.3))
             Text("Select a customer")
                 .font(.headline)
-                .foregroundColor(Color(hex: "757575"))
+                .foregroundColor(.secondary)
             Text("View purchase and repair history")
                 .font(.caption)
-                .foregroundColor(Color(hex: "757575"))
+                .foregroundColor(.secondary)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 40)
@@ -506,7 +508,7 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Payment Mode")
                             .font(.headline)
-                            .foregroundColor(Color(hex: "212121"))
+                            .foregroundColor(.primary)
                         
                         // Square Terminal Device Selector
                         if selectedPaymentMode == .card && !squareDevices.isEmpty {
@@ -542,8 +544,8 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
                                     .fontWeight(.semibold)
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, 10)
-                                    .background(Color(hex: "F5F5F5"))
-                                    .foregroundColor(Color(hex: "212121"))
+                                    .background(AppTheme.Colors.groupedBackground)
+                                    .foregroundColor(.primary)
                                     .cornerRadius(10)
                             }
                             .buttonStyle(.plain)
@@ -555,7 +557,7 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
                                 title: "Card",
                                 description: "Square Terminal",
                                 isSelected: selectedPaymentMode == .card,
-                                accentColor: Color(hex: "00C853")
+                                accentColor: AppTheme.Colors.success
                             ) { selectedPaymentMode = .card }
                             
                             PaymentModeCard(
@@ -563,7 +565,7 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
                                 title: "Cash",
                                 description: "Cash payment",
                                 isSelected: selectedPaymentMode == .cash,
-                                accentColor: Color(hex: "00C853")
+                                accentColor: AppTheme.Colors.success
                             ) { selectedPaymentMode = .cash }
                             
                             PaymentModeCard(
@@ -571,7 +573,7 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
                                 title: "Other",
                                 description: "External/UPI",
                                 isSelected: selectedPaymentMode == .upi,
-                                accentColor: Color(hex: "00C853")
+                                accentColor: AppTheme.Colors.success
                             ) { selectedPaymentMode = .upi }
                         }
                     }
@@ -651,20 +653,14 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
                                 .padding(.trailing, 8)
                         }
                         Text(isProcessingSquare ? "Processing..." : "Charge \(formatCurrency(max(0, cart.total - discountAmount - rewardDiscount)))")
-                            .font(.headline)
-                            .fontWeight(.bold)
+                            .font(AppTheme.Typography.headline)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(canConfirmPayment ? Color(hex: "00C853") : Color.gray)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(PremiumButtonStyle(variant: canConfirmPayment ? .success : .secondary))
                 .disabled(!canConfirmPayment || isProcessingSquare)
             }
             .padding()
-            .background(Color(hex: "F9F9F9"))
+            .background(AppTheme.Colors.groupedBackground)
         }
     }
     
@@ -691,7 +687,7 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
                 TextField("Code", text: $discountCode)
                     .textFieldStyle(.plain)
                     .padding(8)
-                    .background(Color(hex: "F5F5F5"))
+                    .background(AppTheme.Colors.groupedBackground)
                     .cornerRadius(8)
                 
                 if discountAmount > 0 {
@@ -743,7 +739,7 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
                     }
                 }
                 .padding(10)
-                .background(Color(hex: "F5F5F5"))
+                .background(AppTheme.Colors.groupedBackground)
                 .cornerRadius(8)
             }
             .buttonStyle(.plain)
@@ -1165,45 +1161,41 @@ struct ProductCard: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
                 // Icon/Image Placeholder
                 ZStack {
-                    Color.gray.opacity(0.1)
+                    categoryColor.opacity(0.1)
                     Image(systemName: item.inventoryCategory.icon)
                         .font(.system(size: 30))
                         .foregroundColor(categoryColor)
                 }
                 .frame(height: 100)
                 .frame(maxWidth: .infinity)
-                .cornerRadius(10)
+                .cornerRadius(AppTheme.cardCornerRadius)
                 
                 // Details
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.name ?? "Unknown Item")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(Color(hex: "212121"))
+                        .font(AppTheme.Typography.subheadline)
+                        .foregroundColor(.primary)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                     
                     HStack {
                         Text(item.formattedPrice)
-                            .font(.footnote)
+                            .font(AppTheme.Typography.body)
                             .fontWeight(.bold)
-                            .foregroundColor(Color(hex: "00C853"))
+                            .foregroundColor(AppTheme.Colors.success)
                         
                         Spacer()
                         
                         Text("\(item.quantity) left")
-                            .font(.caption2)
+                            .font(AppTheme.Typography.caption)
                             .foregroundColor(.secondary)
                     }
                 }
             }
-            .padding(10)
-            .background(Color.white)
-            .cornerRadius(12)
-            .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+            .premiumCard()
         }
         .buttonStyle(.plain)
     }
@@ -1242,7 +1234,7 @@ struct CartItemRow: View {
                 Text(item.name)
                     .font(.subheadline)
                     .fontWeight(.medium)
-                    .foregroundColor(Color(hex: "212121"))
+                    .foregroundColor(.primary)
                 Text(formatCurrency(item.price))
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -1271,7 +1263,7 @@ struct CartItemRow: View {
                     cart.incrementQuantity(for: item)
                 } label: {
                     Image(systemName: "plus.circle.fill")
-                        .foregroundColor(Color(hex: "00C853"))
+                        .foregroundColor(AppTheme.Colors.success)
                         .font(.title3)
                 }
                 .buttonStyle(.plain)
@@ -1283,9 +1275,9 @@ struct CartItemRow: View {
                 .fontWeight(.semibold)
                 .frame(width: 70, alignment: .trailing)
         }
-        .padding(10)
-        .background(Color(hex: "F9F9F9"))
-        .cornerRadius(8)
+        .padding(AppTheme.Spacing.md)
+        .background(AppTheme.Colors.groupedBackground)
+        .cornerRadius(AppTheme.cornerRadius)
     }
     
     private func formatCurrency(_ amount: Double) -> String {
@@ -1336,14 +1328,14 @@ struct PaymentModeCard: View {
                         .foregroundColor(accentColor)
                 }
             }
-            .padding(12)
+            .padding(AppTheme.Spacing.md)
             .background(
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: AppTheme.buttonCornerRadius)
                     .fill(Color.white)
-                    .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                    .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: AppTheme.buttonCornerRadius)
                     .stroke(isSelected ? accentColor : Color.clear, lineWidth: 2)
             )
         }

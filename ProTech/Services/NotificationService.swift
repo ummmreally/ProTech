@@ -338,8 +338,9 @@ class NotificationService {
     }
     
     /// Fetch notification logs
-    func fetchNotificationLogs(for ticketId: UUID? = nil) -> [NotificationLog] {
+    func fetchNotificationLogs(for ticketId: UUID? = nil, batchSize: Int = 20) -> [NotificationLog] {
         let request: NSFetchRequest<NotificationLog> = NotificationLog.fetchRequest()
+        request.fetchBatchSize = batchSize
         
         if let ticketId = ticketId {
             request.predicate = NSPredicate(format: "ticketId == %@", ticketId as CVarArg)

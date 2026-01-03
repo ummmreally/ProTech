@@ -10,10 +10,8 @@ import Foundation
 
 // MARK: - Supabase Configuration
 enum SupabaseConfig {
-    // Supabase credentials for repair shop system
-    // TechMedics Project (ucpgsubidqbhxstgykyt)
-    static let supabaseURL = "https://ucpgsubidqbhxstgykyt.supabase.co"
-    static let supabaseAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjcGdzdWJpZHFiaHhzdGd5a3l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk5MjI3NzYsImV4cCI6MjA2NTQ5ODc3Nn0.pW1nwjWlh_igmFnXp7zEMgdhJuwQwvNrtCrG8w3Si4k"
+    // Credentials have been moved to ProductionConfig.swift
+    // Use ProductionConfig.shared.currentEnvironment to access them
     
     // Redirect URL for OAuth and email confirmations
     static let redirectURL = "protech://auth-callback"
@@ -22,6 +20,7 @@ enum SupabaseConfig {
     static let repairPhotosBucket = "repair-photos"
     static let receiptsBucket = "receipts"
     static let employeePhotosBucket = "employee-photos"
+    static let signaturesBucket = "signatures"
 }
 
 // MARK: - Twilio Configuration

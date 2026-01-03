@@ -335,10 +335,18 @@ class AppointmentService {
     // MARK: - Calendar Integration
     
     /// Request calendar access
-    func requestCalendarAccess(completion: @escaping (Bool) -> Void) {
-        eventStore.requestFullAccessToEvents { granted, error in
-            DispatchQueue.main.async {
-                completion(granted)
+    /// Request calendar access
+    func requestCalendarAccess() async -> Bool {
+        return await withCheckedContinuation { continuation in
+            if #available(iOS 17.0, macOS 14.0, *) {
+                eventStore.requestFullAccessToEvents { granted, error in
+                    continuation.resume(returning: granted)
+                }
+            } else {
+                // Fallback for older OS versions
+                eventStore.requestAccess(to: .event) { granted, error in
+                    continuation.resume(returning: granted)
+                }
             }
         }
     }
@@ -348,7 +356,8 @@ class AppointmentService {
         guard let scheduledDate = appointment.scheduledDate,
               let endDate = appointment.endDate else { return }
         
-        requestCalendarAccess { granted in
+        Task {
+            let granted = await requestCalendarAccess()
             guard granted else { return }
             
             let event = EKEvent(eventStore: self.eventStore)

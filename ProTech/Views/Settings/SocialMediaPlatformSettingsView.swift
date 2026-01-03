@@ -207,23 +207,21 @@ struct TwitterSettingsView: View {
     }
     
     private func connectAccount() {
-        isConnecting = true
-        
-        // Save credentials first if they're not saved
-        if !clientId.isEmpty && !clientSecret.isEmpty {
-            _ = SecureStorage.save(key: "x_client_id", value: clientId)
-            _ = SecureStorage.save(key: "x_client_secret", value: clientSecret)
-        }
-        
-        SocialMediaOAuthService.shared.authenticateX { result in
-            isConnecting = false
+        Task {
+            isConnecting = true
             
-            switch result {
-            case .success:
+            // Save credentials first if they're not saved
+            if !clientId.isEmpty && !clientSecret.isEmpty {
+                _ = SecureStorage.save(key: "x_client_id", value: clientId)
+                _ = SecureStorage.save(key: "x_client_secret", value: clientSecret)
+            }
+            
+            do {
+                _ = try await SocialMediaOAuthService.shared.authenticateX()
                 isConnected = true
                 testResult = "✅ Successfully connected to X!"
                 showTestResult = true
-            case .failure(let error):
+            } catch {
                 if let oauthError = error as? OAuthError {
                     testResult = "❌ " + oauthError.localizedDescription
                 } else {
@@ -231,6 +229,8 @@ struct TwitterSettingsView: View {
                 }
                 showTestResult = true
             }
+            
+            isConnecting = false
         }
     }
     
@@ -423,26 +423,24 @@ struct FacebookSettingsView: View {
     }
     
     private func connectAccount() {
-        isConnecting = true
-        
-        // Save credentials first if they're not saved
-        if !appId.isEmpty && !appSecret.isEmpty {
-            _ = SecureStorage.save(key: "facebook_app_id", value: appId)
-            _ = SecureStorage.save(key: "facebook_app_secret", value: appSecret)
-            if !pageId.isEmpty {
-                _ = SecureStorage.save(key: "facebook_page_id", value: pageId)
-            }
-        }
-        
-        SocialMediaOAuthService.shared.authenticateFacebook { result in
-            isConnecting = false
+        Task {
+            isConnecting = true
             
-            switch result {
-            case .success:
+            // Save credentials first if they're not saved
+            if !appId.isEmpty && !appSecret.isEmpty {
+                _ = SecureStorage.save(key: "facebook_app_id", value: appId)
+                _ = SecureStorage.save(key: "facebook_app_secret", value: appSecret)
+                if !pageId.isEmpty {
+                    _ = SecureStorage.save(key: "facebook_page_id", value: pageId)
+                }
+            }
+            
+            do {
+                _ = try await SocialMediaOAuthService.shared.authenticateFacebook()
                 isConnected = true
                 testResult = "✅ Successfully connected to Facebook!"
                 showTestResult = true
-            case .failure(let error):
+            } catch {
                 if let oauthError = error as? OAuthError {
                     testResult = "❌ " + oauthError.localizedDescription
                 } else {
@@ -450,6 +448,8 @@ struct FacebookSettingsView: View {
                 }
                 showTestResult = true
             }
+            
+            isConnecting = false
         }
     }
     
@@ -627,23 +627,21 @@ struct LinkedInSettingsView: View {
     }
     
     private func connectAccount() {
-        isConnecting = true
-        
-        // Save credentials first if they're not saved
-        if !clientId.isEmpty && !clientSecret.isEmpty {
-            _ = SecureStorage.save(key: "linkedin_client_id", value: clientId)
-            _ = SecureStorage.save(key: "linkedin_client_secret", value: clientSecret)
-        }
-        
-        SocialMediaOAuthService.shared.authenticateLinkedIn { result in
-            isConnecting = false
+        Task {
+            isConnecting = true
             
-            switch result {
-            case .success:
+            // Save credentials first if they're not saved
+            if !clientId.isEmpty && !clientSecret.isEmpty {
+                _ = SecureStorage.save(key: "linkedin_client_id", value: clientId)
+                _ = SecureStorage.save(key: "linkedin_client_secret", value: clientSecret)
+            }
+            
+            do {
+                _ = try await SocialMediaOAuthService.shared.authenticateLinkedIn()
                 isConnected = true
                 testResult = "✅ Successfully connected to LinkedIn!"
                 showTestResult = true
-            case .failure(let error):
+            } catch {
                 if let oauthError = error as? OAuthError {
                     testResult = "❌ " + oauthError.localizedDescription
                 } else {
@@ -651,6 +649,8 @@ struct LinkedInSettingsView: View {
                 }
                 showTestResult = true
             }
+            
+            isConnecting = false
         }
     }
     

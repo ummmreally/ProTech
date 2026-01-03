@@ -18,6 +18,12 @@ struct APISettingsView: View {
     @AppStorage("production_facebook_page_id") private var facebookPageId = ""
     @AppStorage("production_linkedin_user_id") private var linkedInUserId = ""
     
+    @AppStorage("GoogleAds_DeveloperToken") private var gaDeveloperToken = ""
+    @AppStorage("GoogleAds_ClientId") private var gaClientId = ""
+    @AppStorage("GoogleAds_ClientSecret") private var gaClientSecret = ""
+    @AppStorage("GoogleAds_RefreshToken") private var gaRefreshToken = ""
+    @AppStorage("GoogleAds_CustomerId") private var gaCustomerId = ""
+    
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppTheme.Spacing.lg) {
@@ -69,35 +75,20 @@ struct APISettingsView: View {
                     }
                     
                     VStack(spacing: AppTheme.Spacing.sm) {
-                        TextField("Developer Token", text: Binding(
-                            get: { GoogleAdsConfig.developerToken ?? "" },
-                            set: { GoogleAdsConfig.developerToken = $0 }
-                        ))
-                        .textFieldStyle(.roundedBorder)
+                        TextField("Developer Token", text: $gaDeveloperToken)
+                            .textFieldStyle(.roundedBorder)
                         
-                        TextField("Client ID", text: Binding(
-                            get: { GoogleAdsConfig.clientId ?? "" },
-                            set: { GoogleAdsConfig.clientId = $0 }
-                        ))
-                        .textFieldStyle(.roundedBorder)
+                        TextField("Client ID", text: $gaClientId)
+                            .textFieldStyle(.roundedBorder)
                         
-                        SecureField("Client Secret", text: Binding(
-                            get: { GoogleAdsConfig.clientSecret ?? "" },
-                            set: { GoogleAdsConfig.clientSecret = $0 }
-                        ))
-                        .textFieldStyle(.roundedBorder)
+                        SecureField("Client Secret", text: $gaClientSecret)
+                            .textFieldStyle(.roundedBorder)
                         
-                        TextField("Refresh Token", text: Binding(
-                            get: { GoogleAdsConfig.refreshToken ?? "" },
-                            set: { GoogleAdsConfig.refreshToken = $0 }
-                        ))
-                        .textFieldStyle(.roundedBorder)
+                        TextField("Refresh Token", text: $gaRefreshToken)
+                            .textFieldStyle(.roundedBorder)
                         
-                        TextField("Customer ID (xxx-xxx-xxxx)", text: Binding(
-                            get: { GoogleAdsConfig.customerId ?? "" },
-                            set: { GoogleAdsConfig.customerId = $0 }
-                        ))
-                        .textFieldStyle(.roundedBorder)
+                        TextField("Customer ID (xxx-xxx-xxxx)", text: $gaCustomerId)
+                            .textFieldStyle(.roundedBorder)
                     }
                 }
                 .premiumCard()

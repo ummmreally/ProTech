@@ -32,11 +32,10 @@ class SocialMediaOAuthService: NSObject, ASWebAuthenticationPresentationContextP
     
     // MARK: - X/Twitter OAuth 2.0
     
-    func authenticateX(completion: @escaping (Result<String, Error>) -> Void) {
+    func authenticateX() async throws -> String {
         guard let clientId = SecureStorage.retrieve(key: "x_client_id"),
               let clientSecret = SecureStorage.retrieve(key: "x_client_secret") else {
-            completion(.failure(OAuthError.missingCredentials))
-            return
+            throw OAuthError.missingCredentials
         }
         
         let config = PlatformConfig(
@@ -48,16 +47,15 @@ class SocialMediaOAuthService: NSObject, ASWebAuthenticationPresentationContextP
             scopes: ["tweet.read", "tweet.write", "users.read", "offline.access"]
         )
         
-        performOAuth(platform: "X", config: config, completion: completion)
+        return try await performOAuth(platform: "X", config: config)
     }
     
     // MARK: - Facebook OAuth
     
-    func authenticateFacebook(completion: @escaping (Result<String, Error>) -> Void) {
+    func authenticateFacebook() async throws -> String {
         guard let clientId = SecureStorage.retrieve(key: "facebook_app_id"),
               let clientSecret = SecureStorage.retrieve(key: "facebook_app_secret") else {
-            completion(.failure(OAuthError.missingCredentials))
-            return
+            throw OAuthError.missingCredentials
         }
         
         let config = PlatformConfig(
@@ -69,16 +67,15 @@ class SocialMediaOAuthService: NSObject, ASWebAuthenticationPresentationContextP
             scopes: ["pages_manage_posts", "pages_read_engagement", "instagram_basic", "instagram_content_publish"]
         )
         
-        performOAuth(platform: "Facebook", config: config, completion: completion)
+        return try await performOAuth(platform: "Facebook", config: config)
     }
     
     // MARK: - LinkedIn OAuth
     
-    func authenticateLinkedIn(completion: @escaping (Result<String, Error>) -> Void) {
+    func authenticateLinkedIn() async throws -> String {
         guard let clientId = SecureStorage.retrieve(key: "linkedin_client_id"),
               let clientSecret = SecureStorage.retrieve(key: "linkedin_client_secret") else {
-            completion(.failure(OAuthError.missingCredentials))
-            return
+            throw OAuthError.missingCredentials
         }
         
         let config = PlatformConfig(
@@ -90,12 +87,13 @@ class SocialMediaOAuthService: NSObject, ASWebAuthenticationPresentationContextP
             scopes: ["w_member_social", "r_liteprofile", "r_emailaddress"]
         )
         
-        performOAuth(platform: "LinkedIn", config: config, completion: completion)
+        return try await performOAuth(platform: "LinkedIn", config: config)
     }
     
     // MARK: - Generic OAuth Flow
     
-    private func performOAuth(platform: String, config: PlatformConfig, completion: @escaping (Result<String, Error>) -> Void) {
+    @MainActor
+    private func performOAuth(platform: String, config: PlatformConfig) async throws -> String {
         // Generate PKCE code verifier and challenge (not used by Facebook)
         let codeVerifier = generateCodeVerifier()
         let codeChallenge = generateCodeChallenge(from: codeVerifier)
@@ -127,42 +125,26 @@ class SocialMediaOAuthService: NSObject, ASWebAuthenticationPresentationContextP
         }
         
         guard let authURL = components.url else {
-            completion(.failure(OAuthError.invalidURL))
-            return
+            throw OAuthError.invalidURL
         }
         
         // Use ASWebAuthenticationSession for OAuth
-        DispatchQueue.main.async {
+        let callbackURL = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<URL, Error>) in
             let session = ASWebAuthenticationSession(
                 url: authURL,
                 callbackURLScheme: "protech"
             ) { callbackURL, error in
                 if let error = error {
-                    // User cancelled or error occurred
-                    completion(.failure(error))
+                    continuation.resume(throwing: error)
                     return
                 }
                 
                 guard let callbackURL = callbackURL else {
-                    completion(.failure(OAuthError.invalidResponse))
+                    continuation.resume(throwing: OAuthError.invalidResponse)
                     return
                 }
                 
-                // Extract authorization code from callback URL
-                guard let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false),
-                      let code = components.queryItems?.first(where: { $0.name == "code" })?.value else {
-                    completion(.failure(OAuthError.invalidResponse))
-                    return
-                }
-                
-                // Exchange code for access token
-                self.exchangeCodeForToken(
-                    code: code,
-                    codeVerifier: codeVerifier,
-                    config: config,
-                    platform: platform,
-                    completion: completion
-                )
+                continuation.resume(returning: callbackURL)
             }
             
             // Present the authentication session
@@ -170,15 +152,28 @@ class SocialMediaOAuthService: NSObject, ASWebAuthenticationPresentationContextP
             session.prefersEphemeralWebBrowserSession = false
             session.start()
         }
+        
+        // Extract authorization code from callback URL
+        guard let components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false),
+              let code = components.queryItems?.first(where: { $0.name == "code" })?.value else {
+            throw OAuthError.invalidResponse
+        }
+        
+        // Exchange code for access token
+        return try await exchangeCodeForToken(
+            code: code,
+            codeVerifier: codeVerifier,
+            config: config,
+            platform: platform
+        )
     }
     
     private func exchangeCodeForToken(
         code: String,
         codeVerifier: String,
         config: PlatformConfig,
-        platform: String,
-        completion: @escaping (Result<String, Error>) -> Void
-    ) {
+        platform: String
+    ) async throws -> String {
         // Build token request
         let components = URLComponents(string: config.tokenURL)!
         
@@ -219,29 +214,22 @@ class SocialMediaOAuthService: NSObject, ASWebAuthenticationPresentationContextP
         }
         
         // Make token request
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
+        let (data, _) = try await URLSession.shared.data(for: request)
             
-            guard let data = data,
-                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let accessToken = json["access_token"] as? String else {
-                completion(.failure(OAuthError.tokenExchangeFailed))
-                return
-            }
-            
-            // Save token
-            _ = SecureStorage.save(key: "\(platform.lowercased())_access_token", value: accessToken)
-            
-            // Save refresh token if available
-            if let refreshToken = json["refresh_token"] as? String {
-                _ = SecureStorage.save(key: "\(platform.lowercased())_refresh_token", value: refreshToken)
-            }
-            
-            completion(.success(accessToken))
-        }.resume()
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let accessToken = json["access_token"] as? String else {
+            throw OAuthError.tokenExchangeFailed
+        }
+        
+        // Save token
+        _ = SecureStorage.save(key: "\(platform.lowercased())_access_token", value: accessToken)
+        
+        // Save refresh token if available
+        if let refreshToken = json["refresh_token"] as? String {
+            _ = SecureStorage.save(key: "\(platform.lowercased())_refresh_token", value: refreshToken)
+        }
+        
+        return accessToken
     }
     
     // MARK: - PKCE Helpers

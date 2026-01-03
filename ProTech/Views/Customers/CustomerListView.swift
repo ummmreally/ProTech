@@ -19,7 +19,7 @@ struct CustomerListView: View {
     @State private var showingAddCustomer = false
     @State private var selectedCustomer: Customer?
     @State private var isRefreshing = false
-    @StateObject private var customerSyncer = CustomerSyncer()
+    @StateObject private var customerSyncer = SquareCustomerSyncManager.shared
     
     var filteredCustomers: [Customer] {
         if searchText.isEmpty {
@@ -56,6 +56,23 @@ struct CustomerListView: View {
                         Label("Add Customer", systemImage: "plus")
                     }
                     .buttonStyle(PremiumButtonStyle(variant: .primary))
+                    
+                    // Sync Button
+                    Button {
+                        Task {
+                            await customerSyncer.syncCustomersFromSquare()
+                        }
+                    } label: {
+                        if customerSyncer.syncStatus == .syncing {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Image(systemName: "arrow.triangle.2.circlepath")
+                        }
+                    }
+                    .buttonStyle(PremiumButtonStyle(variant: .secondary))
+                    .disabled(customerSyncer.syncStatus == .syncing)
+                    .help("Sync customers with Square")
                 }
                 .padding(AppTheme.Spacing.xl)
                 
@@ -123,11 +140,8 @@ struct CustomerListView: View {
                 showingAddCustomer = true
             }
             .pullToRefresh(isRefreshing: $isRefreshing) {
-                do {
-                    try await customerSyncer.download()
-                } catch {
-                    print("⚠️ Failed to sync customers: \(error.localizedDescription)")
-                }
+                await customerSyncer.syncCustomersFromSquare()
+                isRefreshing = false
             }
         }
     }

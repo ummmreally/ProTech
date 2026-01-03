@@ -814,18 +814,18 @@ class SquareInventorySyncManager: ObservableObject {
     }
     
     private func loadLocations() async {
-        print("📥 loadLocations() started")
+        AppLogger.debug("📥 loadLocations() started", category: .inventory)
     }
     
     private func bootstrapConfiguration() {
         if let config = getConfiguration() {
             apiService.setConfiguration(config)
-            print("✅ SquareInventorySyncManager initialized with saved configuration")
+            AppLogger.info("✅ SquareInventorySyncManager initialized with saved configuration", category: .inventory)
             return
         }
         
         guard SquareConfig.isConfigured else {
-            print("⚠️ SquareInventorySyncManager initialized WITHOUT configuration - credentials missing in SupabaseConfig.swift")
+            AppLogger.warning("⚠️ SquareInventorySyncManager initialized WITHOUT configuration - credentials missing", category: .inventory)
             return
         }
         
@@ -842,10 +842,10 @@ class SquareInventorySyncManager: ObservableObject {
             config.updatedAt = Date()
             
             try saveConfiguration(config)
-            print("✅ SquareInventorySyncManager seeded configuration from SupabaseConfig.swift")
+            AppLogger.info("✅ SquareInventorySyncManager seeded configuration from SupabaseConfig.swift", category: .inventory)
         } catch {
             context.rollback()
-            print("❌ Failed to seed Square configuration: \(error.localizedDescription)")
+            AppLogger.error("Failed to seed Square configuration", error: error, category: .inventory)
         }
     }
     
@@ -875,6 +875,11 @@ enum SyncManagerStatus: Equatable {
         case .error: return "Error"
         case .completed: return "Completed"
         }
+    }
+    
+    var isError: Bool {
+        if case .error = self { return true }
+        return false
     }
 }
 

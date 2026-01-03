@@ -59,10 +59,14 @@ class EmployeeSyncer: ObservableObject {
             syncVersion: 1 // Default sync version
         )
         
-        try await supabase.client
-            .from("employees")
-            .upsert(supabaseEmployee)
-            .execute()
+        do {
+            try await supabase.client
+                .from("employees")
+                .upsert(supabaseEmployee)
+                .execute()
+        } catch {
+            throw SyncError.networkError(error)
+        }
         
         // Mark as synced
         employee.cloudSyncStatus = "synced"
@@ -77,9 +81,9 @@ class EmployeeSyncer: ObservableObject {
         
         let pendingEmployees = try coreData.viewContext.fetch(request)
         
-        for employee in pendingEmployees {
-            try await upload(employee)
-        }
+        if pendingEmployees.isEmpty { return }
+        
+        try await batchUpload(pendingEmployees)
     }
     
     // MARK: - Download
@@ -93,14 +97,19 @@ class EmployeeSyncer: ObservableObject {
         isSyncing = true
         defer { isSyncing = false }
         
-        let remoteEmployees: [SupabaseEmployee] = try await supabase.client
-            .from("employees")
-            .select()
-            .eq("shop_id", value: shopId.uuidString)
-            .is("deleted_at", value: nil)
-            .order("last_name", ascending: true)
-            .execute()
-            .value
+        let remoteEmployees: [SupabaseEmployee]
+        do {
+            remoteEmployees = try await supabase.client
+                .from("employees")
+                .select()
+                .eq("shop_id", value: shopId.uuidString)
+                .is("deleted_at", value: nil)
+                .order("last_name", ascending: true)
+                .execute()
+                .value
+        } catch {
+            throw SyncError.networkError(error)
+        }
         
         for remote in remoteEmployees {
             try await mergeOrCreate(remote)
@@ -171,11 +180,15 @@ class EmployeeSyncer: ObservableObject {
             throw SyncError.insufficientPermissions
         }
         
-        try await supabase.client
-            .from("employees")
-            .update(["is_active": isActive ? "true" : "false", "updated_at": Date().iso8601String])
-            .eq("id", value: employeeId.uuidString)
-            .execute()
+        do {
+            try await supabase.client
+                .from("employees")
+                .update(["is_active": isActive ? "true" : "false", "updated_at": Date().iso8601String])
+                .eq("id", value: employeeId.uuidString)
+                .execute()
+        } catch {
+            throw SyncError.networkError(error)
+        }
         
         // Update local
         let request: NSFetchRequest<Employee> = Employee.fetchRequest()
@@ -197,15 +210,19 @@ class EmployeeSyncer: ObservableObject {
         
         let isAdmin = role == "admin"
         
-        try await supabase.client
-            .from("employees")
-            .update([
-                "role": role,
-                "is_admin": isAdmin ? "true" : "false",
-                "updated_at": Date().iso8601String
-            ])
-            .eq("id", value: employeeId.uuidString)
-            .execute()
+        do {
+            try await supabase.client
+                .from("employees")
+                .update([
+                    "role": role,
+                    "is_admin": isAdmin ? "true" : "false",
+                    "updated_at": Date().iso8601String
+                ])
+                .eq("id", value: employeeId.uuidString)
+                .execute()
+        } catch {
+            throw SyncError.networkError(error)
+        }
         
         // Update local
         let request: NSFetchRequest<Employee> = Employee.fetchRequest()
@@ -228,16 +245,20 @@ class EmployeeSyncer: ObservableObject {
         
         let hashedPIN = newPIN.hashed()
         
-        try await supabase.client
-            .from("employees")
-            .update([
-                "pin_code": hashedPIN,
-                "failed_pin_attempts": "0",
-                "pin_locked_until": nil,
-                "updated_at": Date().iso8601String
-            ])
-            .eq("id", value: employeeId.uuidString)
-            .execute()
+        do {
+            try await supabase.client
+                .from("employees")
+                .update([
+                    "pin_code": hashedPIN,
+                    "failed_pin_attempts": "0",
+                    "pin_locked_until": nil,
+                    "updated_at": Date().iso8601String
+                ])
+                .eq("id", value: employeeId.uuidString)
+                .execute()
+        } catch {
+            throw SyncError.networkError(error)
+        }
         
         // Update local
         let request: NSFetchRequest<Employee> = Employee.fetchRequest()
@@ -260,11 +281,15 @@ class EmployeeSyncer: ObservableObject {
         
         // Update last login if clocking in
         if isClockingIn {
-            try await supabase.client
-                .from("employees")
-                .update(["last_login_at": timestamp.iso8601String])
-                .eq("id", value: employeeId.uuidString)
-                .execute()
+            do {
+                try await supabase.client
+                    .from("employees")
+                    .update(["last_login_at": timestamp.iso8601String])
+                    .eq("id", value: employeeId.uuidString)
+                    .execute()
+            } catch {
+                throw SyncError.networkError(error)
+            }
         }
         
         // In production, you'd also create a time_entries record here
@@ -290,13 +315,18 @@ class EmployeeSyncer: ObservableObject {
             throw SyncError.notAuthenticated
         }
         
-        let response = try await supabase.client
-            .from("employees")
-            .select("id", head: false, count: .exact)
-            .eq("shop_id", value: shopId.uuidString)
-            .eq("is_active", value: true)
-            .is("deleted_at", value: nil)
-            .execute()
+        let response: Supabase.PostgrestResponse<SupabaseEmployee>
+        do {
+            response = try await supabase.client
+                .from("employees")
+                .select("id", head: false, count: .exact)
+                .eq("shop_id", value: shopId.uuidString)
+                .eq("is_active", value: true)
+                .is("deleted_at", value: nil)
+                .execute()
+        } catch {
+            throw SyncError.networkError(error)
+        }
         
         return response.count ?? 0
     }
@@ -307,15 +337,20 @@ class EmployeeSyncer: ObservableObject {
             throw SyncError.notAuthenticated
         }
         
-        let remoteEmployees: [SupabaseEmployee] = try await supabase.client
-            .from("employees")
-            .select()
-            .eq("shop_id", value: shopId.uuidString)
-            .eq("role", value: role)
-            .eq("is_active", value: true)
-            .is("deleted_at", value: nil)
-            .execute()
-            .value
+        let remoteEmployees: [SupabaseEmployee]
+        do {
+            remoteEmployees = try await supabase.client
+                .from("employees")
+                .select()
+                .eq("shop_id", value: shopId.uuidString)
+                .eq("role", value: role)
+                .eq("is_active", value: true)
+                .is("deleted_at", value: nil)
+                .execute()
+                .value
+        } catch {
+            throw SyncError.networkError(error)
+        }
         
         // Update local with fetched employees
         for remote in remoteEmployees {
@@ -331,16 +366,28 @@ class EmployeeSyncer: ObservableObject {
     
     // MARK: - Realtime Subscriptions
     
-    /// Subscribe to realtime changes for employees
-    func subscribeToChanges() async {
-        // TODO: Implement proper Supabase Realtime API
-        // The Realtime types (PostgresChangePayload, RealtimeChannel) need proper imports
-        // For now, use polling as workaround
-        print("Realtime subscriptions not yet implemented for EmployeeSyncer")
+    /// Process remote upsert from RealtimeManager
+    func processRemoteUpsert(_ record: SupabaseEmployee) async {
+        do {
+            try await mergeOrCreate(record)
+        } catch {
+            print("Failed to process remote upsert: \(error)")
+        }
     }
     
-    // TODO: Uncomment when Supabase Realtime types are available
-    // private func handleRealtimeChange(_ payload: PostgresChangePayload) async { ... }
+    /// Process remote delete from RealtimeManager
+    func processRemoteDelete(_ id: UUID) async {
+        do {
+            try await deleteLocal(id: id)
+        } catch {
+             print("Failed to process remote delete: \(error)")
+        }
+    }
+
+    // Kept for backward compatibility
+    func subscribeToChanges() async {
+        // Managed by RealtimeManager
+    }
     
     private func deleteLocal(id: UUID) async throws {
         let request: NSFetchRequest<Employee> = Employee.fetchRequest()
@@ -350,6 +397,67 @@ class EmployeeSyncer: ObservableObject {
             coreData.viewContext.delete(employee)
             try coreData.viewContext.save()
         }
+    }
+
+    // MARK: - Batch Operations
+    
+    /// Batch upload multiple employees
+    func batchUpload(_ employees: [Employee]) async throws {
+        guard let shopId = getShopId() else {
+            throw SyncError.notAuthenticated
+        }
+        
+        guard let currentRole = supabase.currentRole,
+              ["admin", "manager"].contains(currentRole) else {
+            throw SyncError.insufficientPermissions
+        }
+        
+        let supabaseEmployees = employees.compactMap { employee -> SupabaseEmployee? in
+            guard let employeeId = employee.id else { return nil }
+            return SupabaseEmployee(
+                id: employeeId,
+                shopId: shopId,
+                authUserId: nil, // Will be set when employee creates account
+                employeeNumber: employee.employeeNumber,
+                email: employee.email ?? "",
+                firstName: employee.firstName,
+                lastName: employee.lastName,
+                phone: employee.phone,
+                role: employee.role ?? "technician",
+                isActive: employee.isActive,
+                hourlyRate: Double(truncating: employee.hourlyRate),
+                hireDate: employee.hireDate,
+                pinCode: employee.pinCode?.hashed(),
+                failedPinAttempts: Int(employee.failedPinAttempts),
+                pinLockedUntil: employee.pinLockedUntil,
+                lastLoginAt: employee.lastLoginAt,
+                createdAt: employee.createdAt ?? Date(),
+                updatedAt: employee.updatedAt ?? Date(),
+                deletedAt: nil,
+                syncVersion: 1
+            )
+        }
+        
+        // Upload in batches of 50
+        let batchSize = 50
+        for batch in supabaseEmployees.chunked(into: batchSize) {
+            do {
+                try await supabase.client
+                    .from("employees")
+                    .upsert(batch)
+                    .execute()
+            } catch {
+                throw SyncError.networkError(error)
+            }
+        }
+        
+        // Mark all as synced
+        for employee in employees {
+            employee.cloudSyncStatus = "synced"
+            employee.updatedAt = Date()
+        }
+        
+        try coreData.viewContext.save()
     }
     
     // MARK: - Batch Operations
@@ -393,10 +501,14 @@ class EmployeeSyncer: ObservableObject {
         // Upload in batches of 50 (employees are more complex)
         let batchSize = 50
         for batch in supabaseEmployees.chunked(into: batchSize) {
-            try await supabase.client
-                .from("employees")
-                .insert(batch)
-                .execute()
+            do {
+                try await supabase.client
+                    .from("employees")
+                    .insert(batch)
+                    .execute()
+            } catch {
+                throw SyncError.networkError(error)
+            }
         }
         
         // Download to sync local

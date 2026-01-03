@@ -237,30 +237,34 @@ class AppointmentSyncer: ObservableObject {
     
     // MARK: - Real-time Subscriptions
     
-    private var appointmentChannel: RealtimeChannelV2?
+    // MARK: - Realtime Subscriptions
     
-    /// Start listening to real-time appointment changes
-    func startRealtimeSync() async throws {
-        guard getShopId() != nil else {
-            throw SyncError.notAuthenticated
-        }
-        
-        // TODO: Implement proper Realtime V2 subscriptions when stable
-        // For now, use periodic polling as a fallback
-        print("Real-time subscriptions for appointments will be implemented with stable Realtime V2 API")
-        
-        // Start periodic sync every 30 seconds
-        Task {
-            while appointmentChannel != nil {
-                try? await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
-                try? await download()
-            }
+    /// Process remote upsert from RealtimeManager
+    func processRemoteUpsert(_ record: SupabaseAppointment) async {
+        do {
+            try await mergeOrCreate(record)
+        } catch {
+            print("Failed to process remote upsert: \(error)")
         }
     }
     
-    /// Stop real-time sync
+    /// Process remote delete from RealtimeManager
+    func processRemoteDelete(_ id: UUID) async {
+        do {
+            try await deleteLocal(id: id)
+        } catch {
+             print("Failed to process remote delete: \(error)")
+        }
+    }
+    
+    /// Managed by RealtimeManager
+    func startRealtimeSync() async throws {
+        // No-op, managed centrally
+    }
+    
+    /// Managed by RealtimeManager
     func stopRealtimeSync() async {
-        appointmentChannel = nil
+        // No-op
     }
     
     private func deleteLocal(id: UUID) async throws {

@@ -47,10 +47,14 @@ class CustomerSyncer: ObservableObject {
             syncVersion: 1 // Default sync version
         )
         
-        try await supabase.client
-            .from("customers")
-            .upsert(supabaseCustomer)
-            .execute()
+        do {
+            try await supabase.client
+                .from("customers")
+                .upsert(supabaseCustomer)
+                .execute()
+        } catch {
+            throw SyncError.networkError(error)
+        }
         
         // Mark as synced
         customer.cloudSyncStatus = "synced"
@@ -65,11 +69,19 @@ class CustomerSyncer: ObservableObject {
         
         let pendingCustomers = try coreData.viewContext.fetch(request)
         
-        for customer in pendingCustomers {
-            try await upload(customer)
-        }
+        if pendingCustomers.isEmpty { return }
+        
+        try await batchUpload(pendingCustomers)
     }
     
+    // MARK: - Sync
+    
+    /// Perform full sync (upload pending + download)
+    func sync() async throws {
+        try await uploadPendingChanges()
+        try await download()
+    }
+
     // MARK: - Download
     
     /// Download all customers from Supabase and merge with local
@@ -81,28 +93,72 @@ class CustomerSyncer: ObservableObject {
         isSyncing = true
         defer { isSyncing = false }
         
-        let remoteCustomers: [SupabaseCustomer] = try await supabase.client
-            .from("customers")
-            .select()
-            .eq("shop_id", value: shopId.uuidString)
-            .is("deleted_at", value: nil) // Only get non-deleted records
-            .execute()
-            .value
+        let remoteCustomers: [SupabaseCustomer]
+        do {
+            remoteCustomers = try await supabase.client
+                .from("customers")
+                .select()
+                .eq("shop_id", value: shopId.uuidString)
+                .is("deleted_at", value: nil) // Only get non-deleted records
+                .execute()
+                .value
+        } catch {
+            throw SyncError.networkError(error)
+        }
         
-        for remote in remoteCustomers {
-            try await mergeOrCreate(remote)
+        // Perform merge on background context to avoid blocking Main Thread
+        await coreData.container.performBackgroundTask { context in
+            context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+            
+            for remote in remoteCustomers {
+                try? self.mergeOrCreate(remote, in: context)
+            }
+            
+            try? context.save()
         }
         
         lastSyncDate = Date()
     }
     
+    /// Download specific customer by ID
+    func download(id: UUID) async throws {
+        guard let shopId = getShopId() else {
+            throw SyncError.notAuthenticated
+        }
+        
+        // Don't set global isSyncing to avoid UI blocking for single fetch
+        
+        let remoteCustomers: [SupabaseCustomer]
+        do {
+            remoteCustomers = try await supabase.client
+                .from("customers")
+                .select()
+                .eq("shop_id", value: shopId.uuidString)
+                .eq("id", value: id.uuidString)
+                .execute()
+                .value
+        } catch {
+            throw SyncError.networkError(error)
+        }
+        
+        await coreData.container.performBackgroundTask { context in
+            context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
+            for remote in remoteCustomers {
+                try? self.mergeOrCreate(remote, in: context)
+            }
+            try? context.save()
+        }
+    }
+    
     // MARK: - Merge
     
-    private func mergeOrCreate(_ remote: SupabaseCustomer) async throws {
+    // Marked nonisolated to allow calling from background context
+    nonisolated private func mergeOrCreate(_ remote: SupabaseCustomer, in context: NSManagedObjectContext) throws {
         let request: NSFetchRequest<Customer> = Customer.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", remote.id as CVarArg)
+        request.fetchLimit = 1
         
-        let results = try coreData.viewContext.fetch(request)
+        let results = try context.fetch(request)
         
         if let local = results.first {
             // Merge existing: use newest version
@@ -111,19 +167,17 @@ class CustomerSyncer: ObservableObject {
             }
         } else {
             // Create new local record
-            createLocal(from: remote)
+            createLocal(from: remote, in: context)
         }
-        
-        try coreData.viewContext.save()
     }
     
-    private func shouldUpdateLocal(_ local: Customer, from remote: SupabaseCustomer) -> Bool {
+    nonisolated private func shouldUpdateLocal(_ local: Customer, from remote: SupabaseCustomer) -> Bool {
         // Use timestamp for comparison since Customer doesn't have syncVersion
         let localDate = local.updatedAt ?? Date.distantPast
         return remote.updatedAt > localDate
     }
     
-    private func updateLocal(_ local: Customer, from remote: SupabaseCustomer) {
+    nonisolated private func updateLocal(_ local: Customer, from remote: SupabaseCustomer) {
         local.firstName = remote.firstName
         local.lastName = remote.lastName
         local.email = remote.email
@@ -136,8 +190,8 @@ class CustomerSyncer: ObservableObject {
         local.cloudSyncStatus = "synced"
     }
     
-    private func createLocal(from remote: SupabaseCustomer) {
-        let customer = Customer(context: coreData.viewContext)
+    nonisolated private func createLocal(from remote: SupabaseCustomer, in context: NSManagedObjectContext) {
+        let customer = Customer(context: context)
         customer.id = remote.id
         customer.createdAt = remote.createdAt
         updateLocal(customer, from: remote)
@@ -145,24 +199,33 @@ class CustomerSyncer: ObservableObject {
     
     // MARK: - Realtime Subscriptions
     
-    /// Subscribe to realtime changes for customers
-    func subscribeToChanges() async {
-        guard getShopId() != nil else { return }
-        
-        // TODO: Implement realtime subscription with proper Supabase Realtime API
-        // The realtime API requires proper channel setup and event handling
-        // For now, use polling via download() at intervals
-        subscription = Task {
-            while !Task.isCancelled {
-                try? await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
-                try? await self.download()
-            }
+    /// Process remove upsert from RealtimeManager
+    func processRemoteUpsert(_ record: SupabaseCustomer) async {
+        await coreData.container.performBackgroundTask { context in
+             try? self.mergeOrCreate(record, in: context)
+             try? context.save()
         }
     }
     
+    /// Process remote delete from RealtimeManager
+    func processRemoteDelete(_ id: UUID) async {
+        await coreData.container.performBackgroundTask { context in
+             let request: NSFetchRequest<Customer> = Customer.fetchRequest()
+             request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+             if let customer = try? context.fetch(request).first {
+                 context.delete(customer)
+                 try? context.save()
+             }
+        }
+    }
+    
+    // Kept for backward compatibility
+    func subscribeToChanges() async {
+        // Managed by RealtimeManager
+    }
+    
     func unsubscribe() {
-        subscription?.cancel()
-        subscription = nil
+        // Managed by RealtimeManager
     }
     
     private func deleteLocal(id: UUID) async throws {
@@ -173,6 +236,56 @@ class CustomerSyncer: ObservableObject {
             coreData.viewContext.delete(customer)
             try coreData.viewContext.save()
         }
+    }
+    
+    // MARK: - Batch Operations
+    
+    /// Batch upload multiple customers
+    func batchUpload(_ customers: [Customer]) async throws {
+        guard let shopId = getShopId() else {
+            throw SyncError.notAuthenticated
+        }
+        
+        // Transform to Supabase objects, filtering out invalid ones
+        let supabaseCustomers = customers.compactMap { customer -> SupabaseCustomer? in
+            guard let customerId = customer.id else { return nil }
+            return SupabaseCustomer(
+                id: customerId,
+                shopId: shopId,
+                firstName: customer.firstName,
+                lastName: customer.lastName,
+                email: customer.email,
+                phone: customer.phone,
+                address: customer.address,
+                notes: customer.notes,
+                squareCustomerId: customer.squareCustomerId,
+                createdAt: customer.createdAt ?? Date(),
+                updatedAt: customer.updatedAt ?? Date(),
+                deletedAt: nil,
+                syncVersion: 1
+            )
+        }
+        
+        // Upload in batches of 100
+        let batchSize = 100
+        for batch in supabaseCustomers.chunked(into: batchSize) {
+            do {
+                try await supabase.client
+                    .from("customers")
+                    .upsert(batch)
+                    .execute()
+            } catch {
+                throw SyncError.networkError(error)
+            }
+        }
+        
+        // Mark all as synced
+        for customer in customers {
+            customer.cloudSyncStatus = "synced"
+            customer.updatedAt = Date()
+        }
+        
+        try coreData.viewContext.save()
     }
     
     // MARK: - Conflict Resolution

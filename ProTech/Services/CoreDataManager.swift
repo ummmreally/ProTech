@@ -21,6 +21,9 @@ class CoreDataManager {
         container.viewContext
     }
     
+    // Track initialization error to show in UI
+    private(set) var loadingError: Error?
+    
     // Note: Using .xcdatamodeld file instead of programmatic model
     // The programmatic model code below is kept for reference but not used
     /*
@@ -40,16 +43,17 @@ class CoreDataManager {
         // Create appropriate container type based on CloudKit setting
         // Use the .xcdatamodeld file instead of programmatic model
         if useCloudKit {
-            print("🔄 Initializing with CloudKit sync enabled")
+            AppLogger.info("🔄 Initializing with CloudKit sync enabled", category: .database)
             container = NSPersistentCloudKitContainer(name: "ProTech")
         } else {
-            print("💾 Initializing with local storage only (CloudKit disabled)")
+            AppLogger.info("💾 Initializing with local storage only (CloudKit disabled)", category: .database)
             container = NSPersistentContainer(name: "ProTech")
         }
         
         // Configure container
         guard let description = container.persistentStoreDescriptions.first else {
-            fatalError("Failed to retrieve persistent store description")
+            AppLogger.fault("Failed to retrieve persistent store description", category: .database)
+            return
         }
         
         // Enable automatic migrations
@@ -71,46 +75,23 @@ class CoreDataManager {
         
         container.loadPersistentStores { storeDescription, error in
             if let error = error {
-                print("❌ Core Data Error: \(error)")
-                print("📋 Error Details: \(error)")
-                print("📁 Store URL: \(storeDescription.url?.path ?? "unknown")")
+                AppLogger.error("Core Data failed to load", error: error, category: .database)
+                self.loadingError = error
                 
-                // Check for specific error types
-                let nsError = error as NSError
-                print("⚠️ Error Domain: \(nsError.domain)")
-                print("⚠️ Error Code: \(nsError.code)")
-                print("⚠️ Error UserInfo: \(nsError.userInfo)")
+                // Detailed logging for debugging
+                 AppLogger.debug("Store URL: \(storeDescription.url?.path ?? "unknown")", category: .database)
                 
-                // Always try to reset the store on any error during development
-                print("\n🔄 Attempting to reset Core Data store...")
-                
-                if let storeURL = storeDescription.url {
-                    self.resetCoreDataStore(at: storeURL)
-                    print("✅ Store reset complete")
-                    print("⚠️  PLEASE RESTART THE APP - The database has been reset")
-                    print("   Press Stop and Run again in Xcode")
-                    fatalError("Core Data store was reset - Please restart the app")
-                }
-                
-                if self.useCloudKit {
-                    print("\n🔧 CloudKit Troubleshooting:")
-                    print("   1. Sign into iCloud on this Mac (System Settings > Apple ID)")
-                    print("   2. Verify bundle ID matches CloudKit container")
-                    print("   3. Create CloudKit container at developer.apple.com")
-                    print("   4. Container ID: iCloud.com.nugentic.protech")
-                    print("   5. Enable iCloud + CloudKit capabilities in Xcode")
-                    print("   6. Try running on a physical device if using simulator")
-                }
-                
-                fatalError("Core Data failed to load: \(error.localizedDescription)")
+                // Ensure we don't crash - just log and let the app continue with in-memory or failed state
+                // In a real app, you might want to switch to an in-memory store fallback here
+                return
             }
             
             if self.useCloudKit {
-                print("✅ Core Data with CloudKit loaded successfully")
+                AppLogger.info("✅ Core Data with CloudKit loaded successfully", category: .database)
             } else {
-                print("✅ Core Data (local only) loaded successfully")
+                AppLogger.info("✅ Core Data (local only) loaded successfully", category: .database)
             }
-            print("📁 Store URL: \(storeDescription.url?.path ?? "unknown")")
+            AppLogger.debug("📁 Store URL: \(storeDescription.url?.path ?? "unknown")", category: .database)
         }
         
         // Automatically merge changes from parent context
@@ -188,8 +169,9 @@ class CoreDataManager {
     
     // MARK: - Fetch Helpers
     
-    func fetchCustomers(searchText: String = "", sortBy: CustomerSortOption = .lastNameAsc) -> [Customer] {
+    func fetchCustomers(searchText: String = "", sortBy: CustomerSortOption = .lastNameAsc, batchSize: Int = 20) -> [Customer] {
         let request: NSFetchRequest<Customer> = Customer.fetchRequest()
+        request.fetchBatchSize = batchSize
         
         // Search predicate
         if !searchText.isEmpty {

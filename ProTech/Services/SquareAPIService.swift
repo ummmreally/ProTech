@@ -233,6 +233,8 @@ class SquareAPIService {
         return try JSONDecoder().decode(CatalogObjectResponse.self, from: data)
     }
     
+
+    
     func deleteCatalogItem(objectId: String) async throws {
         guard let config = configuration else {
             throw SquareAPIError.notConfigured
@@ -244,6 +246,47 @@ class SquareAPIService {
         let (data, response) = try await session.data(for: request)
         try validateResponse(response, data: data)
     }
+    
+    // MARK: - Orders / Transactions
+    
+    func fetchRecentTransactions(limit: Int = 50) async throws -> [SquareOrder] {
+        guard let config = configuration, let locationId = config.locationId else {
+            throw SquareAPIError.notConfigured
+        }
+        
+        let url = URL(string: "\(config.baseURL)/v2/orders/search")!
+        var request = try createAuthenticatedRequest(url: url, method: "POST")
+        
+        let query = SquareSearchOrdersRequest(
+            locationIds: [locationId],
+            query: SquareOrderQuery(
+                filter: SquareOrderFilter(
+                    stateFilter: SquareOrderStateFilter(states: ["COMPLETED", "OPEN", "CANCELED"]),
+                    dateTimeFilter: nil
+                ),
+                sort: SquareOrderSort(
+                    sortField: "CREATED_AT",
+                    sortOrder: "DESC"
+                )
+            ),
+            limit: limit,
+            returnEntries: false
+        )
+        
+        request.httpBody = try JSONEncoder().encode(query)
+        
+        let (data, response) = try await session.data(for: request)
+        
+        // Handle 200 OK
+        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 {
+             let searchResponse = try JSONDecoder().decode(SquareSearchOrdersResponse.self, from: data)
+             return searchResponse.orders ?? []
+        }
+        
+        try validateResponse(response, data: data)
+        return [] // Should be unreachable if validateResponse throws
+    }
+
     
     func batchUpsertCatalogItems(_ items: [CatalogItemRequest]) async throws -> BatchUpsertResponse {
         guard let config = configuration else {
@@ -516,7 +559,7 @@ class SquareAPIService {
             }
         }
         
-        fatalError("Should not reach here")
+        throw SquareAPIError.apiError(message: "Operation retry failed unexpectedly")
     }
 }
 

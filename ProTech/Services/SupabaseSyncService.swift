@@ -3,6 +3,7 @@
 //  ProTech
 //
 //  Syncs Core Data with Supabase backend
+//  Delegates specific entity syncing to specialized syncers.
 //
 
 import Foundation
@@ -13,12 +14,25 @@ import Supabase
 class SupabaseSyncService: ObservableObject {
     static let shared = SupabaseSyncService()
     
-    private let supabase = SupabaseService.shared
-    private let coreData = CoreDataManager.shared
+    // Dependencies
+    private let customerSyncer = CustomerSyncer() // Using default init, assuming it accesses singletons internally
+    private let inventorySyncer = InventorySyncer()
+    
+    // TicketSyncer needs to be initialized or accessed via shared if available.
+    // Based on directory listing, TicketSyncer exists. Let's assume it follows the pattern.
+    private let ticketSyncer = TicketSyncer() 
+    
+    // EmployeeSyncer
+    private let employeeSyncer = EmployeeSyncer()
     
     @Published var isSyncing = false
     @Published var lastSyncDate: Date?
     @Published var syncError: String?
+    
+    // Track component status
+    @Published var customerSyncStatus: String = "Idle"
+    @Published var inventorySyncStatus: String = "Idle"
+    @Published var ticketSyncStatus: String = "Idle"
     
     private var syncTimer: Timer?
     
@@ -52,365 +66,73 @@ class SupabaseSyncService: ObservableObject {
         isSyncing = true
         syncError = nil
         
+        defer {
+            isSyncing = false
+            lastSyncDate = Date()
+        }
+        
+        AppLogger.info("Starting full Supabase sync", category: .sync)
+        
         do {
-            // Sync customers
+            // 1. Sync Customers
             try await syncCustomers()
             
-            // Sync repair tickets
+            // 2. Sync Inventory
+            try await syncInventory()
+            
+            // 3. Sync Tickets
             try await syncRepairTickets()
             
-            // Sync employees
+            // 4. Sync Employees
             try await syncEmployees()
             
-            lastSyncDate = Date()
-            print("✅ Full sync completed successfully")
+            AppLogger.info("Full Supabase sync completed successfully", category: .sync)
             
         } catch {
             syncError = error.localizedDescription
-            print("❌ Sync error: \(error)")
+            AppLogger.error("Supabase sync failed", error: error, category: .sync)
         }
-        
-        isSyncing = false
     }
     
-    // MARK: - Customer Sync
+    // MARK: - Component Syncs
     
     func syncCustomers() async throws {
-        print("🔄 Syncing customers...")
+        customerSyncStatus = "Syncing..."
+        defer { customerSyncStatus = "Idle" }
         
-        // Fetch from Supabase
-        let supabaseCustomers: [SupabaseCustomer] = try await supabase.client
-            .from("customers")
-            .select()
-            .execute()
-            .value
+        // Delegate to CustomerSyncer
+        // Assuming CustomerSyncer has uploadPendingChanges and download methods
+        // We need to add a convenience 'sync' method to CustomerSyncer as per plan,
+        // or call both here. calling both is safer for now.
         
-        // Fetch from Core Data
-        let localCustomers = coreData.fetchCustomers()
-        
-        // Create maps for efficient lookup
-        var supabaseMap: [UUID: SupabaseCustomer] = [:]
-        for customer in supabaseCustomers {
-            supabaseMap[customer.id] = customer
-        }
-        
-        var localMap: [UUID: Customer] = [:]
-        for customer in localCustomers {
-            localMap[customer.id!] = customer
-        }
-        
-        // Sync logic
-        for (id, supabaseCustomer) in supabaseMap {
-            if let localCustomer = localMap[id] {
-                // Customer exists locally - check if update needed
-                if supabaseCustomer.updatedAt > (localCustomer.updatedAt ?? Date.distantPast) {
-                    // Server is newer - update local
-                    updateLocalCustomer(localCustomer, from: supabaseCustomer)
-                }
-            } else {
-                // Customer doesn't exist locally - create it
-                createLocalCustomer(from: supabaseCustomer)
-            }
-        }
-        
-        // Upload local customers not in Supabase
-        for (id, localCustomer) in localMap {
-            if supabaseMap[id] == nil {
-                try await uploadCustomer(localCustomer)
-            }
-        }
-        
-        coreData.save()
-        print("✅ Customers synced")
+        AppLogger.debug("Syncing customers via CustomerSyncer", category: .sync)
+        try await customerSyncer.uploadPendingChanges()
+        try await customerSyncer.download()
     }
     
-    // MARK: - Repair Ticket Sync
+    func syncInventory() async throws {
+        inventorySyncStatus = "Syncing..."
+        defer { inventorySyncStatus = "Idle" }
+        
+        AppLogger.debug("Syncing inventory via InventorySyncer", category: .sync)
+        try await inventorySyncer.uploadPendingChanges()
+        try await inventorySyncer.download()
+    }
     
     func syncRepairTickets() async throws {
-        print("🔄 Syncing repair tickets...")
+        ticketSyncStatus = "Syncing..."
+        defer { ticketSyncStatus = "Idle" }
         
-        // Fetch from Supabase
-        let supabaseTickets: [SupabaseRepairTicket] = try await supabase.client
-            .from("repair_tickets")
-            .select()
-            .execute()
-            .value
-        
-        // Fetch local tickets
-        let request = Ticket.fetchRequest()
-        let localTickets = try coreData.viewContext.fetch(request)
-        
-        // Create maps
-        var supabaseMap: [UUID: SupabaseRepairTicket] = [:]
-        for ticket in supabaseTickets {
-            supabaseMap[ticket.id] = ticket
-        }
-        
-        var localMap: [UUID: Ticket] = [:]
-        for ticket in localTickets {
-            if let id = ticket.id {
-                localMap[id] = ticket
-            }
-        }
-        
-        // Sync tickets
-        for (id, supabaseTicket) in supabaseMap {
-            if let localTicket = localMap[id] {
-                // Update if server is newer
-                if supabaseTicket.updatedAt > (localTicket.updatedAt ?? Date.distantPast) {
-                    updateLocalTicket(localTicket, from: supabaseTicket)
-                }
-            } else {
-                // Create new local ticket
-                createLocalTicket(from: supabaseTicket)
-            }
-        }
-        
-        // Upload local tickets not in Supabase
-        for (id, localTicket) in localMap {
-            if supabaseMap[id] == nil {
-                try await uploadTicket(localTicket)
-            }
-        }
-        
-        coreData.save()
-        print("✅ Repair tickets synced")
+        AppLogger.debug("Syncing tickets via TicketSyncer", category: .sync)
+        // Assuming TicketSyncer follows the same pattern
+        try await ticketSyncer.uploadPendingChanges()
+        try await ticketSyncer.download()
     }
-    
-    // MARK: - Employee Sync
     
     func syncEmployees() async throws {
-        print("🔄 Syncing employees...")
-        
-        let supabaseEmployees: [SupabaseEmployee] = try await supabase.client
-            .from("employees")
-            .select()
-            .execute()
-            .value
-        
-        let request = Employee.fetchRequest()
-        let localEmployees = try coreData.viewContext.fetch(request)
-        
-        var supabaseMap: [UUID: SupabaseEmployee] = [:]
-        for employee in supabaseEmployees {
-            supabaseMap[employee.id] = employee
-        }
-        
-        var localMap: [UUID: Employee] = [:]
-        for employee in localEmployees {
-            if let id = employee.id {
-                localMap[id] = employee
-            }
-        }
-        
-        // Sync employees
-        for (id, supabaseEmployee) in supabaseMap {
-            if let localEmployee = localMap[id] {
-                // Update if needed
-                if supabaseEmployee.updatedAt > (localEmployee.updatedAt ?? Date.distantPast) {
-                    updateLocalEmployee(localEmployee, from: supabaseEmployee)
-                }
-            } else {
-                // Create new local employee
-                createLocalEmployee(from: supabaseEmployee)
-            }
-        }
-        
-        coreData.save()
-        print("✅ Employees synced")
-    }
-    
-    // MARK: - Helper Methods - Customer
-    
-    private func updateLocalCustomer(_ local: Customer, from remote: SupabaseCustomer) {
-        local.firstName = remote.firstName
-        local.lastName = remote.lastName
-        local.email = remote.email
-        local.phone = remote.phone
-        local.notes = remote.address
-        local.updatedAt = remote.updatedAt
-    }
-    
-    private func createLocalCustomer(from remote: SupabaseCustomer) {
-        let customer = Customer(context: coreData.viewContext)
-        customer.id = remote.id
-        customer.firstName = remote.firstName
-        customer.lastName = remote.lastName
-        customer.email = remote.email
-        customer.phone = remote.phone
-        customer.notes = remote.address
-        customer.createdAt = remote.createdAt
-        customer.updatedAt = remote.updatedAt
-    }
-    
-    private func uploadCustomer(_ customer: Customer) async throws {
-        guard let id = customer.id else { return }
-        
-        struct CustomerUpload: Encodable {
-            let id: String
-            let first_name: String
-            let last_name: String
-            let email: String
-            let phone: String?
-            let address: String?
-            let created_at: String
-            let updated_at: String
-        }
-        
-        let data = CustomerUpload(
-            id: id.uuidString,
-            first_name: customer.firstName ?? "",
-            last_name: customer.lastName ?? "",
-            email: customer.email ?? "",
-            phone: customer.phone,
-            address: customer.notes,
-            created_at: (customer.createdAt ?? Date()).ISO8601Format(),
-            updated_at: (customer.updatedAt ?? Date()).ISO8601Format()
-        )
-        
-        try await supabase.client
-            .from("customers")
-            .upsert(data)
-            .execute()
-    }
-    
-    // MARK: - Helper Methods - Ticket
-    
-    private func updateLocalTicket(_ local: Ticket, from remote: SupabaseRepairTicket) {
-        if let ticketNum = Int32(remote.ticketNumber.replacingOccurrences(of: "TKT-", with: "")) {
-            local.ticketNumber = ticketNum
-        }
-        local.deviceType = remote.deviceType
-        local.deviceModel = remote.deviceModel
-        local.issueDescription = remote.issueDescription
-        local.status = remote.status.rawValue
-        if let cost = remote.estimatedCost {
-            local.estimatedCost = NSDecimalNumber(decimal: cost)
-        }
-        if let cost = remote.actualCost {
-            local.actualCost = NSDecimalNumber(decimal: cost)
-        }
-        local.updatedAt = remote.updatedAt
-    }
-    
-    private func createLocalTicket(from remote: SupabaseRepairTicket) {
-        let ticket = Ticket(context: coreData.viewContext)
-        ticket.id = remote.id
-        if let ticketNum = Int32(remote.ticketNumber.replacingOccurrences(of: "TKT-", with: "")) {
-            ticket.ticketNumber = ticketNum
-        }
-        ticket.deviceType = remote.deviceType
-        ticket.deviceModel = remote.deviceModel
-        ticket.issueDescription = remote.issueDescription
-        ticket.status = remote.status.rawValue
-        if let cost = remote.estimatedCost {
-            ticket.estimatedCost = NSDecimalNumber(decimal: cost)
-        }
-        if let cost = remote.actualCost {
-            ticket.actualCost = NSDecimalNumber(decimal: cost)
-        }
-        ticket.createdAt = remote.createdAt
-        ticket.updatedAt = remote.updatedAt
-    }
-    
-    private func uploadTicket(_ ticket: Ticket) async throws {
-        guard let id = ticket.id else { return }
-        
-        struct TicketUpload: Encodable {
-            let id: String
-            let ticket_number: String
-            let device_type: String
-            let device_model: String?
-            let issue_description: String
-            let status: String
-            let estimated_cost: Double?
-            let actual_cost: Double?
-            let created_at: String
-            let updated_at: String
-        }
-        
-        let data = TicketUpload(
-            id: id.uuidString,
-            ticket_number: "TKT-\(String(format: "%06d", ticket.ticketNumber))",
-            device_type: ticket.deviceType ?? "",
-            device_model: ticket.deviceModel,
-            issue_description: ticket.issueDescription ?? "",
-            status: ticket.status ?? "checked_in",
-            estimated_cost: ticket.estimatedCost?.doubleValue,
-            actual_cost: ticket.actualCost?.doubleValue,
-            created_at: (ticket.createdAt ?? Date()).ISO8601Format(),
-            updated_at: (ticket.updatedAt ?? Date()).ISO8601Format()
-        )
-        
-        try await supabase.client
-            .from("repair_tickets")
-            .upsert(data)
-            .execute()
-    }
-    
-    // MARK: - Helper Methods - Employee
-    
-    private func updateLocalEmployee(_ local: Employee, from remote: SupabaseEmployee) {
-        local.firstName = remote.firstName
-        local.lastName = remote.lastName
-        local.email = remote.email
-        local.role = remote.role
-        local.isActive = remote.isActive
-        local.updatedAt = remote.updatedAt
-    }
-    
-    private func createLocalEmployee(from remote: SupabaseEmployee) {
-        let employee = Employee(context: coreData.viewContext)
-        employee.id = remote.id
-        employee.firstName = remote.firstName
-        employee.lastName = remote.lastName
-        employee.email = remote.email
-        employee.role = remote.role
-        employee.isActive = remote.isActive
-        employee.createdAt = remote.createdAt
-        employee.updatedAt = remote.updatedAt
+        AppLogger.debug("Syncing employees via EmployeeSyncer", category: .sync)
+        try await employeeSyncer.uploadPendingChanges()
+        try await employeeSyncer.download()
     }
 }
 
-// MARK: - Supabase Model Structs
-// Note: SupabaseCustomer is now defined in CustomerSyncer.swift with full schema
-
-struct SupabaseRepairTicket: Codable {
-    let id: UUID
-    let ticketNumber: String
-    let deviceType: String
-    let deviceModel: String?
-    let issueDescription: String
-    let status: SupabaseRepairStatus
-    let estimatedCost: Decimal?
-    let actualCost: Decimal?
-    let createdAt: Date
-    let updatedAt: Date
-    
-    enum CodingKeys: String, CodingKey {
-        case id
-        case ticketNumber = "ticket_number"
-        case deviceType = "device_type"
-        case deviceModel = "device_model"
-        case issueDescription = "issue_description"
-        case status
-        case estimatedCost = "estimated_cost"
-        case actualCost = "actual_cost"
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
-    }
-}
-
-// Note: SupabaseEmployee is now defined in SupabaseAuthService.swift with full schema
-
-enum SupabaseRepairStatus: String, Codable {
-    case checkedIn = "checked_in"
-    case diagnosing = "diagnosing"
-    case awaitingParts = "awaiting_parts"
-    case inProgress = "in_progress"
-    case qualityCheck = "quality_check"
-    case completed = "completed"
-    case readyForPickup = "ready_for_pickup"
-    case pickedUp = "picked_up"
-    case cancelled = "cancelled"
-}

@@ -11,9 +11,7 @@ import SwiftUI
 
 struct SyncStatusBadge: View {
     @StateObject private var offlineQueue = OfflineQueueManager.shared
-    @StateObject private var customerSyncer = CustomerSyncer()
-    @StateObject private var ticketSyncer = TicketSyncer()
-    @StateObject private var inventorySyncer = InventorySyncer()
+    @ObservedObject private var squareSync = SquareInventorySyncManager.shared
     
     var body: some View {
         HStack(spacing: 6) {
@@ -23,7 +21,7 @@ struct SyncStatusBadge: View {
                 .font(.system(size: 12))
             
             // Sync status
-            if offlineQueue.isSyncing {
+            if offlineQueue.isSyncing || squareSync.syncStatus == .syncing {
                 ProgressView()
                     .scaleEffect(0.7)
                     .frame(width: 14, height: 14)
@@ -31,6 +29,10 @@ struct SyncStatusBadge: View {
                 Label("\(offlineQueue.pendingOperations.count)", systemImage: "arrow.triangle.2.circlepath")
                     .font(.caption)
                     .foregroundColor(.orange)
+            } else if squareSync.syncStatus.isError {
+                 Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundColor(.red)
+                    .font(.system(size: 12))
             } else {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.green)
@@ -48,13 +50,19 @@ struct SyncStatusBadge: View {
         if !offlineQueue.isOnline {
             return "Offline - \(offlineQueue.pendingOperations.count) operations pending"
         } else if offlineQueue.isSyncing {
-            return "Syncing..."
+            return "Syncing with Database..."
+        } else if squareSync.syncStatus == .syncing {
+            return "Syncing with Square: \(squareSync.currentOperation ?? "Processing...")"
+        } else if squareSync.syncStatus.isError {
+            return "Square Sync Error: \(squareSync.errorMessage ?? "Unknown")"
         } else if !offlineQueue.pendingOperations.isEmpty {
             return "\(offlineQueue.pendingOperations.count) operations pending"
         } else {
             return "All data synced"
         }
     }
+    
+
 }
 
 // MARK: - Sync Status Bar

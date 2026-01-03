@@ -15,8 +15,12 @@ class SquareProxyService {
     
     init(supabase: SupabaseClient, supabaseURL: URL? = nil, supabaseKey: String? = nil) {
         self.supabase = supabase
-        self.supabaseURL = supabaseURL ?? URL(string: SupabaseConfig.supabaseURL)!
-        self.supabaseKey = supabaseKey ?? SupabaseConfig.supabaseAnonKey
+        
+        let env = ProductionConfig.shared.currentEnvironment
+        
+        // Use provided URL/Key or fallback to Environment configuration
+        self.supabaseURL = supabaseURL ?? URL(string: env.supabaseURL)!
+        self.supabaseKey = supabaseKey ?? env.supabaseAnonKey
     }
     
     // MARK: - Generic Request
@@ -242,7 +246,7 @@ class SquareProxyService {
     
     // MARK: - Orders
     
-    func createOrder(customerId: String?, lineItems: [[String: Any]]) async throws -> SquareOrder {
+    func createOrder(customerId: String?, lineItems: [[String: Any]]) async throws -> ProxySquareOrder {
         var orderData: [String: Any] = [
             "line_items": lineItems
         ]
@@ -252,13 +256,13 @@ class SquareProxyService {
         
         let result = try await callSquareProxy(action: "createOrder", data: orderData)
         guard let order = result["order"] as? [String: Any],
-              let squareOrder = SquareOrder(json: order) else {
+              let squareOrder = ProxySquareOrder(json: order) else {
             throw SquareProxyError.invalidResponse
         }
         return squareOrder
     }
     
-    func searchOrders(startDate: Date? = nil, endDate: Date? = nil) async throws -> [SquareOrder] {
+    func searchOrders(startDate: Date? = nil, endDate: Date? = nil) async throws -> [ProxySquareOrder] {
         var searchData: [String: Any] = [
             "query": [
                 "sort": [
@@ -286,7 +290,7 @@ class SquareProxyService {
         guard let orders = result["orders"] as? [[String: Any]] else {
             return []
         }
-        return orders.compactMap { SquareOrder(json: $0) }
+        return orders.compactMap { ProxySquareOrder(json: $0) }
     }
     
     // MARK: - Locations
@@ -359,7 +363,7 @@ struct SquareCustomerList {
     let cursor: String?
 }
 
-struct SquareOrder: Codable {
+struct ProxySquareOrder: Codable {
     let id: String
     let totalMoney: Int?
     let createdAt: String

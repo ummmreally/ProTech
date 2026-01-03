@@ -664,3 +664,162 @@ struct CreateDeviceCodeResponse: Codable {
         case errors
     }
 }
+
+// MARK: - Order Models
+
+struct SquareSearchOrdersRequest: Codable {
+    let locationIds: [String]
+    let query: SquareOrderQuery?
+    let limit: Int?
+    let returnEntries: Bool?
+    
+    enum CodingKeys: String, CodingKey {
+        case locationIds = "location_ids"
+        case query
+        case limit
+        case returnEntries = "return_entries"
+    }
+}
+
+struct SquareOrderQuery: Codable {
+    let filter: SquareOrderFilter?
+    let sort: SquareOrderSort?
+}
+
+struct SquareOrderFilter: Codable {
+    let stateFilter: SquareOrderStateFilter?
+    let dateTimeFilter: SquareOrderDateTimeFilter?
+    
+    enum CodingKeys: String, CodingKey {
+        case stateFilter = "state_filter"
+        case dateTimeFilter = "date_time_filter"
+    }
+}
+
+struct SquareOrderStateFilter: Codable {
+    let states: [String]
+}
+
+struct SquareOrderDateTimeFilter: Codable {
+    let createdAt: SquareTimeRange?
+    let updatedAt: SquareTimeRange?
+    let closedAt: SquareTimeRange?
+    
+    enum CodingKeys: String, CodingKey {
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case closedAt = "closed_at"
+    }
+}
+
+struct SquareTimeRange: Codable {
+    let startAt: String?
+    let endAt: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case startAt = "start_at"
+        case endAt = "end_at"
+    }
+}
+
+struct SquareOrderSort: Codable {
+    let sortField: String
+    let sortOrder: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case sortField = "sort_field"
+        case sortOrder = "sort_order"
+    }
+}
+
+struct SquareSearchOrdersResponse: Codable {
+    let orders: [SquareOrder]?
+    let cursor: String?
+    let errors: [SquareError]?
+}
+
+struct SquareOrder: Codable {
+    let id: String
+    let locationId: String
+    let createdAt: String
+    let updatedAt: String
+    let state: String
+    let totalMoney: Money?
+    let totalTaxMoney: Money?
+    let totalDiscountMoney: Money?
+    let totalTipMoney: Money?
+    let totalServiceChargeMoney: Money?
+    let netAmounts: SquareOrderMoneyAmounts?
+    let source: SquareOrderSource?
+    let customerId: String?
+    let lineItems: [SquareOrderLineItem]?
+    let tenders: [SquareOrderTender]?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case locationId = "location_id"
+        case createdAt = "created_at"
+        case updatedAt = "updated_at"
+        case state
+        case totalMoney = "total_money"
+        case totalTaxMoney = "total_tax_money"
+        case totalDiscountMoney = "total_discount_money"
+        case totalTipMoney = "total_tip_money"
+        case totalServiceChargeMoney = "total_service_charge_money"
+        case netAmounts = "net_amounts"
+        case source
+        case customerId = "customer_id"
+        case lineItems = "line_items"
+        case tenders
+    }
+}
+
+struct SquareOrderMoneyAmounts: Codable {
+    let totalMoney: Money?
+    let taxMoney: Money?
+    let discountMoney: Money?
+    let tipMoney: Money?
+    let serviceChargeMoney: Money?
+    
+    enum CodingKeys: String, CodingKey {
+        case totalMoney = "total_money"
+        case taxMoney = "tax_money"
+        case discountMoney = "discount_money"
+        case tipMoney = "tip_money"
+        case serviceChargeMoney = "service_charge_money"
+    }
+}
+
+struct SquareOrderSource: Codable {
+    let name: String?
+}
+
+struct SquareOrderLineItem: Codable {
+    let uid: String?
+    let name: String?
+    let quantity: String
+    let basePriceMoney: Money?
+    let totalMoney: Money?
+    
+    enum CodingKeys: String, CodingKey {
+        case uid
+        case name
+        case quantity
+        case basePriceMoney = "base_price_money"
+        case totalMoney = "total_money"
+    }
+}
+
+struct SquareOrderTender: Codable {
+    let id: String
+    let type: String
+    let customerId: String?
+    let amountMoney: Money?
+    
+    enum CodingKeys: String, CodingKey {
+        case id
+        case type
+        case customerId = "customer_id"
+        case amountMoney = "amount_money"
+    }
+}

@@ -68,7 +68,7 @@ class SocialMediaAPIService {
         
         // Get Page ID (you'd store this during OAuth)
         // Get Page ID (you'd store this during OAuth)
-        let pageId = ConfigurationManager.shared.currentEnvironment.socialMediaCredentials?.facebookPageId ?? ""
+        let pageId = ProductionConfig.shared.currentEnvironment.socialMediaCredentials?.facebookPageId ?? ""
         
         let url = URL(string: "https://graph.facebook.com/v18.0/\(pageId)/feed")!
         var components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
@@ -107,7 +107,7 @@ class SocialMediaAPIService {
         
         // Get user URN (you'd store this during OAuth)
         // Get user URN (you'd store this during OAuth)
-        let userId = ConfigurationManager.shared.currentEnvironment.socialMediaCredentials?.linkedInUserId ?? ""
+        let userId = ProductionConfig.shared.currentEnvironment.socialMediaCredentials?.linkedInUserId ?? ""
         let userURN = "urn:li:person:\(userId)"
         
         let url = URL(string: "https://api.linkedin.com/v2/ugcPosts")!

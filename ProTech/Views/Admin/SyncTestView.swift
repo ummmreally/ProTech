@@ -85,7 +85,7 @@ struct SyncTestView: View {
             HStack {
                 InfoBadge(label: "Project", value: "sztwxxwnhupwmvxhbzyo")
                 InfoBadge(label: "URL", value: "sztwxxwnhupwmvxhbzyo.supabase.co")
-                InfoBadge(label: "Environment", value: ConfigurationManager.shared.currentEnvironment.rawValue)
+                InfoBadge(label: "Environment", value: ProductionConfig.shared.currentEnvironment.rawValue)
             }
         }
         .padding()

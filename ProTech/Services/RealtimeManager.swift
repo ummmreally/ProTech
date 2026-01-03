@@ -99,9 +99,10 @@ class RealtimeManager: ObservableObject {
         guard let shopId = supabase.currentShopId, !shopId.isEmpty else {
             throw RealtimeManagerError.missingShopId
         }
-        let channel = supabase.client.channel("realtime-\(shopId)")
+        let channel = supabase.client.channel("realtime-v2-\(shopId)")
         self.channel = channel
         
+        // Define typed changes
         let customerChanges = channel.postgresChange(AnyAction.self, schema: "public", table: "customers")
         let ticketChanges = channel.postgresChange(AnyAction.self, schema: "public", table: "tickets")
         let inventoryChanges = channel.postgresChange(AnyAction.self, schema: "public", table: "inventory_items")
@@ -112,28 +113,114 @@ class RealtimeManager: ObservableObject {
         
         changeTasks = [
             Task { [weak self] in
-                for await _ in customerChanges {
-                    self?.scheduleSync(.customers)
+                for await action in customerChanges {
+                    switch action {
+                    case .insert(let change):
+                        if let record = try? change.record.decode(as: SupabaseCustomer.self) {
+                            await self?.customerSyncer.processRemoteUpsert(record)
+                        }
+                    case .update(let change):
+                        if let record = try? change.record.decode(as: SupabaseCustomer.self) {
+                            await self?.customerSyncer.processRemoteUpsert(record)
+                        }
+                    case .delete(let change):
+                        let oldRecord = change.oldRecord
+                        // Assuming AnyJSON can decode to a struct with ID if it matches shape, or we decode strictly
+                        struct IDWrapper: Decodable { let id: UUID }
+                        if let idData = try? oldRecord.decode(as: IDWrapper.self) {
+                            await self?.customerSyncer.processRemoteDelete(idData.id)
+                        }
+                    default: break
+                    }
+                    await MainActor.run { self?.lastRealtimeUpdate = Date() }
                 }
             },
             Task { [weak self] in
-                for await _ in ticketChanges {
-                    self?.scheduleSync(.tickets)
+                for await action in ticketChanges {
+                    switch action {
+                    case .insert(let change):
+                        if let record = try? change.record.decode(as: SupabaseTicket.self) {
+                             await self?.ticketSyncer.processRemoteUpsert(record)
+                        }
+                    case .update(let change):
+                         if let record = try? change.record.decode(as: SupabaseTicket.self) {
+                             await self?.ticketSyncer.processRemoteUpsert(record)
+                         }
+                    case .delete(let change):
+                        let oldRecord = change.oldRecord
+                        struct IDWrapper: Decodable { let id: UUID }
+                        if let idData = try? oldRecord.decode(as: IDWrapper.self) {
+                             await self?.ticketSyncer.processRemoteDelete(idData.id)
+                        }
+                    default: break
+                    }
+                    await MainActor.run { self?.lastRealtimeUpdate = Date() }
                 }
             },
             Task { [weak self] in
-                for await _ in inventoryChanges {
-                    self?.scheduleSync(.inventory)
+                for await action in inventoryChanges {
+                    switch action {
+                    case .insert(let change):
+                        if let record = try? change.record.decode(as: SupabaseInventoryItem.self) {
+                            await self?.inventorySyncer.processRemoteUpsert(record)
+                        }
+                    case .update(let change):
+                        if let record = try? change.record.decode(as: SupabaseInventoryItem.self) {
+                            await self?.inventorySyncer.processRemoteUpsert(record)
+                        }
+                    case .delete(let change):
+                        let oldRecord = change.oldRecord
+                        struct IDWrapper: Decodable { let id: UUID }
+                        if let idData = try? oldRecord.decode(as: IDWrapper.self) {
+                             await self?.inventorySyncer.processRemoteDelete(idData.id)
+                        }
+                    default: break
+                    }
+                    await MainActor.run { self?.lastRealtimeUpdate = Date() }
                 }
             },
             Task { [weak self] in
-                for await _ in employeeChanges {
-                    self?.scheduleSync(.employees)
+                for await action in employeeChanges {
+                     switch action {
+                     case .insert(let change):
+                         if let record = try? change.record.decode(as: SupabaseEmployee.self) {
+                             await self?.employeeSyncer.processRemoteUpsert(record)
+                         }
+                     case .update(let change):
+                         if let record = try? change.record.decode(as: SupabaseEmployee.self) {
+                             await self?.employeeSyncer.processRemoteUpsert(record)
+                         }
+                     case .delete(let change):
+                         let oldRecord = change.oldRecord
+                         struct IDWrapper: Decodable { let id: UUID }
+                         if let idData = try? oldRecord.decode(as: IDWrapper.self) {
+                             await self?.employeeSyncer.processRemoteDelete(idData.id)
+                         }
+                     default: break
+                     }
+                    await MainActor.run { self?.lastRealtimeUpdate = Date() }
                 }
             },
             Task { [weak self] in
-                for await _ in appointmentChanges {
-                    self?.scheduleSync(.appointments)
+                for await action in appointmentChanges {
+                    switch action {
+                    case .insert(let change):
+                        if let record = try? change.record.decode(as: AppointmentSyncer.SupabaseAppointment.self) {
+                            await self?.appointmentSyncer.processRemoteUpsert(record)
+                        }
+                    case .update(let change):
+                        if let record = try? change.record.decode(as: AppointmentSyncer.SupabaseAppointment.self) {
+                            await self?.appointmentSyncer.processRemoteUpsert(record)
+                        }
+                    case .delete(let change):
+                        let oldRecord = change.oldRecord
+                        struct IDWrapper: Decodable { let id: UUID }
+                        if let idData = try? oldRecord.decode(as: IDWrapper.self) {
+                            await self?.appointmentSyncer.processRemoteDelete(idData.id)
+                        }
+                    default: break
+                    }
+                    await MainActor.run { self?.lastRealtimeUpdate = Date() }
                 }
             }
         ]
