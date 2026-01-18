@@ -25,6 +25,8 @@ extension LoyaltyMember {
     @NSManaged public var visitCount: Int32
     @NSManaged public var totalSpent: Double
     @NSManaged public var enrolledAt: Date?
+    @NSManaged public var createdAt: Date?
+    @NSManaged public var updatedAt: Date?
     @NSManaged public var lastActivityAt: Date?
     @NSManaged public var isActive: Bool
 }
@@ -59,6 +61,8 @@ extension LoyaltyMember {
             makeAttribute("visitCount", type: .integer32AttributeType, optional: false, defaultValue: 0),
             makeAttribute("totalSpent", type: .doubleAttributeType, optional: false, defaultValue: 0.0),
             makeAttribute("enrolledAt", type: .dateAttributeType, optional: false),
+            makeAttribute("createdAt", type: .dateAttributeType, optional: false),
+            makeAttribute("updatedAt", type: .dateAttributeType, optional: false),
             makeAttribute("lastActivityAt", type: .dateAttributeType),
             makeAttribute("isActive", type: .booleanAttributeType, optional: false, defaultValue: true)
         ]

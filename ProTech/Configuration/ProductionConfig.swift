@@ -26,8 +26,7 @@ enum AppEnvironment: String, CaseIterable, Codable {
         case .staging:
             return "https://staging-project.supabase.co"
         case .production:
-            let stored = UserDefaults.standard.string(forKey: "production_supabase_url") ?? ""
-            return stored.isEmpty ? AppEnvironment.defaultSupabaseURL : stored
+            return AppEnvironment.defaultSupabaseURL
         }
     }
     
@@ -38,8 +37,7 @@ enum AppEnvironment: String, CaseIterable, Codable {
         case .staging:
             return "staging-anon-key"
         case .production:
-            let stored = UserDefaults.standard.string(forKey: "production_supabase_key") ?? ""
-            return stored.isEmpty ? AppEnvironment.defaultSupabaseKey : stored
+            return AppEnvironment.defaultSupabaseKey
         }
     }
     

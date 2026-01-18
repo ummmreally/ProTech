@@ -69,6 +69,7 @@ struct ProTechApp: App {
             .onChange(of: authService.isAuthenticated) { _, isAuthenticated in
                 if isAuthenticated {
                     Task {
+                        await SupabaseSyncService.shared.performFullSync()
                         await RealtimeManager.shared.startRealtimeSync()
                     }
                 } else {
@@ -87,6 +88,40 @@ struct ProTechApp: App {
                     NotificationCenter.default.post(name: .newCustomer, object: nil)
                 }
                 .keyboardShortcut("n", modifiers: .command)
+                
+                Button("New Ticket") {
+                    NotificationCenter.default.post(name: .newTicket, object: nil)
+                }
+                .keyboardShortcut("n", modifiers: [.command, .shift])
+            }
+            
+            CommandGroup(after: .newItem) {
+                Button("Global Search") {
+                    NotificationCenter.default.post(name: .openGlobalSearch, object: nil)
+                }
+                .keyboardShortcut("k", modifiers: .command)
+            }
+            
+            
+            CommandMenu("Navigation") {
+                Button("Dashboard") { NotificationCenter.default.post(name: .navigateToDashboard, object: nil) }
+                    .keyboardShortcut("1", modifiers: .command)
+                Button("Queue") { NotificationCenter.default.post(name: .navigateToQueue, object: nil) }
+                    .keyboardShortcut("2", modifiers: .command)
+                Button("Repairs") { NotificationCenter.default.post(name: .navigateToRepairs, object: nil) }
+                    .keyboardShortcut("3", modifiers: .command)
+                Button("Customers") { NotificationCenter.default.post(name: .navigateToCustomers, object: nil) }
+                    .keyboardShortcut("4", modifiers: .command)
+                Button("Invoices") { NotificationCenter.default.post(name: .navigateToInvoices, object: nil) }
+                    .keyboardShortcut("5", modifiers: .command)
+                Button("Estimates") { NotificationCenter.default.post(name: .navigateToEstimates, object: nil) }
+                    .keyboardShortcut("6", modifiers: .command)
+                Button("Inventory") { NotificationCenter.default.post(name: .navigateToInventory, object: nil) }
+                    .keyboardShortcut("7", modifiers: .command)
+                Button("Point of Sale") { NotificationCenter.default.post(name: .navigateToPOS, object: nil) }
+                    .keyboardShortcut("8", modifiers: .command)
+                Button("Forms") { NotificationCenter.default.post(name: .navigateToForms, object: nil) }
+                    .keyboardShortcut("9", modifiers: .command)
             }
             
             CommandGroup(after: .help) {

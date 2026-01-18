@@ -30,4 +30,15 @@ extension Notification.Name {
     
     // Check-In Queue
     static let customerCheckedIn = Notification.Name("customerCheckedIn")
+    
+    // New Actions
+    static let newTicket = Notification.Name("newTicket")
+    static let openGlobalSearch = Notification.Name("openGlobalSearch")
+    
+    // Navigation Shortcuts
+    static let navigateToDashboard = Notification.Name("navigateToDashboard")
+    static let navigateToRepairs = Notification.Name("navigateToRepairs")
+    static let navigateToCustomers = Notification.Name("navigateToCustomers")
+    static let navigateToInvoices = Notification.Name("navigateToInvoices")
+    static let navigateToPOS = Notification.Name("navigateToPOS")
 }

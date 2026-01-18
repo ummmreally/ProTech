@@ -12,11 +12,21 @@ struct PortalCheckInView: View {
     let customer: Customer
     
     @Environment(\.managedObjectContext) private var viewContext
-    @State private var deviceType = ""
+    @FetchRequest(
+        sortDescriptors: [NSSortDescriptor(keyPath: \DeviceModel.releaseYear, ascending: false)]
+    ) private var deviceModels: FetchedResults<DeviceModel>
+
+    @State private var selectedDeviceFamily = "iPhone"
     @State private var deviceModel = ""
     @State private var issueDescription = ""
     @State private var isSubmitting = false
     @State private var showingSuccess = false
+
+    private let deviceFamilies = ["iPhone", "iPad", "Mac", "Watch"]
+
+    private var filteredDeviceModels: [DeviceModel] {
+        deviceModels.filter { $0.type == selectedDeviceFamily }
+    }
     
     var body: some View {
         ScrollView {
@@ -48,25 +58,36 @@ struct PortalCheckInView: View {
                 // Form Card
                 VStack(alignment: .leading, spacing: AppTheme.Spacing.xl) {
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
-                        Text("Device Type")
+                        Text("Device Family")
                             .font(AppTheme.Typography.headline)
-                        
-                        TextField("e.g., iPhone, iPad, MacBook", text: $deviceType)
-                            .textFieldStyle(.plain)
-                            .padding(AppTheme.Spacing.lg)
-                            .background(Color(hex: "f9fafb"))
-                            .cornerRadius(AppTheme.cardCornerRadius)
+
+                        Picker("Device Family", selection: $selectedDeviceFamily) {
+                            ForEach(deviceFamilies, id: \.self) { family in
+                                Text(family).tag(family)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .onChange(of: selectedDeviceFamily) {
+                            deviceModel = ""
+                        }
                     }
                     
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
                         Text("Device Model")
                             .font(AppTheme.Typography.headline)
-                        
-                        TextField("e.g., iPhone 14 Pro, iPad Air", text: $deviceModel)
-                            .textFieldStyle(.plain)
-                            .padding(AppTheme.Spacing.lg)
-                            .background(Color(hex: "f9fafb"))
-                            .cornerRadius(AppTheme.cardCornerRadius)
+
+                        Picker("Device Model", selection: $deviceModel) {
+                            Text("Select...").tag("")
+                            ForEach(filteredDeviceModels) { device in
+                                Text(device.name ?? "Unknown Device")
+                                    .tag(device.name ?? "")
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, AppTheme.Spacing.lg)
+                        .background(Color(hex: "f9fafb"))
+                        .cornerRadius(AppTheme.cardCornerRadius)
                     }
                     
                     VStack(alignment: .leading, spacing: AppTheme.Spacing.sm) {
@@ -108,16 +129,10 @@ struct PortalCheckInView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(20)
-                    .background(
-                        canSubmit ? AppTheme.Colors.portalSuccess : LinearGradient(
-                            colors: [Color.gray.opacity(0.6), Color.gray.opacity(0.4)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                    .background(canSubmit ? AppTheme.Colors.buttonSuccess : AppTheme.Colors.buttonDisabled)
                     .foregroundColor(.white)
                     .cornerRadius(AppTheme.cardCornerRadius)
-                    .shadow(color: canSubmit ? Color(hex: "10b981").opacity(0.3) : Color.clear, radius: 12, x: 0, y: 6)
+                    .shadow(color: canSubmit ? Color.black.opacity(0.15) : Color.clear, radius: 10, x: 0, y: 4)
                 }
                 .buttonStyle(.plain)
                 .disabled(!canSubmit || isSubmitting)
@@ -186,7 +201,7 @@ struct PortalCheckInView: View {
     }
     
     private var canSubmit: Bool {
-        !deviceType.isEmpty && !issueDescription.isEmpty
+        !deviceModel.isEmpty && !issueDescription.isEmpty
     }
     
     private func checkIn() {
@@ -199,7 +214,7 @@ struct PortalCheckInView: View {
         checkIn.id = UUID()
         checkIn.customerId = customerId
         checkIn.checkedInAt = Date()
-        checkIn.deviceType = deviceType
+        checkIn.deviceType = selectedDeviceFamily
         checkIn.deviceModel = deviceModel.isEmpty ? nil : deviceModel
         checkIn.issueDescription = issueDescription
         checkIn.status = "waiting"
@@ -220,7 +235,7 @@ struct PortalCheckInView: View {
             
             // Clear form after delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                deviceType = ""
+                selectedDeviceFamily = "iPhone"
                 deviceModel = ""
                 issueDescription = ""
             }
@@ -277,10 +292,10 @@ struct CheckInSuccessView: View {
                     .fontWeight(.semibold)
                     .frame(maxWidth: 300)
                     .padding(20)
-                    .background(AppTheme.Colors.portalWelcome)
+                    .background(AppTheme.Colors.buttonPrimary)
                     .foregroundColor(.white)
                     .cornerRadius(AppTheme.cardCornerRadius)
-                    .shadow(color: Color(hex: "a855f7").opacity(0.3), radius: 12, x: 0, y: 6)
+                    .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 4)
             }
             .buttonStyle(.plain)
         }

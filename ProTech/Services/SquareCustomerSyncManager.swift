@@ -150,7 +150,14 @@ class SquareCustomerSyncManager: ObservableObject {
         if customer == nil {
             customer = Customer(context: context)
             customer.id = UUID()
-            customer.createdAt = Date() // Or parse squareCust.createdAt if desired
+            
+            // Set creation date from Square if available
+            if let createdAtString = squareCust.createdAt,
+               let date = ISO8601DateFormatter().date(from: createdAtString) {
+                customer.createdAt = date
+            } else {
+                customer.createdAt = Date()
+            }
         }
         
         // Update fields
@@ -166,7 +173,14 @@ class SquareCustomerSyncManager: ObservableObject {
             customer.address = addr.formattedAddress
         }
         
-        customer.updatedAt = Date() 
+        // Update updated date from Square if available
+        if let updatedAtString = squareCust.updatedAt,
+           let date = ISO8601DateFormatter().date(from: updatedAtString) {
+            customer.updatedAt = date
+        } else {
+            customer.updatedAt = Date() 
+        }
+        
         customer.cloudSyncStatus = "synced" // We just pulled it, so it's in sync
         
         DispatchQueue.main.async {

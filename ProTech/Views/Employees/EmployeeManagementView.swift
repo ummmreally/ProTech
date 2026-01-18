@@ -75,6 +75,10 @@ struct EmployeeManagementView: View {
             EmployeeDetailView(employee: employee, employeeService: employeeService, onUpdate: loadEmployees)
         }
         .onAppear(perform: loadEmployees)
+        .onDisappear {
+            showAddEmployee = false
+            selectedEmployee = nil
+        }
     }
     
     // MARK: - Header

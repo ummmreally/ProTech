@@ -130,7 +130,6 @@ class RealtimeManager: ObservableObject {
                         if let idData = try? oldRecord.decode(as: IDWrapper.self) {
                             await self?.customerSyncer.processRemoteDelete(idData.id)
                         }
-                    default: break
                     }
                     await MainActor.run { self?.lastRealtimeUpdate = Date() }
                 }
@@ -152,7 +151,6 @@ class RealtimeManager: ObservableObject {
                         if let idData = try? oldRecord.decode(as: IDWrapper.self) {
                              await self?.ticketSyncer.processRemoteDelete(idData.id)
                         }
-                    default: break
                     }
                     await MainActor.run { self?.lastRealtimeUpdate = Date() }
                 }
@@ -174,7 +172,6 @@ class RealtimeManager: ObservableObject {
                         if let idData = try? oldRecord.decode(as: IDWrapper.self) {
                              await self?.inventorySyncer.processRemoteDelete(idData.id)
                         }
-                    default: break
                     }
                     await MainActor.run { self?.lastRealtimeUpdate = Date() }
                 }
@@ -196,7 +193,6 @@ class RealtimeManager: ObservableObject {
                          if let idData = try? oldRecord.decode(as: IDWrapper.self) {
                              await self?.employeeSyncer.processRemoteDelete(idData.id)
                          }
-                     default: break
                      }
                     await MainActor.run { self?.lastRealtimeUpdate = Date() }
                 }
@@ -218,7 +214,6 @@ class RealtimeManager: ObservableObject {
                         if let idData = try? oldRecord.decode(as: IDWrapper.self) {
                             await self?.appointmentSyncer.processRemoteDelete(idData.id)
                         }
-                    default: break
                     }
                     await MainActor.run { self?.lastRealtimeUpdate = Date() }
                 }

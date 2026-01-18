@@ -5,6 +5,9 @@ class ReportingService {
     static let shared = ReportingService()
     
     private let coreDataManager = CoreDataManager.shared
+    
+
+    
     private let paymentService = PaymentService.shared
     private let invoiceService = InvoiceService.shared
     private var context: NSManagedObjectContext {
@@ -266,6 +269,46 @@ class ReportingService {
         }
     }
     
+    // MARK: - Technician Performance
+    
+    /// Get technician performance metrics
+    func getTechnicianPerformance(from startDate: Date, to endDate: Date) -> [TechnicianStats] {
+        let tickets = fetchTickets(from: startDate, to: endDate)
+        // Only count completed tickets
+        let completedTickets = tickets.filter { $0.status == "completed" || $0.status == "picked_up" }
+        
+        var technicianStats: [UUID: (count: Int, totalRevenue: Decimal, totalTurnaround: Double)] = [:]
+        
+        for ticket in completedTickets {
+            guard let techId = ticket.technicianId else { continue }
+            
+            let revenue = ticket.actualCost?.decimalValue ?? 0
+            
+            var turnaround: Double = 0
+            if let checkedIn = ticket.checkedInAt, let completed = ticket.completedAt {
+                turnaround = completed.timeIntervalSince(checkedIn) / 3600
+            }
+            
+            let current = technicianStats[techId] ?? (count: 0, totalRevenue: 0, totalTurnaround: 0)
+            technicianStats[techId] = (
+                count: current.count + 1,
+                totalRevenue: current.totalRevenue + revenue,
+                totalTurnaround: current.totalTurnaround + turnaround
+            )
+        }
+        
+        return technicianStats.compactMap { (techId, stats) -> TechnicianStats? in
+            guard let employee = coreDataManager.fetchEmployee(id: techId) else { return nil }
+            
+            return TechnicianStats(
+                technician: employee,
+                ticketsClosed: stats.count,
+                revenueGenerated: stats.totalRevenue,
+                averageTurnaroundHours: stats.count > 0 ? stats.totalTurnaround / Double(stats.count) : 0
+            )
+        }.sorted { $0.ticketsClosed > $1.ticketsClosed }
+    }
+    
     // MARK: - Export Data
     
     /// Generate CSV report
@@ -409,4 +452,12 @@ enum ReportType: String, CaseIterable {
     case invoices = "Invoices Report"
     case payments = "Payments Report"
     case tickets = "Tickets Report"
+}
+
+struct TechnicianStats: Identifiable {
+    var id: UUID { technician.id ?? UUID() }
+    let technician: Employee
+    let ticketsClosed: Int
+    let revenueGenerated: Decimal
+    let averageTurnaroundHours: Double
 }

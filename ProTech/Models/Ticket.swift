@@ -11,6 +11,9 @@ extension Ticket {
     @NSManaged public var id: UUID?
     @NSManaged public var ticketNumber: Int32
     @NSManaged public var customerId: UUID?
+    @NSManaged public var technicianId: UUID? // Assigned technician
+    @NSManaged public var warrantyExpirationDate: Date?
+    @NSManaged public var warrantyDurationDays: Int16 // 0 means no warranty
     @NSManaged public var deviceType: String?
     @NSManaged public var deviceModel: String?
     @NSManaged public var issueDescription: String?
@@ -111,6 +114,9 @@ extension Ticket {
         let altContactNameAttribute = makeAttribute("alternateContactName", type: .stringAttributeType)
         let altContactNumberAttribute = makeAttribute("alternateContactNumber", type: .stringAttributeType)
         let additionalDetailsAttribute = makeAttribute("additionalRepairDetails", type: .stringAttributeType)
+        
+        let warrantyExpirationAttribute = makeAttribute("warrantyExpirationDate", type: .dateAttributeType)
+        let warrantyDurationAttribute = makeAttribute("warrantyDurationDays", type: .integer16AttributeType, optional: false, defaultValue: 0)
 
         let signatureAttribute = NSAttributeDescription()
         signatureAttribute.name = "checkInSignature"
@@ -152,7 +158,9 @@ extension Ticket {
             additionalDetailsAttribute,
             signatureAttribute,
             agreementDateAttribute,
-            cloudSyncStatusAttribute
+            cloudSyncStatusAttribute,
+            warrantyExpirationAttribute,
+            warrantyDurationAttribute
         ]
         
         let idIndex = NSFetchIndexDescription(name: "ticket_id_index", elements: [NSFetchIndexElementDescription(property: idAttribute, collationType: .binary)])

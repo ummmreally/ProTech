@@ -25,6 +25,10 @@ struct InventoryListView: View {
     @State private var isRefreshing = false
     @StateObject private var inventorySyncer = InventorySyncer()
     
+    var lowStockItems: [InventoryItem] {
+        items.filter { $0.quantity <= $0.minQuantity }
+    }
+    
     var filteredItems: [InventoryItem] {
         var filtered = Array(items)
         
@@ -37,14 +41,15 @@ struct InventoryListView: View {
             }
         }
         
+        
         // Category filter
         if selectedCategory != .all {
             filtered = filtered.filter { $0.inventoryCategory == selectedCategory }
         }
         
-        // Low stock filter
+        // Low stock filter logic (updated for reorderPoint)
         if showLowStockOnly {
-            filtered = filtered.filter { $0.isLowStock }
+            filtered = filtered.filter { $0.quantity <= $0.reorderPoint }
         }
         
         // Sort
@@ -79,8 +84,36 @@ struct InventoryListView: View {
                 
                 Spacer()
             }
-            .padding(.horizontal)
-            .padding(.top, AppTheme.Spacing.xl)
+            // Warning Header
+            if !lowStockItems.isEmpty {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.white)
+                    
+                    Text("\(lowStockItems.count) Items Low Stock")
+                        .bold()
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    Button {
+                        showLowStockOnly = true
+                    } label: {
+                        Text("View All")
+                            .font(AppTheme.Typography.caption)
+                            .bold()
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.white.opacity(0.2))
+                            .cornerRadius(4)
+                            .foregroundColor(.white)
+                    }
+                }
+                .padding()
+                .background(Color.orange)
+                .cornerRadius(AppTheme.cardCornerRadius)
+                .padding(.horizontal)
+            }
             
             // Search and Filters
             VStack(spacing: AppTheme.Spacing.md) {
@@ -207,6 +240,10 @@ struct InventoryListView: View {
                     exportInventory()
                 } label: {
                     Label("Export", systemImage: "square.and.arrow.up")
+                }
+                
+                NavigationLink(destination: SupplierListView()) {
+                    Label("Suppliers", systemImage: "shippingbox.fill")
                 }
                 
                 Button {

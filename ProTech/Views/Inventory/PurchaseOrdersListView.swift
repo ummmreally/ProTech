@@ -502,7 +502,7 @@ struct PurchaseOrderDetailView: View {
                                 .font(.headline)
                             
                             if let supplier = fetchSupplier() {
-                                if let contact = supplier.contactPerson {
+                                if let contact = supplier.contactName {
                                     HStack {
                                         Image(systemName: "person")
                                         Text(contact)

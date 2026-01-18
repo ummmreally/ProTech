@@ -48,12 +48,6 @@ struct SettingsView: View {
                     Label("Developer", systemImage: "hammer.fill")
                 }
                 .tag(SettingsTab.developer)
-            
-            APISettingsView()
-                .tabItem {
-                    Label("API", systemImage: "network")
-                }
-                .tag(SettingsTab.api)
         }
         .frame(minWidth: 600, minHeight: 500)
     }

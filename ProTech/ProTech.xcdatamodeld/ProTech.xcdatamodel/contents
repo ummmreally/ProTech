@@ -39,6 +39,16 @@
         <attribute name="role" optional="YES" attributeType="String"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
+    <entity name="ChecklistResponse" representedClassName="ChecklistResponse" syncable="YES">
+        <attribute name="category" optional="YES" attributeType="String"/>
+        <attribute name="checkedBy" optional="YES" attributeType="String"/>
+        <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="id" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+        <attribute name="isPassed" optional="NO" attributeType="Boolean" defaultValueString="NO" usesScalarValueType="YES"/>
+        <attribute name="item" optional="YES" attributeType="String"/>
+        <attribute name="notes" optional="YES" attributeType="String"/>
+        <attribute name="ticketId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
+    </entity>
     <entity name="Ticket" representedClassName="Ticket" syncable="YES">
         <attribute name="actualCost" optional="YES" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="additionalRepairDetails" optional="YES" attributeType="String"/>
@@ -71,6 +81,8 @@
         <attribute name="status" optional="YES" attributeType="String"/>
         <attribute name="ticketNumber" optional="YES" attributeType="Integer 32" defaultValueString="0" usesScalarValueType="YES"/>
         <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="warrantyDurationDays" optional="NO" attributeType="Integer 16" defaultValueString="0" usesScalarValueType="YES"/>
+        <attribute name="warrantyExpirationDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
     </entity>
     <entity name="Payment" representedClassName="Payment" syncable="YES">
         <attribute name="amount" optional="NO" attributeType="Decimal" defaultValueString="0.0"/>
@@ -107,16 +119,24 @@
         <attribute name="createdAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="customerId" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="declinedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="discountAmount" optional="NO" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="discountRuleId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="estimateNumber" optional="YES" attributeType="String"/>
-        <attribute name="expiresAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="issueDate" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="id" optional="NO" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="laborCost" optional="NO" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="notes" optional="YES" attributeType="String"/>
         <attribute name="partsCost" optional="NO" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="status" optional="YES" attributeType="String"/>
+        <attribute name="subtotal" optional="NO" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="taxAmount" optional="NO" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="taxRate" optional="NO" attributeType="Decimal" defaultValueString="0.0"/>
+        <attribute name="terms" optional="YES" attributeType="String"/>
         <attribute name="ticketId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
         <attribute name="total" optional="NO" attributeType="Decimal" defaultValueString="0.0"/>
         <attribute name="updatedAt" optional="NO" attributeType="Date" usesScalarValueType="NO"/>
+        <attribute name="validUntil" optional="YES" attributeType="Date" usesScalarValueType="NO" renamingIdentifier="expiresAt"/>
+        <attribute name="convertedToInvoiceId" optional="YES" attributeType="UUID" usesScalarValueType="NO"/>
     </entity>
     <entity name="Appointment" representedClassName="Appointment" syncable="YES">
         <attribute name="appointmentType" optional="YES" attributeType="String"/>
@@ -636,5 +656,6 @@
         <element name="NotificationRule" positionX="-5600" positionY="100" width="128" height="149"/>
         <element name="TimeOffRequest" positionX="-5750" positionY="100" width="128" height="179"/>
         <element name="EmployeeSchedule" positionX="-5900" positionY="100" width="128" height="164"/>
+        <element name="ChecklistResponse" positionX="-6050" positionY="100" width="128" height="164"/>
     </elements>
 </model>

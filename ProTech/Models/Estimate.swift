@@ -18,6 +18,8 @@ extension Estimate {
     @NSManaged public var subtotal: Decimal
     @NSManaged public var taxRate: Decimal
     @NSManaged public var taxAmount: Decimal
+    @NSManaged public var discountAmount: Decimal
+    @NSManaged public var discountRuleId: UUID?
     @NSManaged public var total: Decimal
     @NSManaged public var status: String? // "pending", "approved", "declined", "expired", "converted"
     @NSManaged public var notes: String?

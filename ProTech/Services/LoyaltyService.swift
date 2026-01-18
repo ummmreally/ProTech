@@ -125,6 +125,8 @@ class LoyaltyService {
         member.visitCount = 0
         member.totalSpent = 0.0
         member.enrolledAt = Date()
+        member.createdAt = Date() // Fix: Required field
+        member.updatedAt = Date() // Fix: Required field
         member.isActive = true
         
         // Assign to first tier

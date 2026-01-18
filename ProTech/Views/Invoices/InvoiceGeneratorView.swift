@@ -438,6 +438,7 @@ struct InvoiceGeneratorView: View {
         
         savedInvoice = newInvoice
         showingSaveAlert = true
+        NotificationManager.shared.post(title: "Invoice Saved", message: "Invoice #\(newInvoice.invoiceNumber ?? "") successfully saved", type: .success)
     }
     
     private func resetForm() {

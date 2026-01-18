@@ -152,7 +152,7 @@ class InventoryService {
     
     func createSupplier(
         name: String,
-        contactPerson: String? = nil,
+        contactName: String? = nil,
         email: String? = nil,
         phone: String? = nil
     ) -> Supplier {
@@ -161,13 +161,13 @@ class InventoryService {
         
         supplier.id = UUID()
         supplier.name = name
-        supplier.companyName = name
-        supplier.contactPerson = contactPerson
+
+        supplier.contactName = contactName
         supplier.email = email
         supplier.phone = phone
         supplier.isActive = true
-        supplier.rating = 0
-        supplier.leadTimeDays = 7
+
+
         supplier.createdAt = Date()
         supplier.updatedAt = Date()
         

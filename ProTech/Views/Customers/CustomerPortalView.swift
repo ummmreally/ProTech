@@ -19,6 +19,7 @@ struct CustomerPortalView: View {
     enum PortalTab {
         case overview
         case checkIn
+        case booking
         case repairs
         case invoices
         case estimates
@@ -35,6 +36,9 @@ struct CustomerPortalView: View {
                     
                     Label("Check In", systemImage: "hand.raised.fill")
                         .tag(PortalTab.checkIn)
+                    
+                    Label("Book Appointment", systemImage: "calendar.badge.plus")
+                        .tag(PortalTab.booking)
                     
                     Label("My Repairs", systemImage: "wrench.and.screwdriver.fill")
                         .tag(PortalTab.repairs)
@@ -71,6 +75,8 @@ struct CustomerPortalView: View {
                     PortalOverviewView(customer: customer, stats: stats)
                 case .checkIn:
                     PortalCheckInView(customer: customer)
+                case .booking:
+                    PortalBookingView(customer: customer)
                 case .repairs:
                     PortalRepairsView(customer: customer)
                 case .invoices:

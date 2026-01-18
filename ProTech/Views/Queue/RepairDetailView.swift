@@ -22,6 +22,8 @@ struct RepairDetailView: View {
     @State private var smsMessage = ""
     @State private var pendingStatusChange: String?
     
+    @State private var currentStage: RepairStage?
+    
     init(ticket: Ticket) {
         self.ticket = ticket
         if let customerId = ticket.customerId {
@@ -42,6 +44,14 @@ struct RepairDetailView: View {
         VStack(spacing: 0) {
             // Header with customer info
             headerSection
+            
+            // Visual Stage Tracker
+            RepairStageTracker(
+                currentStage: $currentStage,
+                ticketStatus: ticket.status ?? "waiting"
+            )
+            .padding(.bottom, 8)
+            .background(Color.gray.opacity(0.05))
             
             Divider()
             
@@ -111,6 +121,9 @@ struct RepairDetailView: View {
                     }
                 }
             }
+        }
+        .onAppear {
+            loadCurrentStage()
         }
         .sheet(isPresented: $showingSMSModal) {
             if let customer = customer.first {
@@ -593,6 +606,30 @@ struct RepairDetailView: View {
     
     private func getCurrentTechnicianName() -> String {
         return authService.currentEmployeeName
+    }
+    
+    private func loadCurrentStage() {
+        // Map ticket status to repair stage for the visual tracker
+        if let status = ticket.status {
+            switch status {
+            case "waiting":
+                currentStage = .diagnostic
+            case "diagnosing":
+                currentStage = .diagnostic
+            case "in_progress":
+                currentStage = .repair
+            case "testing":
+                currentStage = .testing
+            case "completed":
+                currentStage = .qualityCheck
+            case "picked_up":
+                currentStage = .cleanup
+            default:
+                currentStage = .diagnostic
+            }
+        } else {
+            currentStage = .diagnostic
+        }
     }
     
     private func printDymoLabel() {

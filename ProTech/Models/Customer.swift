@@ -20,6 +20,11 @@ extension Customer {
     @NSManaged public var updatedAt: Date?
     @NSManaged public var cloudSyncStatus: String?
     @NSManaged public var squareCustomerId: String?
+    
+    // Marketing
+    @NSManaged public var birthday: Date?
+    @NSManaged public var marketingOptInSMS: Bool
+    @NSManaged public var marketingOptInEmail: Bool
 }
 
 extension Customer: Identifiable {}
@@ -98,6 +103,25 @@ extension Customer {
 
         let updatedAtAttribute = NSAttributeDescription()
         updatedAtAttribute.name = "updatedAt"
+        updatedAtAttribute.attributeType = .dateAttributeType
+        updatedAtAttribute.isOptional = true
+        
+        let birthdayAttribute = NSAttributeDescription()
+        birthdayAttribute.name = "birthday"
+        birthdayAttribute.attributeType = .dateAttributeType
+        birthdayAttribute.isOptional = true
+        
+        let optInSMSAttribute = NSAttributeDescription()
+        optInSMSAttribute.name = "marketingOptInSMS"
+        optInSMSAttribute.attributeType = .booleanAttributeType
+        optInSMSAttribute.isOptional = false
+        optInSMSAttribute.defaultValue = true
+        
+        let optInEmailAttribute = NSAttributeDescription()
+        optInEmailAttribute.name = "marketingOptInEmail"
+        optInEmailAttribute.attributeType = .booleanAttributeType
+        optInEmailAttribute.isOptional = false
+        optInEmailAttribute.defaultValue = true
         updatedAtAttribute.attributeType = .dateAttributeType
         updatedAtAttribute.isOptional = true
 

@@ -242,15 +242,9 @@ struct LoyaltyEnrollmentView: View {
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
             .padding()
-            .background(
-                LinearGradient(
-                    colors: [.purple, .pink],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
+            .background(AppTheme.Colors.buttonPrimary)
             .cornerRadius(16)
-            .shadow(color: .purple.opacity(0.3), radius: 10, y: 5)
+            .shadow(color: Color.black.opacity(0.15), radius: 10, y: 4)
         }
         .buttonStyle(.plain)
     }

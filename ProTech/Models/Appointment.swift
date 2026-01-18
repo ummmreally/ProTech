@@ -26,6 +26,11 @@ extension Appointment {
     @NSManaged public var cancelledAt: Date?
     @NSManaged public var cancellationReason: String?
     @NSManaged public var cloudSyncStatus: String?
+    
+    // Scheduling & Sync
+    @NSManaged public var recurrenceRule: String? // e.g., "FREQ=WEEKLY;INTERVAL=1"
+    @NSManaged public var technicianId: UUID? // Assigned employee
+    @NSManaged public var googleCalendarEventId: String?
 }
 
 extension Appointment: Identifiable {}
@@ -176,7 +181,12 @@ extension Appointment {
             completedAtAttribute,
             cancelledAtAttribute,
             cancellationReasonAttribute,
-            makeAttribute("cloudSyncStatus", type: .stringAttributeType)
+            cancelledAtAttribute,
+            cancellationReasonAttribute,
+            makeAttribute("cloudSyncStatus", type: .stringAttributeType),
+            makeAttribute("recurrenceRule", type: .stringAttributeType),
+            makeAttribute("technicianId", type: .UUIDAttributeType),
+            makeAttribute("googleCalendarEventId", type: .stringAttributeType)
         ]
         
         let idIndex = NSFetchIndexDescription(name: "appointment_id_index", elements: [NSFetchIndexElementDescription(property: idAttribute, collationType: .binary)])

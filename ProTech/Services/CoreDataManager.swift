@@ -156,7 +156,17 @@ class CoreDataManager {
             do {
                 try context.save()
             } catch {
-                print("Error saving context: \(error.localizedDescription)")
+                let nsError = error as NSError
+                print("Error saving context: \(nsError.localizedDescription)")
+                
+                if let detailedErrors = nsError.userInfo[NSDetailedErrorsKey] as? [NSError] {
+                    for detailedError in detailedErrors {
+                        print("  Validation Error: \(detailedError.localizedDescription)")
+                        print("  UserInfo: \(detailedError.userInfo)")
+                    }
+                } else {
+                     print("  UserInfo: \(nsError.userInfo)")
+                }
             }
         }
     }
@@ -195,6 +205,14 @@ class CoreDataManager {
     
     func fetchCustomer(id: UUID) -> Customer? {
         let request: NSFetchRequest<Customer> = Customer.fetchRequest()
+        request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
+        request.fetchLimit = 1
+        
+        return try? viewContext.fetch(request).first
+    }
+    
+    func fetchEmployee(id: UUID) -> Employee? {
+        let request: NSFetchRequest<Employee> = Employee.fetchRequest()
         request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
         request.fetchLimit = 1
         

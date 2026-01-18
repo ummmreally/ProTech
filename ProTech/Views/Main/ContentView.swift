@@ -13,6 +13,11 @@ struct ContentView: View {
     @State private var selectedTab: Tab = .customers
     @State private var showingUpgrade = false
     @State private var showingTwilioTutorial = false
+    @State private var showingGlobalSearch = false
+    @StateObject private var notificationManager = NotificationManager.shared
+    @State private var showingNotifications = false
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = false
+    @State private var showingOnboarding = false
     
     var body: some View {
         ZStack {
@@ -28,12 +33,32 @@ struct ContentView: View {
                         .navigationSplitViewColumnWidth(min: 220, ideal: 240, max: 280)
                         .toolbar {
                             ToolbarItem(placement: .automatic) {
-                                if !subscriptionManager.isProSubscriber {
+                                HStack(spacing: 16) {
+                                    // Notification Bell
                                     Button {
-                                        showingUpgrade = true
+                                        showingNotifications.toggle()
                                     } label: {
-                                        Label("Upgrade to Pro", systemImage: "star.fill")
-                                            .foregroundColor(.orange)
+                                        ZStack(alignment: .topTrailing) {
+                                            Image(systemName: "bell")
+                                            if notificationManager.unreadCount > 0 {
+                                                Circle()
+                                                    .fill(Color.red)
+                                                    .frame(width: 8, height: 8)
+                                                    .offset(x: 2, y: -2)
+                                            }
+                                        }
+                                    }
+                                    .popover(isPresented: $showingNotifications) {
+                                        NotificationCenterView()
+                                    }
+                                    
+                                    if !subscriptionManager.isProSubscriber {
+                                        Button {
+                                            showingUpgrade = true
+                                        } label: {
+                                            Label("Upgrade to Pro", systemImage: "star.fill")
+                                                .foregroundColor(.orange)
+                                        }
                                     }
                                 }
                             }
@@ -43,6 +68,16 @@ struct ContentView: View {
                         .frame(minWidth: 600)
                 }
                 .navigationSplitViewStyle(.balanced)
+                .overlay(alignment: .top) {
+                    if let toast = notificationManager.currentToast {
+                        ToastView(notification: toast) {
+                            withAnimation {
+                                notificationManager.currentToast = nil
+                            }
+                        }
+                        .padding(.top, 20)
+                    }
+                }
                 .sheet(isPresented: $showingUpgrade) {
                     SubscriptionView()
                         .frame(width: 600, height: 700)
@@ -71,10 +106,31 @@ struct ContentView: View {
                 .onReceive(NotificationCenter.default.publisher(for: .navigateToInventory)) { _ in
                     selectedTab = .inventory
                 }
+                .sheet(isPresented: $showingGlobalSearch) {
+                    GlobalSearchView(isPresented: $showingGlobalSearch)
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .openGlobalSearch)) { _ in
+                    showingGlobalSearch = true
+                }
+                .sheet(isPresented: $showingOnboarding) {
+                    OnboardingView(isPresented: $showingOnboarding)
+                }
+                .onAppear {
+                    if !hasCompletedOnboarding {
+                        showingOnboarding = true
+                    }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .navigateToDashboard)) { _ in selectedTab = .dashboard }
+                .onReceive(NotificationCenter.default.publisher(for: .navigateToRepairs)) { _ in selectedTab = .repairs }
+                .onReceive(NotificationCenter.default.publisher(for: .navigateToCustomers)) { _ in selectedTab = .customers }
+                .onReceive(NotificationCenter.default.publisher(for: .navigateToInvoices)) { _ in selectedTab = .invoices }
+                .onReceive(NotificationCenter.default.publisher(for: .navigateToPOS)) { _ in selectedTab = .pointOfSale }
             }
         }
     }
 }
+
+
 
 // MARK: - Tab Enum
 
@@ -169,7 +225,7 @@ struct DetailView: View {
                 case .loyalty:
                     LoyaltyManagementView()
                 case .customerPortal:
-                    CustomerPortalAccessView()
+                    CustomerPortalLoginView()
                 case .forms:
                     FormsListView()
                 case .sms:

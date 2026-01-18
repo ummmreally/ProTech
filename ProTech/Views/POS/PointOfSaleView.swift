@@ -510,6 +510,16 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
                             .font(.headline)
                             .foregroundColor(.primary)
                         
+                        // Cash Drawer Access
+                        Button {
+                            CashDrawerService.shared.openDrawer(startingBalance: 0, employeeId: UUID()) // Using UUID() for now as auth provider is not active in this context
+                        } label: {
+                            Label("Open Drawer", systemImage: "archivebox")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                        }
+                        .buttonStyle(.plain)
+                        
                         // Square Terminal Device Selector
                         if selectedPaymentMode == .card && !squareDevices.isEmpty {
                             Picker("Square Terminal", selection: $selectedDeviceId) {
@@ -575,6 +585,14 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
                                 isSelected: selectedPaymentMode == .upi,
                                 accentColor: AppTheme.Colors.success
                             ) { selectedPaymentMode = .upi }
+                            
+                            PaymentModeCard(
+                                icon: "arrow.triangle.branch",
+                                title: "Split",
+                                description: "Card + Cash",
+                                isSelected: selectedPaymentMode == .split,
+                                accentColor: AppTheme.Colors.primary
+                            ) { selectedPaymentMode = .split }
                         }
                     }
                 }
@@ -883,6 +901,10 @@ private struct SquareSalesCreateCashPaymentResponse: Decodable {
             processSquareCashPayment()
         case .upi:
             // Process locally
+            processLocalPayment()
+        case .split:
+            // TODO: Implement split payment logic
+            // For now, treat as local/other
             processLocalPayment()
         }
     }
@@ -1349,6 +1371,7 @@ enum PaymentMode {
     case card
     case cash
     case upi
+    case split
 }
 
 class POSCart: ObservableObject {

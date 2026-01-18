@@ -307,6 +307,40 @@ struct RepairProgressView: View {
         record.notes = stageNotes[stage] ?? record.notes
         record.lastUpdated = Date()
         saveProgress()
+        
+        // AUTOMATION TRIGGERS
+        if completedStages.contains(stage) {
+            // Stage Completed Logic
+            switch stage {
+            case .diagnostic:
+                // Ensure ticket is technically "In Progress" if diagnostics are done
+                if ticket.status == "waiting" {
+                    updateStatus("in_progress")
+                }
+                
+            case .qualityCheck, .cleanup:
+                // If Quality Check or Cleanup is done, prompt for Ready for Pickup
+                if !completedStages.contains(.cleanup) || stage == .cleanup {
+                     // Check if Customer is setup for SMS
+                    if TwilioService.shared.isConfigured && customer?.phone != nil {
+                        prepareReadyForPickupSMS()
+                    } else if ticket.status != "completed" {
+                         // Auto-complete if no SMS
+                        updateStatus("completed")
+                    }
+                }
+            default:
+                break
+            }
+        } else {
+           // Stage Un-checked (reverted)
+           // Potentially revert status but usually safer to leave as is manually
+        }
+        
+        // Auto-start "In Progress" if any stage is clicked
+        if ticket.status == "waiting" {
+            updateStatus("in_progress")
+        }
     }
     
     private func deletePart(_ part: RepairPart) {

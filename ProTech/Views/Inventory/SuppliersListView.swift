@@ -22,7 +22,7 @@ struct SuppliersListView: View {
         }
         return suppliers.filter {
             ($0.name?.localizedCaseInsensitiveContains(searchText) ?? false) ||
-            ($0.companyName?.localizedCaseInsensitiveContains(searchText) ?? false)
+            ($0.contactName?.localizedCaseInsensitiveContains(searchText) ?? false)
         }
     }
     
@@ -103,7 +103,7 @@ struct SupplierRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(supplier.name ?? "Unknown")
                     .font(.headline)
-                if let contact = supplier.contactPerson {
+                if let contact = supplier.contactName {
                     Text(contact)
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -152,7 +152,7 @@ struct AddSupplierView: View {
                     Button("Add") {
                         _ = InventoryService.shared.createSupplier(
                             name: name,
-                            contactPerson: contactPerson.isEmpty ? nil : contactPerson,
+                            contactName: contactPerson.isEmpty ? nil : contactPerson,
                             email: email.isEmpty ? nil : email,
                             phone: phone.isEmpty ? nil : phone
                         )
@@ -175,7 +175,7 @@ struct SupplierDetailView: View {
             Form {
                 Section("Information") {
                     LabeledContent("Name", value: supplier.name ?? "—")
-                    if let contact = supplier.contactPerson {
+                    if let contact = supplier.contactName {
                         LabeledContent("Contact", value: contact)
                     }
                     if let email = supplier.email {

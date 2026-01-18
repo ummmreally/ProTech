@@ -109,11 +109,29 @@ struct AddCustomerView: View {
                 }
             }
             
+            
+            // Sync to Supabase in background
+            Task { @MainActor in
+                do {
+                    let syncer = CustomerSyncer()
+                    try await syncer.upload(customer)
+                    customer.cloudSyncStatus = "synced"
+                    try? viewContext.save()
+                } catch {
+                    customer.cloudSyncStatus = "failed"
+                    try? viewContext.save()
+                    print("⚠️ Customer sync failed: \(error.localizedDescription)")
+                    // Don't block user flow - will retry later
+                }
+            }
+            
             onSave?(customer)
+            NotificationManager.shared.post(title: "Customer Added", message: "\(customer.firstName ?? "") \(customer.lastName ?? "") added successfully.", type: .success)
             dismiss()
         } catch {
             viewContext.delete(customer)
             errorMessage = error.localizedDescription
+            NotificationManager.shared.post(title: "Error Saving Customer", message: error.localizedDescription, type: .error)
             showError = true
         }
     }

@@ -18,6 +18,13 @@ struct DashboardView: View {
     @State private var portalAlert: PortalAlert?
     @State private var refreshToggle = false
     @State private var lastRefresh = Date()
+    @State private var showingTour = false
+    
+    private let dashboardTourSteps = [
+        HelpStep(title: "Dashboard Overview", description: "This is your command center. See key metrics, alerts, and recent activity at a glance.", targetFrame: nil),
+        HelpStep(title: "Quick Actions", description: "Use these buttons to quickly create tickets, customers, or payments without navigating away.", targetFrame: nil),
+        HelpStep(title: "Refresh Data", description: "Click the refresh button to update the statistics manually.", targetFrame: nil)
+    ]
     
     struct PortalAlert: Identifiable {
         let id = UUID()
@@ -59,7 +66,18 @@ struct DashboardView: View {
                     }
                 }
                 .padding(.horizontal)
+                .padding(.horizontal)
                 .padding(.top)
+                .overlay(alignment: .topTrailing) {
+                    HStack {
+                        Button("Tour") {
+                            showingTour = true
+                        }
+                        .buttonStyle(.bordered)
+                        .padding(.trailing, 100) // Offset from refresh
+                    }
+                    .padding()
+                }
                 
                 // Subscription Status
                 if !subscriptionManager.isProSubscriber {
@@ -68,81 +86,44 @@ struct DashboardView: View {
                 
                 // ENHANCED WIDGETS
                 
-                // Financial Overview Widget
-                FinancialOverviewWidget()
-                    .id(refreshToggle)
-                    .padding(.horizontal)
+                // DASHBOARD WIDGETS
                 
-                // Two Column Layout for Main Widgets
-                HStack(alignment: .top, spacing: 16) {
-                    // Left Column
-                    VStack(spacing: 16) {
+                VStack(spacing: 20) {
+                    // 1. Quick Stats (Top)
+                    QuickStatsWidget()
+                        .id(refreshToggle)
+                    
+                    // 2. Alerts
+                    AlertsWidget()
+                        .id(refreshToggle)
+                    
+                    // 3. Status & Operations (Side by Side)
+                    HStack(alignment: .top, spacing: 16) {
                         OperationalStatusWidget()
                             .id(refreshToggle)
                         
-                        TodayScheduleWidget()
+                        FinancialOverviewWidget()
                             .id(refreshToggle)
                     }
                     
-                    // Right Column
-                    VStack(spacing: 16) {
-                        AlertsWidget()
-                            .id(refreshToggle)
-                        
-                        RecentActivityWidget()
-                            .id(refreshToggle)
-                    }
+                    // 4. Schedule
+                    TodayScheduleWidget()
+                        .id(refreshToggle)
+                    
+                    // 5. Recent Activity
+                    RecentActivityWidget()
+                        .id(refreshToggle)
                 }
                 .padding(.horizontal)
-                
-                // Quick Stats Grid
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Quick Stats")
-                        .font(.title2)
-                        .bold()
-                        .padding(.horizontal)
-                    
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: AppTheme.Spacing.md) {
-                        DashboardStatCard(
-                            title: "Total Customers",
-                            value: "\(totalCustomers)",
-                            icon: "person.3.fill",
-                            color: .blue
-                        )
-                        
-                        DashboardStatCard(
-                            title: "Added This Month",
-                            value: "\(customersThisMonth)",
-                            icon: "person.badge.plus",
-                            color: .green
-                        )
-                        
-                        if subscriptionManager.isProSubscriber {
-                            DashboardStatCard(
-                                title: "Forms Created",
-                                value: "0",
-                                icon: "doc.text.fill",
-                                color: .purple
-                            )
-                            
-                            DashboardStatCard(
-                                title: "SMS Sent",
-                                value: "0",
-                                icon: "message.fill",
-                                color: .orange
-                            )
-                        }
-                    }
-                    .padding(.horizontal)
-                }
                 
                 // Enhanced Quick Actions
                 VStack(alignment: .leading, spacing: 12) {
                     Text("Quick Actions")
                         .font(.title2)
                         .bold()
+                        .padding(.horizontal)
                     
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: AppTheme.Spacing.sm) {
+                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: AppTheme.Spacing.sm) {
                         QuickActionButton(
                             title: "Check In Repair",
                             icon: "wrench.and.screwdriver.fill",
@@ -230,6 +211,11 @@ struct DashboardView: View {
         .onAppear {
             loadStatistics()
             refreshDashboard()
+        }
+        .overlay {
+            if showingTour {
+                HelpOverlay(isPresented: $showingTour, steps: dashboardTourSteps)
+            }
         }
     }
     

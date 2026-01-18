@@ -134,15 +134,42 @@ class CustomerPortalService: ObservableObject {
     }
     
     /// Get customer by phone (for portal login)
+    /// Get customer by phone (for portal login)
     func findCustomer(byPhone phone: String) -> Customer? {
+        // 1. Try exact match first
         let request: NSFetchRequest<Customer> = Customer.fetchRequest()
         request.predicate = NSPredicate(format: "phone == %@", phone)
         request.fetchLimit = 1
         
+        if let exactMatch = try? viewContext.fetch(request).first {
+            return exactMatch
+        }
+        
+        // 2. Try normalized match (strip non-digits)
+        // This is slower but necessary if formats differ (e.g. (555) 123-4567 vs +1 555-123-4567)
+        let normalizedInput = phone.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+        if normalizedInput.isEmpty { return nil }
+        let inputLast10 = String(normalizedInput.suffix(10))
+        
+        // Fetch all customers with a phone number (optimized to fetch minimal properties if possible, but Customer is small enough)
+        let allRequest: NSFetchRequest<Customer> = Customer.fetchRequest()
+        allRequest.predicate = NSPredicate(format: "phone != nil AND phone != ''")
+        
         do {
-            return try viewContext.fetch(request).first
+            let candidates = try viewContext.fetch(allRequest)
+            
+            // Find first match where normalized phone equals input or last 10 digits match
+            return candidates.first { customer in
+                guard let customerPhone = customer.phone else { return false }
+                let normalizedCustomerPhone = customerPhone.components(separatedBy: CharacterSet.decimalDigits.inverted).joined()
+                if normalizedCustomerPhone == normalizedInput {
+                    return true
+                }
+                let customerLast10 = String(normalizedCustomerPhone.suffix(10))
+                return !inputLast10.isEmpty && inputLast10 == customerLast10
+            }
         } catch {
-            print("Error finding customer: \(error)")
+            print("Error parsing customers for phone match: \(error)")
             return nil
         }
     }
@@ -196,6 +223,64 @@ class CustomerPortalService: ObservableObject {
             recentActivity: recentActivity,
             engagement: engagement
         )
+    }
+    
+    // MARK: - Booking Logic
+    
+    /// Get available slots for a given date
+    func getAvailableSlots(for date: Date) async -> [Date] {
+        // In a real app, this would check against existing appointments in Core Data or an API
+        // For MVP, we'll generate slots from 9 AM to 5 PM
+        
+        let calendar = Calendar.current
+        var slots: [Date] = []
+        
+        // Start at 9:00 AM
+        guard let startOfDay = calendar.date(bySettingHour: 9, minute: 0, second: 0, of: date) else { return [] }
+        
+        // End at 5:00 PM
+        guard let endOfDay = calendar.date(bySettingHour: 17, minute: 0, second: 0, of: date) else { return [] }
+        
+        var currentSlot = startOfDay
+        
+        while currentSlot < endOfDay {
+            // Check if slot is in the past (for today)
+            if currentSlot > Date() {
+                slots.append(currentSlot)
+            }
+            
+            // Add 30 mins
+            currentSlot = calendar.date(byAdding: .minute, value: 30, to: currentSlot) ?? endOfDay
+        }
+        
+        return slots
+    }
+    
+    /// Book a new appointment
+    func bookAppointment(customer: Customer, date: Date, serviceType: String, duration: TimeInterval, notes: String?) async throws {
+        let context = CoreDataManager.shared.viewContext
+        
+        await context.perform {
+            let appointment = Appointment(context: context)
+            appointment.id = UUID()
+            appointment.customerId = customer.id
+            appointment.scheduledDate = date
+            appointment.duration = Int16(duration / 60) // Store as minutes
+            appointment.status = "scheduled"
+            appointment.notes = notes
+
+            // Let's check Appointment model. If no 'type' field, we append to notes.
+            if let existingNotes = notes {
+                appointment.notes = "\(serviceType) - \(existingNotes)"
+            } else {
+                appointment.notes = serviceType
+            }
+            
+            appointment.createdAt = Date()
+            appointment.updatedAt = Date()
+            
+            try? context.save()
+        }
     }
 }
 

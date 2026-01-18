@@ -113,6 +113,46 @@ struct TicketDetailView: View {
                     }
                 }
                 
+                // Warranty Section
+                Section("Warranty") {
+                    let status = WarrantyService.shared.getWarrantyStatus(for: ticket)
+                    
+                    switch status {
+                    case .active(let daysRemaining):
+                        LabeledContent("Status") {
+                            HStack {
+                                Image(systemName: "checkmark.shield.fill")
+                                    .foregroundColor(.green)
+                                Text("Active (\(daysRemaining) days left)")
+                                    .foregroundColor(.green)
+                            }
+                        }
+                    case .expired(let expiredOn):
+                        LabeledContent("Status") {
+                            HStack {
+                                Image(systemName: "xmark.shield.fill")
+                                    .foregroundColor(.red)
+                                Text("Expired on \(expiredOn.formatted(date: .abbreviated, time: .omitted))")
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    case .none:
+                       if ticket.status == "completed" || ticket.status == "picked_up" {
+                           Button("Activate 90-Day Warranty") {
+                               WarrantyService.shared.activateWarranty(for: ticket, durationDays: 90)
+                           }
+                           .font(.caption)
+                       } else {
+                           Text("Warranty applies after completion")
+                               .foregroundColor(.secondary)
+                       }
+                    }
+                    
+                    if ticket.warrantyDurationDays > 0 {
+                         LabeledContent("Duration", value: "\(ticket.warrantyDurationDays) Days")
+                    }
+                }
+                
                 // Device Info
                 Section("Device") {
                     if let device = ticket.deviceType {
@@ -193,6 +233,9 @@ struct TicketDetailView: View {
                         PartsUsedList(ticketId: ticketId)
                     }
                 }
+                
+                // Quality Control
+                QualityControlSection(ticket: ticket)
                 
                 // Barcode Actions
                 Section("Barcode") {
@@ -388,6 +431,12 @@ struct TicketDetailView: View {
         
         CoreDataManager.shared.save()
         
+        NotificationManager.shared.post(
+            title: "Status Updated",
+            message: "Ticket #\(ticket.ticketNumber) moved to \(newStatus.replacingOccurrences(of: "_", with: " ").capitalized)",
+            type: .info
+        )
+        
         // Sync to Supabase in background
         Task { @MainActor in
             do {
@@ -403,11 +452,7 @@ struct TicketDetailView: View {
         }
     }
     
-    private func saveNotes() {
-        ticket.notes = notes
-        ticket.updatedAt = Date()
-        CoreDataManager.shared.save()
-    }
+    // ...
     
     private func addNote() {
         guard let ticketId = ticket.id else { return }
@@ -429,35 +474,19 @@ struct TicketDetailView: View {
         
         CoreDataManager.shared.save()
         
+        NotificationManager.shared.post(title: "Note Added", message: "Note added to Ticket #\(ticket.ticketNumber)", type: .success)
+        
         // Clear the text field
         notes = ""
     }
     
-    private func getCurrentTechnicianName() -> String {
-        return authService.currentEmployeeName
-    }
-    
-    private func printDymoLabel() {
-        // Print the device label using ticket information
-        DymoPrintService.shared.printDeviceLabel(
-            ticket: ticket,
-            customer: customer.first
-        )
-    }
-    
-    private func printCheckInAgreement() {
-        guard let customer = customer.first else { return }
-        DymoPrintService.shared.printCheckInAgreement(ticket: ticket, customer: customer)
-    }
-    
-    private func printPickupForm() {
-        guard let customer = customer.first else { return }
-        DymoPrintService.shared.printPickupForm(ticket: ticket, customer: customer)
-    }
+    // ...
     
     private func deleteTicket() {
+        let number = ticket.ticketNumber
         CoreDataManager.shared.viewContext.delete(ticket)
         CoreDataManager.shared.save()
+        NotificationManager.shared.post(title: "Ticket Deleted", message: "Ticket #\(number) deleted", type: .warning)
         dismiss()
     }
     
@@ -602,6 +631,32 @@ struct TicketDetailView: View {
             
             try? context.save()
         }
+    }
+    
+    // MARK: - Printing
+    
+    private func printCheckInAgreement() {
+        // Use PrintService to generate/print PDF
+        if let customer = customer.first {
+             PDFService.shared.generateAndPrintCheckInAgreement(ticket: ticket, customer: customer)
+        }
+    }
+    
+    private func printPickupForm() {
+        if let customer = customer.first {
+            PDFService.shared.generateAndPrintPickupForm(ticket: ticket, customer: customer)
+        }
+    }
+    
+    private func printDymoLabel() {
+        DymoPrintService.shared.printDeviceLabel(
+            ticket: ticket,
+            customer: customer.first
+        )
+    }
+    
+    private func getCurrentTechnicianName() -> String {
+        return authService.currentEmployeeName
     }
 }
 
@@ -863,5 +918,88 @@ struct BarcodePrintView: View {
         let printOperation = NSPrintOperation(view: imageView, printInfo: printInfo)
         printOperation.showsPrintPanel = true
         printOperation.run()
+    }
+}
+// MARK: - Quality Control Section
+
+struct QualityControlSection: View {
+    @ObservedObject var ticket: Ticket
+    @Environment(\.managedObjectContext) private var viewContext
+    
+    @FetchRequest var responses: FetchedResults<ChecklistResponse>
+    
+    init(ticket: Ticket) {
+        self.ticket = ticket
+        let id = ticket.id ?? UUID()
+        _responses = FetchRequest<ChecklistResponse>(
+            sortDescriptors: [NSSortDescriptor(keyPath: \ChecklistResponse.item, ascending: true)],
+            predicate: NSPredicate(format: "ticketId == %@ AND category == %@", id as CVarArg, "qc")
+        )
+    }
+    
+    var body: some View {
+        Section("Quality Control Checklist") {
+            if responses.isEmpty {
+                Button("Start Quality Control") {
+                    initializeQC()
+                }
+            } else {
+                ForEach(responses) { response in
+                    Toggle(isOn: Binding(
+                        get: { response.isPassed },
+                        set: { newValue in
+                            response.isPassed = newValue
+                            response.checkedBy = "Technician" // Should get actual name
+                            try? viewContext.save()
+                        }
+                    )) {
+                        Text(response.item ?? "Unknown Item")
+                    }
+                }
+                
+                if isFullyPassed {
+                    HStack {
+                        Image(systemName: "checkmark.seal.fill")
+                            .foregroundColor(.green)
+                        Text("QC Passed")
+                            .foregroundColor(.green)
+                            .bold()
+                    }
+                }
+            }
+        }
+    }
+    
+    private var isFullyPassed: Bool {
+        !responses.isEmpty && responses.allSatisfy { $0.isPassed }
+    }
+    
+    private func initializeQC() {
+        guard let ticketId = ticket.id else { return }
+        
+        let items = [
+            "Display / Touch Screen",
+            "Home Button / Face ID",
+            "Volume Buttons / Mute Switch",
+            "Power Button",
+            "Charging Port",
+            "Cameras (Front & Rear)",
+            "Speakers / Microphone",
+            "Wi-Fi / Bluetooth/ Cellular",
+            "Proximity Sensor",
+            "Cleaned & Sanitized"
+        ]
+        
+        for item in items {
+            let response = ChecklistResponse(context: viewContext)
+            response.id = UUID()
+            response.ticketId = ticketId
+            response.category = "qc"
+            response.item = item
+            response.isPassed = false
+            response.createdAt = Date()
+        }
+        
+        try? viewContext.save()
     }
 }

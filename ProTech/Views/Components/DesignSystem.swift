@@ -58,6 +58,14 @@ struct AppTheme {
         // Theme-aware backgrounds
         static let cardBackground = Color(nsColor: .controlBackgroundColor)
         static let groupedBackground = Color(nsColor: .windowBackgroundColor)
+
+        // Button Colors (Professional solid tones)
+        static let buttonPrimary = Color(hex: "1f2937")
+        static let buttonSecondary = Color(hex: "4b5563")
+        static let buttonSuccess = Color(hex: "15803d")
+        static let buttonWarning = Color(hex: "b45309")
+        static let buttonDestructive = Color(hex: "b91c1c")
+        static let buttonDisabled = Color(hex: "9ca3af")
         
         // Gradients - Primary
         static let primaryGradient = LinearGradient(
@@ -196,15 +204,15 @@ struct PremiumButtonStyle: ButtonStyle {
         Group {
             switch variant {
             case .primary:
-                AppTheme.Colors.primaryGradient
+                AppTheme.Colors.buttonPrimary
             case .secondary:
-                Color.gray.opacity(0.5)
+                AppTheme.Colors.buttonSecondary
             case .destructive:
-                AppTheme.Colors.errorGradient
+                AppTheme.Colors.buttonDestructive
             case .success:
-                AppTheme.Colors.successGradient
+                AppTheme.Colors.buttonSuccess
             case .warning:
-                LinearGradient(colors: [.orange, .yellow], startPoint: .topLeading, endPoint: .bottomTrailing)
+                AppTheme.Colors.buttonWarning
             }
         }
         .opacity(isPressed ? 0.8 : 1.0)

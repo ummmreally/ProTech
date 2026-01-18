@@ -18,7 +18,10 @@ extension InventoryItem {
     
     // Stock
     @NSManaged public var quantity: Int32
-    @NSManaged public var minQuantity: Int32
+    @NSManaged public var minQuantity: Int32 // Legacy field, migrate to reorderPoint logic if needed, or keep as alias
+    @NSManaged public var reorderPoint: Int32
+    @NSManaged public var location: String? // Shelf/Bin
+    @NSManaged public var supplierId: UUID?
     
     // Pricing - Core Data uses Decimal type
     @NSManaged public var cost: NSDecimalNumber

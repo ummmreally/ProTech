@@ -47,7 +47,7 @@ class TicketSyncer: ObservableObject {
             shopId: shopId,
             customerId: ticket.customerId ?? UUID(),
             ticketNumber: Int(ticket.ticketNumber),
-            deviceType: ticket.deviceType,
+            deviceType: DeviceType.from(ticket.deviceType).rawValue,
             deviceModel: ticket.deviceModel,
             deviceSerialNumber: ticket.deviceSerialNumber,
             devicePasscode: ticket.devicePasscode,
@@ -285,7 +285,7 @@ class TicketSyncer: ObservableObject {
                 shopId: shopId,
                 customerId: customerId,
                 ticketNumber: Int(ticket.ticketNumber),
-                deviceType: ticket.deviceType,
+                deviceType: DeviceType.from(ticket.deviceType).rawValue,
                 deviceModel: ticket.deviceModel,
                 deviceSerialNumber: ticket.deviceSerialNumber,
                 devicePasscode: ticket.devicePasscode,
@@ -358,8 +358,8 @@ class TicketSyncer: ObservableObject {
             try await supabase.client.storage
                 .from(SupabaseConfig.signaturesBucket)
                 .upload(
-                    path: fileName,
-                    file: data,
+                    fileName,
+                    data: data,
                     options: FileOptions(
                         cacheControl: "3600",
                         contentType: "image/png",

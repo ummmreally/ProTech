@@ -246,6 +246,9 @@ struct ReportsView: View {
             
             // Ticket Status
             ticketStatusBreakdown
+            
+            // Technician Performance
+            technicianLeaderboardView
         }
     }
     
@@ -342,6 +345,53 @@ struct ReportsView: View {
                         Text("\(item.count)")
                             .font(.subheadline)
                             .fontWeight(.semibold)
+                    }
+                    .padding(.vertical, 4)
+                }
+            }
+        }
+        .padding()
+        .background(Color.gray.opacity(0.05))
+        .cornerRadius(8)
+    }
+    
+    private var technicianLeaderboardView: some View {
+        let stats = reportingService.getTechnicianPerformance(from: dateRange.start, to: dateRange.end)
+        
+        return VStack(alignment: .leading, spacing: 12) {
+            Text("Technician Leaderboard")
+                .font(.headline)
+            
+            if stats.isEmpty {
+                Text("No technician data available")
+                    .foregroundColor(.secondary)
+            } else {
+                ForEach(Array(stats.enumerated()), id: \.element.id) { index, item in
+                    HStack {
+                        Text("#\(index + 1)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .frame(width: 30)
+                        
+                        VStack(alignment: .leading) {
+                            Text(item.technician.fullName)
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                            Text("\(Int(item.averageTurnaroundHours))h avg turnaround")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        VStack(alignment: .trailing) {
+                            Text("\(item.ticketsClosed) tickets")
+                                .font(.subheadline)
+                                .fontWeight(.semibold)
+                            Text(formatCurrency(item.revenueGenerated))
+                                .font(.caption)
+                                .foregroundColor(.green)
+                        }
                     }
                     .padding(.vertical, 4)
                 }
